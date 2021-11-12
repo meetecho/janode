@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>EchoTest Socket.IO Janode</title>
+  <style></style>
+</head>
+
+<body>
+  <div>
+    <button id="button" type="button" style="height:50px;width:100px">START/STOP</button>
+    <br><br>
+    <div>
+      <div>LOCAL =>
+        <video id="localVideo" width=320 height=240 autoplay muted="muted" style="display:block"></video>
+      </div>
+      <br>
+      <div>REMOTE =>
+        <video id="remoteVideo" width=320 height=240 autoplay style="display:block"></video>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="./echotest-client.js"></script>
+</body>
+
+</html>

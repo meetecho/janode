@@ -1,0 +1,99 @@
+'use strict';
+
+const Janode = require('../../../src/janode.js');
+const { janode: janodeConfig } = require('./config.js');
+
+const { Logger } = Janode;
+const LOG_NS = `[${require('path').basename(__filename)}]`;
+
+const closeAfterSecs = 120;
+
+(async function startConnection() {
+
+  let connection = null;
+
+  try {
+    // Janode is a connection factory with Promise API
+    connection = await Janode.connect(janodeConfig, 'janus_1_api');
+
+    Logger.info(`${LOG_NS} ***** CONNECTION CREATED *****`);
+
+    // close connection after X seconds
+    Logger.info(`${LOG_NS} auto-destroying janus connection in ${closeAfterSecs} seconds`);
+    setTimeout(() => connection.close().catch(() => { }).then(() => Logger.info(`${LOG_NS} janus connection CLOSED`)), closeAfterSecs * 1000);
+
+    // connection closing (Sessions -> WS closed -> connection closed)
+    connection.on(Janode.EVENT.CONNECTION_CLOSED, () => Logger.info(`${LOG_NS} ***** CONNECTION CLOSED *****`));
+
+    // connection error event (i.e. WS error, unexpected WS close)
+    connection.on(Janode.EVENT.CONNECTION_ERROR, ({ message }) => {
+      Logger.error(`${LOG_NS} xxxxx CONNECTION ERROR xxxxx (${message})`);
+    });
+
+    // Connection API: Janus GET INFO
+    const info = await connection.getInfo();
+    Logger.info(`${LOG_NS} ***** GET INFO REQ OK ***** server = ${info.name} ${info.version_string}`);
+
+    // Connection API: Janus CREATE SESSION
+    const session = await connection.create();
+
+    Logger.info(`${LOG_NS} ***** SESSION CREATED *****`);
+
+    session.on(Janode.EVENT.SESSION_DESTROYED, () => Logger.info(`${LOG_NS} ***** SESSION DESTROYED *****`));
+
+    // Session API: Janus ATTACH PLUGIN
+    // returns the raw plugin handle
+    const handle = await session.attach({ id: 'janus.plugin.echotest' });
+
+    Logger.info(`${LOG_NS} ***** HANDLE ATTACHED *****`);
+
+    // generic handle events
+    handle.on(Janode.EVENT.HANDLE_WEBRTCUP, () => Logger.info(`${LOG_NS} ***** HANDLE WEBRTCUP *****`));
+    handle.on(Janode.EVENT.HANDLE_MEDIA, data => Logger.info(`${LOG_NS} ***** HANDLE MEDIA ***** ${JSON.stringify(data)}`));
+    handle.on(Janode.EVENT.HANDLE_HANGUP, data => Logger.info(`${LOG_NS} ***** HANDLE HANGUP ***** ${JSON.stringify(data)}`));
+    handle.on(Janode.EVENT.HANDLE_DETACHED, () => Logger.info(`${LOG_NS} ***** HANDLE DETACHED *****`));
+
+  } catch ({ message }) {
+    Logger.error(`${LOG_NS} xxxxx JANODE SETUP ERROR xxxxx (${message})`);
+    if (connection) connection.close().catch(() => { });
+  }
+
+})();
+
+(async function startAdmin() {
+
+  let admin = null;
+  let task = null;
+
+  try {
+    admin = await Janode.connect(janodeConfig, 'janus_1_admin');
+
+    Logger.info(`${LOG_NS} ***** ADMIN CONNECTION CREATED *****`);
+
+    task = setInterval(async () => {
+      try {
+        const data = await admin.listSessions();
+        Logger.info(`${LOG_NS} ***** ADMIN LIST SESSIONS ***** ${JSON.stringify(data)}`);
+      } catch (error) {
+        Logger.error(`${LOG_NS} ***** LIST SESSIONS ERROR ***** ${error.message}`);
+      }
+    }, 5 * 1000);
+
+    // close connection after X seconds
+    Logger.info(`${LOG_NS} auto-destroying admin connection in ${closeAfterSecs} seconds`);
+    setTimeout(() => {
+      admin.close().catch(() => { }).then(() => Logger.info(`${LOG_NS} admin connection CLOSED`));
+      clearInterval(task);
+    }, closeAfterSecs * 1000);
+
+    // Connection API: Janus GET INFO
+    const info = await admin.getInfo();
+    Logger.info(`${LOG_NS} ***** GET INFO REQ OK ***** server = ${info.name} ${info.version_string}`);
+
+  } catch ({ message }) {
+    Logger.info(`${LOG_NS} xxxxx JANODE ADMIN STUP ERROR xxxxx ${message}`);
+    if (admin) admin.close().catch(() => { });
+    clearInterval(task);
+  }
+
+})();

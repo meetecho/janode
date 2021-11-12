@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>VideoRoom Socket.IO Janode</title>
+  <style>
+  </style>
+</head>
+
+<body>
+  <button id="button" type="button" style="height:50px;width:100px">START/STOP</button>
+  <br><br>
+  <div id="videos">
+    <span style="font-size: 32px;"> --- VIDEOROOM () --- </span>
+    <br><br>
+    <span style="font-size: 16px;"> -- LOCALS -- </span>
+    <br><br>
+    <div id="locals" style="display: flex;"></div>
+    <br><br>
+    <span style="font-size: 16px;"> -- REMOTES -- </span>
+    <br><br>
+    <div id="remotes" style="display: flex;"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="./videoroom-client.js"></script>
+</body>
+
+</html>

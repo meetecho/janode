@@ -5,7 +5,9 @@
   "keywords": [
     "janus",
     "webrtc",
-    "meetecho"
+    "sfu",
+    "meetecho",
+    "nodejs"
   ],
   "author": {
     "name": "Alessandro Toppi",

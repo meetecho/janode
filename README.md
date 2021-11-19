@@ -19,7 +19,7 @@ This is just a pretty simple hello world for the echotest plugin.
 Read the examples [on the git repo](https://github.com/meetecho/janode) to have some more details.
 
 
-```
+```js
 const Janode = require('janode');
 const { Logger } = Janode;
 const EchoTestPlugin = require('janode/src/plugins/echotest-plugin');
@@ -59,7 +59,7 @@ await echoHandle.detach();
 
 ## Admin API example
 
-```
+```js
 const Janode = require('janode');
 
 const admin = await Janode.connect({
@@ -77,7 +77,7 @@ const data = await admin.listSessions();
 
 ## Installation
 
-```
+```bash
 npm run build
 ```
 
@@ -85,7 +85,7 @@ npm run build
 
 Examples are only available in the code fetched from git repo and are not published on npm.
 
-```
+```bash
 cd examples/echotest
 npm run build
 npm run build-config

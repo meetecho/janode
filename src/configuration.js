@@ -1,7 +1,10 @@
 'use strict';
 
-const { API_WS } = require('./protocol.js').JANUS;
-const { ADMIN_WS } = require('./protocol.js').JANUS;
+/**
+ * This module contains the Configuration class definition.
+ * @module configuration
+ * @private
+ */
 
 const DEF_RETRY_TIME = 10;
 const DEF_MAX_RETRIES = 5;
@@ -17,7 +20,7 @@ class Configuration {
    * @private
    * @param {module:janode~RawConfiguration} config
    */
-  constructor({ address, retry_time_secs, max_retries, is_admin }) {
+  constructor({ address, retry_time_secs, max_retries, is_admin = false }) {
     if (!address)
       throw new Error('invalid configuration, missing parameter "address"');
     if (Array.isArray(address) && address.length === 0)
@@ -32,7 +35,7 @@ class Configuration {
 
     this.retry_time_secs = (typeof retry_time_secs === 'number') ? retry_time_secs : DEF_RETRY_TIME;
     this.max_retries = (typeof max_retries === 'number') ? max_retries : DEF_MAX_RETRIES;
-    this.ws_subproto = (is_admin === true) ? ADMIN_WS : API_WS;
+    this.is_admin = is_admin;
   }
 
   /**
@@ -63,21 +66,12 @@ class Configuration {
   }
 
   /**
-   * Get the ws subprotocol of this configuration.
-   *
-   * @returns {string} The subprotocol of the connection
-   */
-  getSubProtocol() {
-    return this.ws_subproto;
-  }
-
-  /**
    * Check if the configuration is for an admin connection.
    *
    * @returns {boolean} True if the configuration will be used for an admin connection
    */
   isAdmin() {
-    return this.ws_subproto === ADMIN_WS;
+    return this.is_admin;
   }
 }
 

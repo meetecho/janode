@@ -3,8 +3,6 @@
 /**
  * This module contains several Janus constants related to the Janus/Admin API and Janode, like:<br>
  *
- * - ws subprotocols<br>
- *
  * - Janus request names<br>
  *
  * - Janus response names<br>
@@ -24,14 +22,6 @@
  * @private
  */
 module.exports.JANUS = {
-  /**
-   * Janus API ws subprotocol
-   */
-  API_WS: 'janus-protocol',
-  /**
-   * Janus Admin API ws subprotocol
-   */
-  ADMIN_WS: 'janus-admin-protocol',
   /**
    * Janus API requests
    */

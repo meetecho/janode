@@ -69,7 +69,7 @@ module.exports.newIterator = list => {
  * Return a promise that will resolve after a given amount of milliseconds.
  *
  * @param {number} ms - The amount of millis to wait before resolving
- * @returns {Promise} A promise that will resolve after a certain time
+ * @returns {Promise<void>} A promise that will resolve after a certain time
  */
 module.exports.delayOp = ms => {
   return new Promise((resolve) => {

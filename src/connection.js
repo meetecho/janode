@@ -8,36 +8,25 @@
 
 const { EventEmitter } = require('events');
 
-/* Isomorphic implementation of WebSocket */
-/* It uses ws on Node and global.WebSocket in browsers */
-const WebSocket = require('isomorphic-ws');
-
 const Logger = require('./utils/logger.js');
 const LOG_NS = '[connection.js]';
-const { getNumericID, checkUrl, newIterator, delayOp } = require('./utils/utils.js');
+const { getNumericID, checkUrl, newIterator } = require('./utils/utils.js');
 const { JANODE, JANUS, isResponseData, isErrorData } = require('./protocol.js');
+const WsTransport = require('./transport-ws.js');
 const JanodeSession = require('./session.js');
 const TransactionManager = require('./tmanager.js');
 
-/* Default ws ping interval */
-const PING_TIME_SECS = 10;
-/* Default pong wait timeout */
-const PING_TIME_WAIT_SECS = 5;
 
 /**
  * Class representing a Janode connection.<br>
  *
- * Internally uses a WebSocket to establish a connection with Janus and uses ws ping/pong as keepalives.<br>
+ * Specific transports are picked by checking the connection URI.<br>
  *
- * In case of failure a connection will be retried according to the configuration (time interval and
- * times to attempt).At every attempt, if multiple addresses are available for Janus, the next address
- * will be tried. An error will be raised only if the maxmimum number of attempts have been reached.<br>
- *
- * This class implements also the Janus Admin API.<br>
+ * This class implements both the Janus API and Admin API.<br>
  *
  * Connection extends EventEmitter, so an instance can emit events and users can subscribe to them.<br>
  *
- * Users are not expected to create Connection instances, but insted use the Janode.connect API.<br>
+ * Users are not expected to create Connection instances, but insted use the Janode.connect() API.<br>
  *
  * @hideconstructor
  */
@@ -45,58 +34,26 @@ class Connection extends EventEmitter {
   /**
    * Create a Janode Connection.
    *
-   * @param {Configuration} server_config - The Janode configuration as created by the Configuration constructor.
+   * @param {module:configuration~Configuration} server_config - The Janode configuration as created by the Configuration constructor.
    */
   constructor(server_config) {
     super();
 
     /**
-     * The internal WebSocket connection.
+     * The configuration in use for this connection.
      *
      * @private
-     * @type {WebSocket}
+     * @type {module:configuration~Configuration}
      */
-    this._ws = null;
+    this._config = server_config;
 
     /**
      * The transaction manager used by this connection.
      *
      * @private
-     * @type {TransactionManager}
+     * @type {module:tmanager~TransactionManager}
      */
-    this._tm = null;
-
-    /**
-     * A boolean flag indicating that the connection is being opened.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this._opening = false;
-
-    /**
-     * A boolean flag indicating that the connection has been opened.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this._opened = false;
-
-    /**
-     * A boolean flag indicating that the connection is being closed.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this._closing = false;
-
-    /**
-     * A boolean flag indicating that the connection has been closed.
-     *
-     * @private
-     * @type {boolean}
-     */
-    this._closed = false; // true if websocket has been closed after being opened
+    this._tm = new TransactionManager();
 
     /**
      * Keep track of the sessions.
@@ -107,32 +64,10 @@ class Connection extends EventEmitter {
     this._sessions = new Map();
 
     /**
-     * The task of the peridic ws ping.
-     *
-     * @private
-     */
-    this._ping_task = null;
-
-    /**
-     * Internal counter for connection attempts.
-     *
-     * @private
-     */
-    this._attempts = 0;
-
-    /**
-     * The configuration in use for this connection.
-     *
-     * @private
-     * @type {Configuration}
-     */
-    this._config = server_config;
-
-    /**
      * The iterator to select available Janus addresses.
      *
      * @private
-     * @type {CircularIterator}
+     * @type {module:utils~CircularIterator}
      */
     this._address_iterator = newIterator(this._config.getAddress());
 
@@ -150,24 +85,23 @@ class Connection extends EventEmitter {
      */
     this.name = `[${this.id}]`;
 
+    /* Check the protocol to define the kind of transport */
+    if (checkUrl(server_config.getAddress()[0].url, ['ws', 'wss'])) {
+      this._transport = new WsTransport(this);
+    }
+
     /* Set a dummy error listener to avoid unmanaged errors */
     this.on('error', e => `${LOG_NS} ${this.name} catched unmanaged error ${e.message}`);
   }
 
   /**
-   * Cleanup the connection canceling the ping task, closing all owned transactions, emitting the destroyed event
+   * Cleanup the connection closing all owned transactions and emitting the destroyed event
    * and removing all registered listeners.
    *
    * @private
    * @param {boolean} graceful - True if this is an expected disconnection
    */
   _signalClose(graceful) {
-    if (this._closed) return;
-    this._closing = false;
-    this._closed = true;
-
-    /* Cancel the KA task */
-    this._unsetPingTask();
     /* Close all pending transactions inside this connection with an error */
     this._tm.closeAllTransactionsWithError(null, this, new Error('connection closed'));
     /* Clear tx table */
@@ -187,7 +121,7 @@ class Connection extends EventEmitter {
        */
       this.emit(JANODE.EVENT.CONNECTION_CLOSED, { id: this.id });
     }
-    else if (this._opened) {
+    else {
       /* If this event is unexpected emit an error */
       const error = new Error('unexpected disconnection');
       Logger.error(`${LOG_NS} ${this.name} oops... unexpected disconnection!`);
@@ -200,238 +134,19 @@ class Connection extends EventEmitter {
       this.emit(JANODE.EVENT.CONNECTION_ERROR, error);
     }
 
-    /* removeAllListeners is only supported on the node ws module */
-    if (typeof this._ws.removeAllListeners === 'function') this._ws.removeAllListeners();
     /* Remove all listeners to avoid leaks */
     this.removeAllListeners();
   }
 
   /**
-   * Initialize the internal WebSocket.
-   * Wraps with a promise the standard WebSocket API opening.
-   *
-   * @private
-   * @returns {Promise<Connection>}
-   */
-  async _initWebSocket() {
-    Logger.info(`${LOG_NS} ${this.name} trying connection with ${this._address_iterator.currElem().url}`);
-
-    /* Check URL protocols */
-    if (!checkUrl(this._address_iterator.currElem().url, ['ws', 'wss'])) {
-      const error = new Error('invalid url or protocol not allowed');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message} ${this._address_iterator.currElem().url}`);
-      throw error;
-    }
-
-    return new Promise((resolve, reject) => {
-      const ws = new WebSocket(
-        this._address_iterator.currElem().url,
-        [this._config.getSubProtocol()],
-        { handshakeTimeout: 5000 });
-
-      /* Register an "open" listener */
-      ws.addEventListener('open', _ => {
-        Logger.info(`${LOG_NS} ${this.name} websocket connected`);
-        /* Set the ping/pong task */
-        this._setPingTask(PING_TIME_SECS * 1000);
-        /* Resolve the promise and return this connection */
-        resolve(this);
-      }, { once: true });
-
-      /* Register a "close" listener */
-      ws.addEventListener('close', ({ code, reason, wasClean }) => {
-        Logger.info(`${LOG_NS} ${this.name} websocket closed code=${code} reason=${reason} clean=${wasClean}`);
-        /* Start cleanup */
-        this._signalClose(this._closing);
-      }, { once: true });
-
-      /* Register an "error" listener */
-      /*
-       * The "error" event is fired when a ws connection has been closed due
-       * to an error (some data couldn't be sent for example)
-       */
-      ws.addEventListener('error', error => {
-        Logger.error(`${LOG_NS} ${this.name} websocket error (${error.message})`);
-        reject(error);
-      }, { once: true });
-
-      /* Register a "message" listener */
-      ws.addEventListener('message', ({ data }) => {
-        Logger.debug(`${LOG_NS} ${this.name} <ws RCV OK> ${data}`);
-        /* Catch any error to not break the message loop */
-        try {
-          this._handleMessage(JSON.parse(data));
-        } catch (error) {
-          Logger.error(`${LOG_NS} ${this.name} error while handling message (${error.message})`);
-        }
-      });
-
-      this._ws = ws;
-    });
-  }
-
-  /**
-   * Internal helper to open a websocket connection.
-   * In case of error retry the connection with another address from the available pool.
-   * If maximum number of attempts is reached, throws an error.
-   *
-   * @private
-   * @returns {WebSocket} The websocket connection
-   */
-  async _open_internal() {
-    /* Reset status at every attempt */
-    this._tm = new TransactionManager(this.id);
-    this._opened = false;
-    this._closing = false;
-    this._closed = false;
-
-    try {
-      const ws = await this._initWebSocket();
-      this._opening = false;
-      this._opened = true;
-      return ws;
-    }
-    catch (error) {
-      /* In case of error notifies the user, but try with another address */
-      Logger.error(`${LOG_NS} ${this.name} connection failed`);
-      this._attempts++;
-      /* Get the max number of attempts from the configuration */
-      if (this._attempts >= this._config.getMaxRetries()) {
-        this._opening = false;
-        const err = new Error('attempt limit exceeded');
-        Logger.error(`${LOG_NS} ${this.name} ${err.message}`);
-        throw error;
-      }
-      Logger.info(`${LOG_NS} ${this.name} will try again in ${this._config.getRetryTimeSeconds()} seconds...`);
-      /* Wait an amount of seconds specified in the configuration */
-      await delayOp(this._config.getRetryTimeSeconds() * 1000);
-      /* Make shift the circular iterator */
-      this._address_iterator.nextElem();
-      return this._open_internal();
-    }
-  }
-
-  /**
-   * Open a connection using the internal helper.
+   * Open a connection using the transport defined open method.
    * Users do not need to call this method, since the connection is opened by Janode.connect().
    *
-   * @private
-   * @returns {Promise<Connection>} A promise resolving with the Janode connection
+   * @returns {Promise<module:connection~Connection>} A promise resolving with the Janode connection
    */
   async open() {
-    /* Check the flags before attempting a connection */
-    if (this._opening) {
-      const error = new Error('unable to open, websocket is already being opened');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._opened) {
-      const error = new Error('unable to open, websocket has already been opened');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._closed) {
-      const error = new Error('unable to open, websocket has already been closed');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-
-    /* Set the status */
-    this._opening = true;
-    this._attempts = 0;
-
-    /* Use _open_internal */
-    return this._open_internal();
-  }
-
-  /**
-   * Send a ws ping frame.
-   * This API is only available when the library is not used in a browser.
-   *
-   * @private
-   * @returns {Promise}
-   */
-  async _ping() {
-    /* ws.ping is only supported on the node "ws" module */
-    if (typeof this._ws.ping !== 'function') {
-      Logger.warn('ws ping not supported');
-      return;
-    }
-    let timeout;
-
-    /* Set a promise that will reject in PING_TIME_WAIT_SECS seconds */
-    const timeout_ping = new Promise((_, reject) => {
-      timeout = setTimeout(_ => reject(new Error('timeout')), PING_TIME_WAIT_SECS * 1000);
-    });
-
-    /* Set a promise that will resolve once "pong" has been received */
-    const ping_op = new Promise((resolve, reject) => {
-      /* Send current timestamp in the ping */
-      const ping_data = '' + Date.now();
-
-      this._ws.ping(ping_data, error => {
-        if (error) {
-          Logger.error(`${LOG_NS} ${this.name} websocket PING send error (${error.message})`);
-          clearTimeout(timeout);
-          return reject(error);
-        }
-        Logger.verbose(`${LOG_NS} ${this.name} websocket PING sent (${ping_data})`);
-      });
-
-      /* Resolve on pong */
-      this._ws.once('pong', data => {
-        Logger.verbose(`${LOG_NS} ${this.name} websocket PONG received (${data.toString()})`);
-        clearTimeout(timeout);
-        return resolve();
-      });
-
-    });
-
-    /* Race between timeout and pong */
-    return Promise.race([ping_op, timeout_ping]);
-  }
-
-  /**
-   * Set a ws ping-pong task.
-   *
-   * @private
-   * @param {number} delay - The ping interval in milliseconds
-   * @returns {void}
-   */
-  _setPingTask(delay) {
-    /* ws "ping" is only supported on the node ws module */
-    if (typeof this._ws.ping !== 'function') {
-      Logger.warn('ws ping not supported');
-      return;
-    }
-    if (this._ping_task) return;
-
-    /* Set a periodic task to send a ping */
-    /* In case of error, terminate the ws */
-    this._ping_task = setInterval(async _ => {
-      try {
-        await this._ping();
-      } catch ({ message }) {
-        Logger.error(`${LOG_NS} ${this.name} websocket PING error (${message})`);
-        /* ws "terminate" is only supported on the node ws module */
-        this._ws.terminate();
-      }
-    }, delay);
-
-    Logger.info(`${LOG_NS} ${this.name} websocket ping task scheduled every ${PING_TIME_SECS} seconds`);
-  }
-
-  /**
-   * Remove the ws ping task.
-   *
-   * @private
-   * @returns {void}
-   */
-  _unsetPingTask() {
-    if (!this._ping_task) return;
-    clearInterval(this._ping_task);
-    this._ping_task = null;
-    Logger.info(`${LOG_NS} ${this.name} websocket ping task disabled`);
+    await this._transport.open();
+    return this;
   }
 
   /**
@@ -455,8 +170,12 @@ class Connection extends EventEmitter {
         return;
       }
 
-      /* Let the session manage the message */
-      session._handleMessage(janus_message);
+      try {
+        /* Let the session manage the message */
+        session._handleMessage(janus_message);
+      } catch (error) {
+        Logger.error(`${LOG_NS} ${this.name} error while handling message (${error.message})`);
+      }
       return;
     }
 
@@ -510,86 +229,22 @@ class Connection extends EventEmitter {
   }
 
   /**
-   * Get the remote Janus hostname.
+   * Gracefully close the connection using the transport defined close method.
    *
-   * @returns {string} The hostname of the Janus server
-   */
-  getRemoteHostname() {
-    if (this._ws && this._ws.url) {
-      return (new URL(this._ws.url)).hostname;
-    }
-    return null;
-  }
-
-  /**
-   * Gracefully close the connection.
-   * Wraps with a promise the standard WebSocket API "close".
-   *
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
   async close() {
-    /* Check the status flags before */
-    if (!this._opened) {
-      const error = new Error('unable to close, websocket has never been opened');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._closing) {
-      const error = new Error('unable to close, websocket is already being closed');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._closed) {
-      const error = new Error('unable to close, websocket has already been closed');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-
-    this._closing = true;
-
-    return new Promise((resolve, reject) => {
-      Logger.info(`${LOG_NS} ${this.name} closing websocket`);
-      try {
-        this._ws.close();
-        /* Add a listener to resolve the promise */
-        this._ws.addEventListener('close', resolve, { once: true });
-      } catch (e) {
-        Logger.error(`${LOG_NS} ${this.name} error while closing websocket (${e.message})`);
-        this._closing = false;
-        reject(e);
-        return;
-      }
-    });
+    await this._transport.close();
+    return;
   }
 
   /**
-   * Send a request from this connection.
-   * Wraps with a promise the standard WebSocket API "send".
-   * Returns a promise with a pending request.
+   * Send a request from this connection using the transport defined send method.
    *
    * @param {object} request - The request to be sent
    * @returns {Promise<object>} A promise resolving with a response from Janus
    */
   async sendRequest(request) {
-    /* Input checking */
-    if (typeof request !== 'object' || !request) {
-      const error = new Error('request must be an object');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-
-    /* Check connection status */
-    if (!this._opened) {
-      const error = new Error('unable to send request because connection has not been opened');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._closed) {
-      const error = new Error('unable to send request because connection has been closed');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-
     /* Add connection properties */
     this._decorateRequest(request);
 
@@ -598,21 +253,23 @@ class Connection extends EventEmitter {
       /* Use promise resolve and reject fn as callbacks for the transaction */
       this._tm.createTransaction(request.transaction, this, request.janus, resolve, reject);
 
-      /* Stringify the message */
-      const string_req = JSON.stringify(request);
-
-      /* Send this message on the wire in text mode */
-      this._ws.send(string_req, { compress: false, binary: false }, error => {
-        if (error) {
-          Logger.error(`${LOG_NS} ${this.name} websocket send error (${error.message})`);
-          /* In case of error quickly close the transaction */
-          this._tm.closeTransactionWithError(request.transaction, this, error);
-          reject(error);
-          return;
-        }
-        Logger.debug(`${LOG_NS} ${this.name} <ws SND OK> ${string_req}`);
+      this._transport.send(request).catch(error => {
+        Logger.error(`${LOG_NS} ${this.name} transport send error (${error.message})`);
+        /* In case of error quickly close the transaction */
+        this._tm.closeTransactionWithError(request.transaction, this, error);
+        reject(error);
+        return;
       });
     });
+  }
+
+  /**
+   * Get the remote Janus hostname using the transport defined method.
+   *
+   * @returns {string} The hostname of the Janus server
+   */
+  getRemoteHostname() {
+    return this._transport.getRemoteHostname();
   }
 
   /**

@@ -385,7 +385,6 @@ class Handle extends EventEmitter {
 
   /**
    * Send a request from this handle.
-   * Returns a promise with a pending request.
    *
    * @param {object} request
    * @returns {Promise<object>} A promsie resolving with the response to the request
@@ -424,7 +423,7 @@ class Handle extends EventEmitter {
   /**
    * Gracefully detach the Handle.
    *
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
   async detach() {
     if (this._detaching) {
@@ -478,7 +477,7 @@ class Handle extends EventEmitter {
    * Send an ICE candidate / array of candidates.
    *
    * @param {RTCIceCandidate|RTCIceCandidate[]} candidate
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
   async trickle(candidate) {
     /* If candidate is null or undefined, send an ICE trickle complete message */
@@ -514,7 +513,7 @@ class Handle extends EventEmitter {
   /**
    * Send ICE trickle complete message.
    *
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
   async trickleComplete() {
     return this.trickle({

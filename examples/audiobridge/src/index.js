@@ -416,7 +416,7 @@ function initFrontEnd() {
       serverConfig.port,
       serverConfig.bind,
       () => {
-        Logger.info(`${LOG_NS} server listening on ${serverConfig.bind}:${serverConfig.port}`);
+        Logger.info(`${LOG_NS} server listening on ${(options.key && options.cert) ? 'https' : 'http'}://${serverConfig.bind}:${serverConfig.port}/janode`);
         resolve();
       }
     );

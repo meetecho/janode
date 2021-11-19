@@ -162,7 +162,7 @@ class Session extends EventEmitter {
    * The returned promise will return upon keep-alive response or a wait timeout.
    *
    * @private
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
   async _sendKeepAlive() {
     const request = {
@@ -333,10 +333,9 @@ class Session extends EventEmitter {
 
   /**
    * Send a request from this session.
-   * Returns a promise with a pending request.
    *
    * @param {object} request
-   * @returns {Promise<object>}
+   * @returns {Promise<object>} A promise resolving with the response
    */
   async sendRequest(request) {
     /* Input check */
@@ -372,7 +371,7 @@ class Session extends EventEmitter {
   /**
    * Gracefully destroy the session.
    *
-   * @returns {Promise}
+   * @returns {Promise<void>}
    */
   async destroy() {
     Logger.info(`${LOG_NS} ${this.name} destroying session`);
@@ -409,9 +408,7 @@ class Session extends EventEmitter {
    * If the Handle param is missing, a new generic Handle will be attached.
    * Returns a promise with the pending attach operation.
    *
-   * @param {object} descriptor - The plugin descriptor
-   * @param {string} obj.id - The unique plugin identifier
-   * @param {module:handle~Handle} [obj.Handle] - The class implementing the plugin
+   * @param {module:janode~PluginDescriptor} descriptor - The plugin descriptor
    * @returns {Promise<module:handle~Handle>}
    *
    * @example
@@ -424,7 +421,7 @@ class Session extends EventEmitter {
    * const handle = await session.attach({ id: 'janus.plugin.echotest' });
    *
    */
-  async attach({ id, Handle }) {
+  async attach({ id, Handle = JanodeHandle }) {
     Logger.info(`${LOG_NS} ${this.name} attaching new handle`);
 
     if (!id) {
@@ -445,7 +442,7 @@ class Session extends EventEmitter {
 
       /* If the plugin Handle class is defined, use it to create a custom handle */
       /* Or simply create a generic handle with standard methods and events */
-      const handle_instance = Handle ? (new Handle(this, data.id)) : (new JanodeHandle(this, data.id));
+      const handle_instance = new Handle(this, data.id);
 
       /* Add the new handle to the table */
       this._handles.set(handle_instance.id, handle_instance);

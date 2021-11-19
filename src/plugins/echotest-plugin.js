@@ -171,9 +171,9 @@ class EchoTestHandle extends Handle {
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:audiobridge-plugin~AudioBridgeHandle} Handle - The custom class implementing the plugin
  * @property {object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.ECHOTEST_RESULT
- * @property {string} EVENT.ECHOTEST_SLOWLINK
- * @property {string} EVENT.ECHOTEST_ERROR
+ * @property {string} EVENT.ECHOTEST_RESULT {@link module:echotest-plugin~ECHOTEST_RESULT}
+ * @property {string} EVENT.ECHOTEST_SLOWLINK {@link module:echotest-plugin~ECHOTEST_SLOWLINK}
+ * @property {string} EVENT.ECHOTEST_ERROR {@link module:echotest-plugin~ECHOTEST_ERROR}
  */
 module.exports = {
   id: PLUGIN_ID,

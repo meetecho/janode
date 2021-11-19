@@ -1223,14 +1223,14 @@ class VideoRoomHandle extends Handle {
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:videoroom-plugin~VideoRoomHandle} Handle - The custom class implementing the plugin
  * @property {object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.VIDEOROOM_PUB_PEER_JOINED - A new participant joined (notify-joining)
- * @property {string} EVENT.VIDEOROOM_PUB_LIST - Update of active publishers
- * @property {string} EVENT.VIDEOROOM_DESTROYED - The room has been destroyed
- * @property {string} EVENT.VIDEOROOM_UNPUBLISHED - A participant has been unpublished
- * @property {string} EVENT.VIDEOROOM_LEAVING - A participant left the room
- * @property {string} EVENT.VIDEOROOM_DISPLAY - A participant changed the display name
- * @property {string} EVENT.VIDEOROOM_KICKED - A participant has been kicked out
- * @property {string} EVENT.VIDEOROOM_ERROR - Generic error in the videoroom
+ * @property {string} EVENT.VIDEOROOM_PUB_PEER_JOINED {@link module:videoroom-plugin~VIDEOROOM_PUB_PEER_JOINED}
+ * @property {string} EVENT.VIDEOROOM_PUB_LIST {@link module:videoroom-plugin~VIDEOROOM_PUB_LIST}
+ * @property {string} EVENT.VIDEOROOM_DESTROYED {@link module:videoroom-plugin~VIDEOROOM_DESTROYED}
+ * @property {string} EVENT.VIDEOROOM_UNPUBLISHED {@link module:videoroom-plugin~VIDEOROOM_UNPUBLISHED}
+ * @property {string} EVENT.VIDEOROOM_LEAVING {@link module:videoroom-plugin~VIDEOROOM_LEAVING}
+ * @property {string} EVENT.VIDEOROOM_DISPLAY {@link module:videoroom-plugin~VIDEOROOM_DISPLAY}
+ * @property {string} EVENT.VIDEOROOM_KICKED {@link module:videoroom-plugin~VIDEOROOM_KICKED}
+ * @property {string} EVENT.VIDEOROOM_ERROR {@link module:videoroom-plugin~VIDEOROOM_ERROR}
  */
 module.exports = {
   id: PLUGIN_ID,

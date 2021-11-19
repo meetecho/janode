@@ -28,24 +28,21 @@ const debug = getCliArgument('debug-tx', 'boolean', false);
  * Class representing a Janode Transaction Manager (TM).
  * A transaction manager stores the pending transactions and has methods to create and close transactions.
  * Every transaction objects has an identifier, a reference to the owner and a kind of janus request.
+ *
+ * @private
  */
 class TransactionManager {
   /**
    * Create a Transacton Manager (TM)
    *
-   * @private
    * @param {string} [id] - The identifier given to the manager (got from a counter if missing)
    */
   constructor(id = getNumericID()) {
     this.transactions = new Map();
     this.id = id;
     Logger.info(`${LOG_NS} [${this.id}] creating new transaction manager (debug=${debug})`);
+    this._dbgtask = null;
     /* If tx debugging is enabled, periodically print the size of the tx table */
-    if (debug) {
-      this._dbgtask = setInterval(_ => {
-        Logger.info(`${LOG_NS} [${this.id}] TM DEBUG size=${this.size()}`);
-      }, 5000);
-    }
   }
 
   /**
@@ -99,6 +96,11 @@ class TransactionManager {
     if (!id) return;
     if (!transaction) return;
     this.transactions.set(id, transaction);
+    if (debug && !this._dbgtask) {
+      this._dbgtask = setInterval(_ => {
+        Logger.info(`${LOG_NS} [${this.id}] TM DEBUG size=${this.size()}`);
+      }, 5000);
+    }
   }
 
   /**

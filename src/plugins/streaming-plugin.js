@@ -706,8 +706,8 @@ class StreamingHandle extends Handle {
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:streaming-plugin~StreamingHandle} Handle - The custom class implementing the plugin
  * @property {object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.STREAMING_STATUS - Update of the stream status
- * @property {string} EVENT.STREAMING_ERROR - Generic streaming error
+ * @property {string} EVENT.STREAMING_STATUS {@link module:streaming-plugin~STREAMING_STATUS}
+ * @property {string} EVENT.STREAMING_ERROR {@link module:streaming-plugin~STREAMING_ERROR}
  */
 module.exports = {
   id: PLUGIN_ID,

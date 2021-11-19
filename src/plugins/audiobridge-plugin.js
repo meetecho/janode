@@ -871,13 +871,13 @@ class AudioBridgeHandle extends Handle {
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:audiobridge-plugin~AudioBridgeHandle} Handle - The custom class implementing the plugin
  * @property {object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.AUDIOBRIDGE_DESTROYED - The audiobridge room has been destroyed
- * @property {string} EVENT.AUDIOBRIDGE_KICKED - The current user has been kicked out
- * @property {string} EVENT.AUDIOBRIDGE_PEER_JOINED - A new participant joined
- * @property {string} EVENT.AUDIOBRIDGE_PEER_CONFIGURED - A participant has been configured
- * @property {string} EVENT.AUDIOBRIDGE_PEER_KICKED - A participant has been kicked out
- * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING - A participant is leaving
- * @property {string} EVENT.AUDIOBRIDGE_ERROR - Generic audiobridge error
+ * @property {string} EVENT.AUDIOBRIDGE_DESTROYED {@link module:audiobridge-plugin~AUDIOBRIDGE_DESTROYED}
+ * @property {string} EVENT.AUDIOBRIDGE_KICKED - {@link module:audiobridge-plugin~AUDIOBRIDGE_KICKED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_JOINED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_JOINED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_CONFIGURED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_CONFIGURED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_KICKED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_KICKED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_LEAVING}
+ * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
  */
 module.exports = {
   id: PLUGIN_ID,

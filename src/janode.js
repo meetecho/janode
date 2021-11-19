@@ -33,12 +33,21 @@ const { EVENT } = require('./protocol.js').JANODE;
  */
 
 /**
+ * The plugin descriptor used when attaching a plugin from a session.
+ *
+ * @typedef {object} PluginDescriptor
+ * @property {string} id - The plugin id used when sending the attach request to Janus
+ * @property {module:handle~Handle} [Handle] - The class implementing the handle
+ * @property {object} [EVENT] - The object with the list of events emitted by the plugin
+ */
+
+/**
  * Connect using a defined configuration.<br>
  *
- * The input configuration can be an object or an array. In case it is an array and the param `key` is provided,
- * Janode will pick a server configuration according to `key` type. If it is a `number` it will pick the index `key` of the array.
- * If it is a `string` it will pick the server configuration that matches the `server_key` property.
- * In case `key` is missing, Janode will fallback to index 0.
+ * The input configuration can be an object or an array. In case it is an array and the param "key" is provided,
+ * Janode will pick a server configuration according to "key" type. If it is a number it will pick the index "key" of the array.
+ * If it is a string it will pick the server configuration that matches the "server_key" property.
+ * In case "key" is missing, Janode will fallback to index 0.
  *
  * @param {module:janode~RawConfiguration|module:janode~RawConfiguration[]} config - The configuration to be used
  * @param {number|string} [key=0] - The index of the config in the array to use, or the server of the arrray matching this server key
@@ -134,13 +143,13 @@ module.exports.Logger = Logger;
  * Events emitted by Janode
  *
  * @type {object}
- * @property {string} CLOSED - The connection has been closed
- * @property {string} DESTROYED - The connection has been closed
- * @property {string} DETACHED - The handle has been detached
- * @property {string} HANGUP - The handle PeerConnection has been closed
- * @property {string} MEDIA - Handle media notification
- * @property {string} WEBRTCUP - The handle PeerConnection is up
- * @property {string} SLOWLINK - Slow link notification
- * @property {string} ERROR - An error occurred on the connection
+ * @property {string} CONNECTION_CLOSED - {@link module:connection~Connection#event:CONNECTION_CLOSED}
+ * @property {string} SESSION_DESTROYED - {@link module:session~Session#event:SESSION_DESTROYED}
+ * @property {string} HANDLE_DETACHED - {@link module:handle~Handle#event:HANDLE_DETACHED}
+ * @property {string} HANDLE_HANGUP - {@link module:handle~Handle#event:HANDLE_HANGUP}
+ * @property {string} HANDLE_MEDIA - {@link module:handle~Handle#event:HANDLE_MEDIA}
+ * @property {string} HANDLE_WEBRTCUP - {@link module:handle~Handle#event:HANDLE_WEBRTCUP}
+ * @property {string} HANDLE_SLOWLINK - {@link module:handle~Handle#event:HANDLE_SLOWLINK}
+ * @property {string} CONNECTION_ERROR - {@link module:connection~Connection#event:CONNECTION_ERROR}
  */
 module.exports.EVENT = EVENT;

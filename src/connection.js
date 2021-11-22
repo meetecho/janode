@@ -124,7 +124,6 @@ class Connection extends EventEmitter {
     else {
       /* If this event is unexpected emit an error */
       const error = new Error('unexpected disconnection');
-      Logger.error(`${LOG_NS} ${this.name} oops... unexpected disconnection!`);
       /**
        * An error occurred on the connection.
        *

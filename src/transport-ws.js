@@ -143,13 +143,11 @@ class TransportWs {
         /* Start cleanup */
         /* Cancel the KA task */
         this._unsetPingTask();
-        if (!this._closed) {
-          this._closing = false;
-          this._closed = true;
-          /* removeAllListeners is only supported on the node ws module */
-          if (typeof this._ws.removeAllListeners === 'function') this._ws.removeAllListeners();
-          this._connection._signalClose(this._closing);
-        }
+        this._connection._signalClose(this._closing);
+        this._closing = false;
+        this._closed = true;
+        /* removeAllListeners is only supported on the node ws module */
+        if (typeof this._ws.removeAllListeners === 'function') this._ws.removeAllListeners();
       }, { once: true });
 
       /* Register an "error" listener */
@@ -180,7 +178,7 @@ class TransportWs {
    * @returns {WebSocket} The websocket connection
    */
   async _attemptOpen() {
-    /* Reset status at every attempt */
+    /* Reset status at every attempt, opening should be true at this step */
     this._opened = false;
     this._closing = false;
     this._closed = false;
@@ -217,23 +215,17 @@ class TransportWs {
    */
   async open() {
     /* Check the flags before attempting a connection */
-    if (this._opening) {
-      const error = new Error('unable to open, websocket is already being opened');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._opened) {
-      const error = new Error('unable to open, websocket has already been opened');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._closed) {
-      const error = new Error('unable to open, websocket has already been closed');
+    let error;
+    if (this._opening) error = new Error('unable to open, websocket is already being opened');
+    else if (this._opened) error = new Error('unable to open, websocket has already been opened');
+    else if (this._closed) error = new Error('unable to open, websocket has already been closed');
+
+    if (error) {
       Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
       throw error;
     }
 
-    /* Set the status */
+    /* Set the starting status */
     this._opening = true;
     this._attempts = 0;
 
@@ -350,18 +342,12 @@ class TransportWs {
    */
   async close() {
     /* Check the status flags before */
-    if (!this._opened) {
-      const error = new Error('unable to close, websocket has never been opened');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._closing) {
-      const error = new Error('unable to close, websocket is already being closed');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._closed) {
-      const error = new Error('unable to close, websocket has already been closed');
+    let error;
+    if (!this._opened) error = new Error('unable to close, websocket has never been opened');
+    else if (this._closing) error = new Error('unable to close, websocket is already being closed');
+    else if (this._closed) error = new Error('unable to close, websocket has already been closed');
+
+    if (error) {
       Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
       throw error;
     }
@@ -393,13 +379,11 @@ class TransportWs {
    */
   async send(request) {
     /* Check connection status */
-    if (!this._opened) {
-      const error = new Error('unable to send request because connection has not been opened');
-      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
-      throw error;
-    }
-    if (this._closed) {
-      const error = new Error('unable to send request because connection has been closed');
+    let error;
+    if (!this._opened) error = new Error('unable to send request because connection has not been opened');
+    else if (this._closed) error = new Error('unable to send request because connection has been closed');
+
+    if (error) {
       Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
       throw error;
     }

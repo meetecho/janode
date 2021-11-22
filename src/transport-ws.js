@@ -28,7 +28,7 @@ const PING_TIME_WAIT_SECS = 5;
  * Class representing a connection through WebSocket transport.<br>
  *
  * In case of failure a connection will be retried according to the configuration (time interval and
- * times to attempt).At every attempt, if multiple addresses are available for Janus, the next address
+ * times to attempt). At every attempt, if multiple addresses are available for Janus, the next address
  * will be tried. An error will be raised only if the maxmimum number of attempts have been reached.<br>
  *
  * Internally uses WebSockets API to establish a connection with Janus and uses ws ping/pong as keepalives.<br>
@@ -193,16 +193,15 @@ class TransportWs {
     }
     catch (error) {
       /* In case of error notifies the user, but try with another address */
-      Logger.error(`${LOG_NS} ${this.name} connection failed`);
       this._attempts++;
       /* Get the max number of attempts from the configuration */
       if (this._attempts >= this._connection._config.getMaxRetries()) {
         this._opening = false;
         const err = new Error('attempt limit exceeded');
-        Logger.error(`${LOG_NS} ${this.name} ${err.message}`);
+        Logger.error(`${LOG_NS} ${this.name} connection failed, ${err.message}`);
         throw error;
       }
-      Logger.info(`${LOG_NS} ${this.name} will try again in ${this._connection._config.getRetryTimeSeconds()} seconds...`);
+      Logger.error(`${LOG_NS} ${this.name} connection failed, will try again in ${this._connection._config.getRetryTimeSeconds()} seconds...`);
       /* Wait an amount of seconds specified in the configuration */
       await delayOp(this._connection._config.getRetryTimeSeconds() * 1000);
       /* Make shift the circular iterator */

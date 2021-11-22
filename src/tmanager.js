@@ -49,7 +49,7 @@ class TransactionManager {
    * Clear the internal transaction table and the debugging printing task.
    */
   clear() {
-    Logger.info(`${LOG_NS} [${this.id}] destroying transaction manager`);
+    Logger.info(`${LOG_NS} [${this.id}] clearing transaction manager`);
     clearInterval(this._dbgtask);
     this.transactions.clear();
   }

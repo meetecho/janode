@@ -103,7 +103,7 @@ class Connection extends EventEmitter {
    */
   _signalClose(graceful) {
     /* Close all pending transactions inside this connection with an error */
-    this._tm.closeAllTransactionsWithError(null, this, new Error('connection closed'));
+    this._tm.closeAllTransactionsWithError(null, new Error('connection closed'));
     /* Clear tx table */
     this._tm.clear();
     /* Clear session table */
@@ -253,7 +253,6 @@ class Connection extends EventEmitter {
       this._tm.createTransaction(request.transaction, this, request.janus, resolve, reject);
 
       this._transport.send(request).catch(error => {
-        Logger.error(`${LOG_NS} ${this.name} transport send error (${error.message})`);
         /* In case of error quickly close the transaction */
         this._tm.closeTransactionWithError(request.transaction, this, error);
         reject(error);

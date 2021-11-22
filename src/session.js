@@ -176,6 +176,7 @@ class Session extends EventEmitter {
       Logger.verbose(`${LOG_NS} ${this.name} keep-alive OK`);
       clearTimeout(timeout_task);
     }).catch(e => {
+      Logger.error(`${LOG_NS} ${this.name} keep-alive error (${e.message})`);
       clearTimeout(timeout_task);
       throw e;
     });

@@ -180,7 +180,7 @@ class TransactionManager {
   closeAllTransactionsWithError(owner, error) {
     for (const [_, pendingTx] of this.transactions) {
       if (!owner || pendingTx.owner === owner)
-        this.closeTransactionWithError(pendingTx.id, owner, error);
+        this.closeTransactionWithError(pendingTx.id, pendingTx.owner, error);
     }
   }
 

@@ -14,11 +14,6 @@ const { getNumericID } = require('./utils/utils.js');
 const { JANUS, JANODE, isTimeoutData, isResponseData, isErrorData } = require('./protocol.js');
 const JanodeHandle = require('./handle.js');
 
-/* Time interval between two keep-alive requests */
-const KA_TIME_SECS = 30;
-/* Time to wait for a keep-alive response before triggering a timeout */
-const KA_TIME_WAIT_SECS = (KA_TIME_SECS * 9) / 10;
-
 /**
  * Class representing a Janode session.<br>
  *
@@ -34,8 +29,9 @@ class Session extends EventEmitter {
    *
    * @param {module:connection~Connection} connection - A reference to the parent connection
    * @param {number} id - The session identifier
+   * @param {number} [ka_interval=30] - The keepalive interval in seconds
    */
-  constructor(connection, id) {
+  constructor(connection, id, ka_interval = 30) {
     super();
 
     /**
@@ -100,7 +96,7 @@ class Session extends EventEmitter {
     this.name = `[${this.id}]`;
 
     /* Enable keep-alive when creating the session */
-    this._setKeepAlive();
+    this._setKeepAlive(ka_interval * 1000);
 
     /**
      * The callback function used for a connection closed event.
@@ -162,19 +158,20 @@ class Session extends EventEmitter {
    * The returned promise will return upon keep-alive response or a wait timeout.
    *
    * @private
+   * @param {number} timeout - The timeout in milliseconds before detecting a ka timeout
    * @returns {Promise<void>}
    */
-  async _sendKeepAlive() {
+  async _sendKeepAlive(timeout) {
     const request = {
       janus: JANUS.REQUEST.KEEPALIVE,
     };
 
     let timeout_task;
     const timeout_ka = new Promise((_, reject) => {
-      timeout_task = setTimeout(_ => reject(new Error('timeout')), KA_TIME_WAIT_SECS * 1000);
+      timeout_task = setTimeout(_ => reject(new Error('timeout')), timeout);
     });
 
-    Logger.verbose(`${LOG_NS} ${this.name} sending keep-alive`);
+    Logger.verbose(`${LOG_NS} ${this.name} sending keep-alive (timeout=${timeout}ms)`);
     const ka_op = this.sendRequest(request).then(_ => {
       Logger.verbose(`${LOG_NS} ${this.name} keep-alive OK`);
       clearTimeout(timeout_task);
@@ -190,21 +187,24 @@ class Session extends EventEmitter {
    * Helper method to enable the keep-alive task with a given period.
    *
    * @private
-   * @param {number} [delay=30000] - The period of the task in milliseconds
+   * @param {number} delay - The period of the task in milliseconds
    */
-  _setKeepAlive(delay = KA_TIME_SECS * 1000) {
+  _setKeepAlive(delay) {
     if (this._ka_task) return;
+    const timeout = delay / 2;
 
     this._ka_task = setInterval(_ => {
-      this._sendKeepAlive().catch(({ message }) => {
+      this._sendKeepAlive(timeout).catch(({ message }) => {
         /* If a keep-alive fails destroy the session */
-        const error = new Error(`keep-alive failed (${message})`);
-        Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+        if (!this._destroyed) {
+          const error = new Error(`keep-alive failed (${message})`);
+          Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+        }
         this._signalDestroy();
       });
     }, delay);
 
-    Logger.info(`${LOG_NS} ${this.name} session keep-alive task scheduled every ${KA_TIME_SECS} seconds`);
+    Logger.info(`${LOG_NS} ${this.name} session keep-alive task scheduled every ${delay} milliseconds`);
   }
 
   /**

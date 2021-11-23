@@ -2,7 +2,7 @@
 
 Janode is a Node.js, browser compatible, adapter for the [Janus WebRTC server](https://github.com/meetecho/janus-gateway).
 
-Internally uses WebSockets to connect to Janus.
+Internally uses WebSockets or Unix DGRAM Sockets to connect to Janus.
 
 The library wraps the Janus core API, the Janus Admin API and some of the most popular plugins APIs.
 
@@ -73,6 +73,32 @@ const admin = await Janode.connect({
 // Get the list of active sessions
 const data = await admin.listSessions();
 
+```
+
+## Switching to other transports
+
+The kind of transport used for a connection depends on the protocol/scheme defined in the `url` field of the configuration.
+
+```js
+/* Use UNIX DGRAM Sockets */
+const admin = await Janode.connect({
+  is_admin: true,
+  address: {
+    url: 'unix://tmp/janusapi',
+    apisecret: 'secret'
+  }
+});
+```
+
+```js
+/* Use WebSockets */
+const admin = await Janode.connect({
+  is_admin: true,
+  address: {
+    url: 'ws://127.0.0.1:7188/',
+    apisecret: 'secret'
+  }
+});
 ```
 
 ## Installation

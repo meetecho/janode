@@ -16,7 +16,9 @@ cat <<EOF > app.js
 module.exports = { Janode: require('../../src/janode.js'), EchoTestPlugin: require('../../src/plugins/echotest-plugin.js') };
 EOF
 
-browserify app.js --standalone $EXPORTED_OBJECT -o $BUILD_DIR/$BUNDLE_FILENAME --dg=false
+browserify app.js --standalone $EXPORTED_OBJECT -o $BUILD_DIR/$BUNDLE_FILENAME \
+    --dg=false \
+    --ignore "../../src/transport-unix.js"
 
 cp ./app/*.* $DEPLOY_DIR
 

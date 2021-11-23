@@ -13,6 +13,7 @@ const LOG_NS = '[connection.js]';
 const { getNumericID, checkUrl, newIterator } = require('./utils/utils.js');
 const { JANODE, JANUS, isResponseData, isErrorData } = require('./protocol.js');
 const WsTransport = require('./transport-ws.js');
+const UnixTransport = require('./transport-unix.js');
 const JanodeSession = require('./session.js');
 const TransactionManager = require('./tmanager.js');
 
@@ -106,6 +107,9 @@ class Connection extends EventEmitter {
       /* Check the protocol to define the kind of transport */
       if (checkUrl(server_config.getAddress()[0].url, ['ws', 'wss', 'ws+unix', 'wss+unix'])) {
         transport = new WsTransport(this);
+      }
+      if (checkUrl(server_config.getAddress()[0].url, ['file'])) {
+        transport = new UnixTransport(this);
       }
       if (transport) this._transport = transport;
     } catch (error) {

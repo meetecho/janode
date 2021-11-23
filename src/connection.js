@@ -100,9 +100,16 @@ class Connection extends EventEmitter {
       send: async _ => { throw new Error('transport does not implement the "send" function'); },
       getRemoteHostname: _ => { throw new Error('transport does not implement the "getRemoteHostname" function'); },
     }
-    /* Check the protocol to define the kind of transport */
-    if (checkUrl(server_config.getAddress()[0].url, ['ws', 'wss'])) {
-      this._transport = new WsTransport(this);
+
+    try {
+      let transport;
+      /* Check the protocol to define the kind of transport */
+      if (checkUrl(server_config.getAddress()[0].url, ['ws', 'wss'])) {
+        transport = new WsTransport(this);
+      }
+      if (transport) this._transport = transport;
+    } catch (error) {
+      Logger.error(`${LOG_NS} ${this.name} error while initializing transport (${error.message})`);
     }
 
     /* Set a dummy error listener to avoid unmanaged errors */

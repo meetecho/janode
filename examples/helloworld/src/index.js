@@ -118,4 +118,4 @@ const closeAfterSecs = 120;
     clearTimeout(endTask);
   }
 
-});
+})();

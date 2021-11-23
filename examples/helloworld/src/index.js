@@ -11,6 +11,7 @@ const closeAfterSecs = 120;
 (async function startConnection() {
 
   let connection = null;
+  let endTask;
 
   try {
     // Janode is a connection factory with Promise API
@@ -20,14 +21,18 @@ const closeAfterSecs = 120;
 
     // close connection after X seconds
     Logger.info(`${LOG_NS} auto-destroying janus connection in ${closeAfterSecs} seconds`);
-    setTimeout(() => connection.close().catch(() => { }).then(() => Logger.info(`${LOG_NS} janus connection CLOSED`)), closeAfterSecs * 1000);
+    endTask = setTimeout(() => connection.close().catch(() => { }).then(() => Logger.info(`${LOG_NS} janus connection CLOSED`)), closeAfterSecs * 1000);
 
     // connection closing (Sessions -> WS closed -> connection closed)
-    connection.on(Janode.EVENT.CONNECTION_CLOSED, () => Logger.info(`${LOG_NS} ***** CONNECTION CLOSED *****`));
+    connection.on(Janode.EVENT.CONNECTION_CLOSED, () => {
+      Logger.info(`${LOG_NS} ***** CONNECTION CLOSED *****`);
+      clearTimeout(endTask);
+    });
 
     // connection error event (i.e. WS error, unexpected WS close)
     connection.on(Janode.EVENT.CONNECTION_ERROR, ({ message }) => {
       Logger.error(`${LOG_NS} xxxxx CONNECTION ERROR xxxxx (${message})`);
+      clearTimeout(endTask);
     });
 
     // Connection API: Janus GET INFO
@@ -35,7 +40,7 @@ const closeAfterSecs = 120;
     Logger.info(`${LOG_NS} ***** GET INFO REQ OK ***** server = ${info.name} ${info.version_string}`);
 
     // Connection API: Janus CREATE SESSION
-    const session = await connection.create();
+    const session = await connection.create(10);
 
     Logger.info(`${LOG_NS} ***** SESSION CREATED *****`);
 
@@ -56,6 +61,7 @@ const closeAfterSecs = 120;
   } catch ({ message }) {
     Logger.error(`${LOG_NS} xxxxx JANODE SETUP ERROR xxxxx (${message})`);
     if (connection) connection.close().catch(() => { });
+    clearTimeout(endTask);
   }
 
 })();
@@ -63,12 +69,26 @@ const closeAfterSecs = 120;
 (async function startAdmin() {
 
   let admin = null;
-  let task = null;
+  let task, endTask = null;
 
   try {
     admin = await Janode.connect(janodeConfig, 'janus_1_admin');
 
     Logger.info(`${LOG_NS} ***** ADMIN CONNECTION CREATED *****`);
+
+    // connection closing (Sessions -> WS closed -> connection closed)
+    admin.on(Janode.EVENT.CONNECTION_CLOSED, () => {
+      Logger.info(`${LOG_NS} ***** ADMIN CONNECTION CLOSED *****`);
+      clearInterval(task);
+      clearTimeout(endTask);
+    });
+
+    // connection error event (i.e. WS error, unexpected WS close)
+    admin.on(Janode.EVENT.CONNECTION_ERROR, ({ message }) => {
+      Logger.error(`${LOG_NS} xxxxx ADMIN CONNECTION ERROR xxxxx (${message})`);
+      clearInterval(task);
+      clearTimeout(endTask);
+    });
 
     task = setInterval(async () => {
       try {
@@ -81,9 +101,10 @@ const closeAfterSecs = 120;
 
     // close connection after X seconds
     Logger.info(`${LOG_NS} auto-destroying admin connection in ${closeAfterSecs} seconds`);
-    setTimeout(() => {
+    endTask = setTimeout(() => {
       admin.close().catch(() => { }).then(() => Logger.info(`${LOG_NS} admin connection CLOSED`));
       clearInterval(task);
+      clearTimeout(endTask);
     }, closeAfterSecs * 1000);
 
     // Connection API: Janus GET INFO
@@ -94,6 +115,7 @@ const closeAfterSecs = 120;
     Logger.info(`${LOG_NS} xxxxx JANODE ADMIN STUP ERROR xxxxx ${message}`);
     if (admin) admin.close().catch(() => { });
     clearInterval(task);
+    clearTimeout(endTask);
   }
 
-})();
+});

@@ -85,6 +85,21 @@ class Connection extends EventEmitter {
      */
     this.name = `[${this.id}]`;
 
+    /**
+     * The internal transport that will be used for the connection.
+     *
+     * @typedef {object} Transport
+     * @property {function} open
+     * @property {function} close
+     * @property {function} send
+     * @property {function} getRemoteHostname
+     */
+    this._transport = {
+      open: async _ => { throw new Error('transport does not implement the "open" function'); },
+      close: async _ => { throw new Error('transport does not implement the "close" function'); },
+      send: async _ => { throw new Error('transport does not implement the "send" function'); },
+      getRemoteHostname: _ => { throw new Error('transport does not implement the "getRemoteHostname" function'); },
+    }
     /* Check the protocol to define the kind of transport */
     if (checkUrl(server_config.getAddress()[0].url, ['ws', 'wss'])) {
       this._transport = new WsTransport(this);
@@ -273,6 +288,7 @@ class Connection extends EventEmitter {
   /**
    * Create a new session in this connection.
    *
+   * @param {number} [ka_interval] - The time interval (seconds) for session keep-alive requests
    * @returns {Promise<module:session~Session>} The newly created session
    *
    * @example
@@ -280,7 +296,7 @@ class Connection extends EventEmitter {
    * const session = await connection.create();
    * Logger.info(`***** SESSION CREATED *****`);
    */
-  async create() {
+  async create(ka_interval) {
     Logger.info(`${LOG_NS} ${this.name} creating new session`);
 
     const request = {
@@ -294,7 +310,7 @@ class Connection extends EventEmitter {
       this.setMaxListeners(this.getMaxListeners() + 2);
 
       /* Create a new Janode Session and add it to the table */
-      const session_instance = new JanodeSession(this, id);
+      const session_instance = new JanodeSession(this, id, ka_interval);
       this._sessions.set(session_instance.id, session_instance);
 
       /* On session destroy delete the entry from session map and decrease the number of listeners */

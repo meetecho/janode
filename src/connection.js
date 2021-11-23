@@ -104,7 +104,7 @@ class Connection extends EventEmitter {
     try {
       let transport;
       /* Check the protocol to define the kind of transport */
-      if (checkUrl(server_config.getAddress()[0].url, ['ws', 'wss'])) {
+      if (checkUrl(server_config.getAddress()[0].url, ['ws', 'wss', 'ws+unix', 'wss+unix'])) {
         transport = new WsTransport(this);
       }
       if (transport) this._transport = transport;

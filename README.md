@@ -84,7 +84,7 @@ The kind of transport used for a connection depends on the protocol/scheme defin
 const admin = await Janode.connect({
   is_admin: true,
   address: {
-    url: 'unix://tmp/janusapi',
+    url: 'file://tmp/janusapi',
     apisecret: 'secret'
   }
 });

@@ -8,11 +8,11 @@
 
 /* Isomorphic implementation of WebSocket */
 /* It uses ws on Node and global.WebSocket in browsers */
-const WebSocket = require('isomorphic-ws');
+import WebSocket from 'isomorphic-ws';
 
-const Logger = require('./utils/logger.js');
+import Logger from './utils/logger.js';
 const LOG_NS = '[transport-ws.js]';
-const { delayOp } = require('./utils/utils.js');
+import { delayOp } from './utils/utils.js';
 
 /* Janus API ws subprotocol */
 const API_WS = 'janus-protocol';
@@ -406,4 +406,4 @@ class TransportWs {
 
 }
 
-module.exports = TransportWs;
+export default TransportWs;

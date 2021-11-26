@@ -6,13 +6,13 @@
  * @private
  */
 
-const { EventEmitter } = require('events');
+import { EventEmitter } from 'events';
 
-const Logger = require('./utils/logger.js');
+import Logger from './utils/logger.js';
 const LOG_NS = '[session.js]';
-const { getNumericID } = require('./utils/utils.js');
-const { JANUS, JANODE, isTimeoutData, isResponseData, isErrorData } = require('./protocol.js');
-const JanodeHandle = require('./handle.js');
+import { getNumericID } from './utils/utils.js';
+import { JANUS, JANODE, isTimeoutData, isResponseData, isErrorData } from './protocol.js';
+import JanodeHandle from './handle.js';
 
 /**
  * Class representing a Janode session.<br>
@@ -415,7 +415,7 @@ class Session extends EventEmitter {
    * @example
    *
    * // attach an echotest plugin with its specifc class
-   * const EchoTestPlugin = require('janode/src/plugins/echotest-plugin);
+   * import EchoTestPlugin from 'janode/src/plugins/echotest-plugin.js';
    * const echoHandle = await janodeSession.attach(EchoTestPlugin);
    *
    * // attach a plugin without using its custom implementation
@@ -465,4 +465,4 @@ class Session extends EventEmitter {
 
 }
 
-module.exports = Session;
+export default Session;

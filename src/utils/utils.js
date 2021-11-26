@@ -20,7 +20,7 @@
  * @returns {string} A random alpha-numeric string
  *
  */
-module.exports.randomString = (len = 12) => {
+export const randomString = (len = 12) => {
   const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let randomString = '';
   for (let i = 0; i < len; i++) {
@@ -36,7 +36,7 @@ module.exports.randomString = (len = 12) => {
  *
  * @returns {string} A numeric string
  */
-module.exports.getNumericID = (_ => {
+export const getNumericID = (_ => {
   let now;
   let next = Math.floor(Number.MAX_SAFE_INTEGER * Math.random());
 
@@ -54,7 +54,7 @@ module.exports.getNumericID = (_ => {
  * @param {Array} list - The array that must be iterated
  * @returns {CircularIterator} The generated iterator
  */
-module.exports.newIterator = list => {
+export const newIterator = list => {
   const l = Array.from(list);
   const len = l.length;
   var i = 0;
@@ -71,7 +71,7 @@ module.exports.newIterator = list => {
  * @param {number} ms - The amount of millis to wait before resolving
  * @returns {Promise<void>} A promise that will resolve after a certain time
  */
-module.exports.delayOp = ms => {
+export const delayOp = ms => {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
@@ -84,7 +84,7 @@ module.exports.delayOp = ms => {
  * @param {Array<string>} admitted - The admitted protocols
  * @returns {boolean} True if the check succeeds
  */
-module.exports.checkUrl = (url_string, admitted) => {
+export const checkUrl = (url_string, admitted) => {
   try {
     /* 'slice(0, -1)' removes the colon at the last position */
     const protocol = (new URL(url_string)).protocol.slice(0, -1);
@@ -101,7 +101,7 @@ module.exports.checkUrl = (url_string, admitted) => {
  * @param {string|number|boolean} arg_default - An optional default value if missing
  * @returns {string|number|boolean|void}
  */
-module.exports.getCliArgument = (arg_name, arg_type, arg_default) => {
+export const getCliArgument = (arg_name, arg_type, arg_default) => {
   if (typeof process === 'undefined' || !Array.isArray(process.argv) || process.argv.length < 2) return arg_default;
   const args = process.argv.slice(2);
   let arg_val = undefined;

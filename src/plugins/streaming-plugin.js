@@ -5,7 +5,7 @@
  * @module streaming-plugin
  */
 
-const Handle = require('../handle.js');
+import Handle from '../handle.js';
 
 /* The plugin ID exported in the plugin descriptor */
 const PLUGIN_ID = 'janus.plugin.streaming';
@@ -709,7 +709,7 @@ class StreamingHandle extends Handle {
  * @property {string} EVENT.STREAMING_STATUS {@link module:streaming-plugin~STREAMING_STATUS}
  * @property {string} EVENT.STREAMING_ERROR {@link module:streaming-plugin~STREAMING_ERROR}
  */
-module.exports = {
+export default {
   id: PLUGIN_ID,
   Handle: StreamingHandle,
   EVENT: {

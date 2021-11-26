@@ -5,7 +5,7 @@
  * @module videoroom-plugin
  */
 
-const Handle = require('../handle.js');
+import Handle from '../handle.js';
 
 /* The plugin ID exported in the plugin descriptor */
 const PLUGIN_ID = 'janus.plugin.videoroom';
@@ -1232,7 +1232,7 @@ class VideoRoomHandle extends Handle {
  * @property {string} EVENT.VIDEOROOM_KICKED {@link module:videoroom-plugin~VIDEOROOM_KICKED}
  * @property {string} EVENT.VIDEOROOM_ERROR {@link module:videoroom-plugin~VIDEOROOM_ERROR}
  */
-module.exports = {
+export default {
   id: PLUGIN_ID,
   Handle: VideoRoomHandle,
   EVENT: {

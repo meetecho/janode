@@ -10,7 +10,7 @@
  * @private
  */
 
-const { getCliArgument } = require('./utils.js');
+import { getCliArgument } from './utils.js';
 
 const LEVELS_IDX = ['none', 'error', 'warn', 'info', 'verb', 'debug'].reduce((obj, lvl, idx) => {
   obj[lvl] = idx;
@@ -18,7 +18,7 @@ const LEVELS_IDX = ['none', 'error', 'warn', 'info', 'verb', 'debug'].reduce((ob
 }, {});
 
 const DEFAULT_LEVEL = 'info';
-let log_verbosity = DEFAULT_LEVEL;
+let log_verbosity = getCliArgument('janode-log', 'string', DEFAULT_LEVEL);
 
 const printout = (msg_verbosity, console_fn, ...args) => {
   if (LEVELS_IDX[msg_verbosity] > LEVELS_IDX[log_verbosity]) return;
@@ -92,6 +92,4 @@ const Logger = {
   }
 };
 
-Logger.setLevel(getCliArgument('janode-log', 'string', DEFAULT_LEVEL));
-
-module.exports = Logger;
+export default Logger;

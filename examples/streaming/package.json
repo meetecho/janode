@@ -1,6 +1,7 @@
 {
   "name": "janode-streaming",
   "description": "Janode streaming app",
+  "type": "module",
   "keywords": [
     "janus",
     "webrtc",

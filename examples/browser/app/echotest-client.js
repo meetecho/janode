@@ -1,8 +1,9 @@
-/*global document, libJanode, RTCPeerConnection, navigator */
+/* global document, App, RTCPeerConnection, navigator */
 
 'use strict';
 
-const { Janode, EchoTestPlugin } = libJanode;
+const { Janode, EchoTestPlugin } = App;
+
 const Logger = Janode.Logger;
 let janodeConnection;
 

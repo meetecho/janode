@@ -21,7 +21,7 @@
  *
  * @private
  */
-module.exports.JANUS = {
+export const JANUS = {
   /**
    * Janus API requests
    */
@@ -80,7 +80,7 @@ module.exports.JANUS = {
  *
  * @private
  */
-module.exports.JANODE = {
+export const JANODE = {
   /**
    * Janode core events.
    */
@@ -103,9 +103,9 @@ module.exports.JANODE = {
  * @param {object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
-module.exports.isResponseData = data => {
+export const isResponseData = data => {
   if (typeof data === 'object' && data) {
-    return Object.values(module.exports.JANUS.RESPONSE).includes(data.janus);
+    return Object.values(JANUS.RESPONSE).includes(data.janus);
   }
   return false;
 };
@@ -117,9 +117,9 @@ module.exports.isResponseData = data => {
  * @param {object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
-module.exports.isEventData = data => {
+export const isEventData = data => {
   if (typeof data === 'object' && data) {
-    return data.janus === module.exports.JANUS.EVENT.EVENT;
+    return data.janus === JANUS.EVENT.EVENT;
   }
   return false;
 };
@@ -131,9 +131,9 @@ module.exports.isEventData = data => {
  * @param {object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
-module.exports.isErrorData = data => {
+export const isErrorData = data => {
   if (typeof data === 'object' && data) {
-    return data.janus === module.exports.JANUS.RESPONSE.ERROR;
+    return data.janus === JANUS.RESPONSE.ERROR;
   }
   return false;
 };
@@ -145,9 +145,9 @@ module.exports.isErrorData = data => {
  * @param {object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
-module.exports.isTimeoutData = data => {
+export const isTimeoutData = data => {
   if (typeof data === 'object' && data) {
-    return data.janus === module.exports.JANUS.EVENT.TIMEOUT;
+    return data.janus === JANUS.EVENT.TIMEOUT;
   }
   return false;
 };
@@ -159,9 +159,9 @@ module.exports.isTimeoutData = data => {
  * @param {object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
-module.exports.isAckData = data => {
+export const isAckData = data => {
   if (typeof data === 'object' && data) {
-    return data.janus === module.exports.JANUS.ACK;
+    return data.janus === JANUS.ACK;
   }
   return false;
 };

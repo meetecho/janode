@@ -5,7 +5,7 @@
  * @module echotest-plugin
  */
 
-const Handle = require('../handle.js');
+import Handle from '../handle.js';
 
 /* The plugin ID exported in the plugin descriptor */
 const PLUGIN_ID = 'janus.plugin.echotest';
@@ -175,7 +175,7 @@ class EchoTestHandle extends Handle {
  * @property {string} EVENT.ECHOTEST_SLOWLINK {@link module:echotest-plugin~ECHOTEST_SLOWLINK}
  * @property {string} EVENT.ECHOTEST_ERROR {@link module:echotest-plugin~ECHOTEST_ERROR}
  */
-module.exports = {
+export default {
   id: PLUGIN_ID,
   Handle: EchoTestHandle,
   EVENT: {

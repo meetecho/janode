@@ -5,7 +5,7 @@
  * @module audiobridge-plugin
  */
 
-const Handle = require('../handle.js');
+import Handle from '../handle.js';
 
 /* The plugin ID exported in the plugin descriptor */
 const PLUGIN_ID = 'janus.plugin.audiobridge';
@@ -879,7 +879,7 @@ class AudioBridgeHandle extends Handle {
  * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_LEAVING}
  * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
  */
-module.exports = {
+export default {
   id: PLUGIN_ID,
   Handle: AudioBridgeHandle,
 

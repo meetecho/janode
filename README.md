@@ -20,9 +20,9 @@ Read the examples [on the git repo](https://github.com/meetecho/janode) to have 
 
 
 ```js
-const Janode = require('janode');
+import Janode from 'janode';
 const { Logger } = Janode;
-const EchoTestPlugin = require('janode/src/plugins/echotest-plugin');
+import EchoTestPlugin from 'janode/src/plugins/echotest-plugin.js';
 
 const connection = await Janode.connect({
   is_admin: false,
@@ -60,7 +60,7 @@ await echoHandle.detach();
 ## Admin API example
 
 ```js
-const Janode = require('janode');
+import Janode from 'janode';
 
 const admin = await Janode.connect({
   is_admin: true,
@@ -95,9 +95,11 @@ To change the configuration edit `config.js` under `src`.
 
 ## Usage in browsers
 
-The core library should work in browsers.
-Just create a bundle by using tools like `browserify` and import it in your web app.
+Janode should work in browsers.
+You need to create a bundle with the core library and the needed plugins using a tool that can:
+- shim native node modules (e.g. `EventEmitter`)
+- import commonjs modules (some dependencies could still use that format)
+- parse the `browser` field in the `package.json`
 
-If you get the code from the repo, there is a sample browser app under `examples/browser/app`.
-The provided `bundle.sh` script in `examples/browser` uses `browserify` to bundle an echotest library `bundle.js` in `examples/browser/app`.
-The `bundle.js` script exposes a `janodeLib` global object that is used by the web app.
+If you get the code from the repo, you can find a `rollup` bundling sample in the `bundle.sh` script under `examples/browser/`.
+The output will be a `bundle.js` script that defines an `App` global object with the members `Janode` and `EchoTestPlugin`.

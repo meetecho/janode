@@ -7,11 +7,12 @@
  * @module janode
  */
 
-const Logger = require('./utils/logger.js');
+import Logger from './utils/logger.js';
 const LOG_NS = '[janode.js]';
-const Configuration = require('./configuration.js');
-const Connection = require('./connection.js');
-const { EVENT } = require('./protocol.js').JANODE;
+import Configuration from './configuration.js';
+import Connection from './connection.js';
+import { JANODE as JANODE_PROTO } from './protocol.js';
+const { EVENT } = JANODE_PROTO;
 
 /**
  * An object describing a janus server (e.g. url, secret).
@@ -101,7 +102,7 @@ const { EVENT } = require('./protocol.js').JANODE;
  *   }],
  * }], 'server_B');
  */
-module.exports.connect = (config = {}, key = null) => {
+const connect = (config = {}, key = null) => {
   Logger.info(`${LOG_NS} creating new connection`);
 
   const janus_server_list = Array.isArray(config) ? config : [config];
@@ -126,30 +127,33 @@ module.exports.connect = (config = {}, key = null) => {
   return janus_connection.open();
 };
 
-/**
- * The Logger used in Janode.
- *
- * @type {object}
- * @property {function} debug - Print out a debug message
- * @property {function} verbose - Print out a verbose message
- * @property {function} info - Print out an info message
- * @property {function} warn - Print out a warning message
- * @property {function} error - Print out an error message
- * @property {function} setLevel - Set logger level
- */
-module.exports.Logger = Logger;
+export default {
+  connect,
+  /**
+   * The Logger used in Janode.
+   *
+   * @type {object}
+   * @property {function} debug - Print out a debug message
+   * @property {function} verbose - Print out a verbose message
+   * @property {function} info - Print out an info message
+   * @property {function} warn - Print out a warning message
+   * @property {function} error - Print out an error message
+   * @property {function} setLevel - Set logger level
+   */
+  Logger,
 
-/**
- * Events emitted by Janode
- *
- * @type {object}
- * @property {string} CONNECTION_CLOSED - {@link module:connection~Connection#event:CONNECTION_CLOSED}
- * @property {string} SESSION_DESTROYED - {@link module:session~Session#event:SESSION_DESTROYED}
- * @property {string} HANDLE_DETACHED - {@link module:handle~Handle#event:HANDLE_DETACHED}
- * @property {string} HANDLE_HANGUP - {@link module:handle~Handle#event:HANDLE_HANGUP}
- * @property {string} HANDLE_MEDIA - {@link module:handle~Handle#event:HANDLE_MEDIA}
- * @property {string} HANDLE_WEBRTCUP - {@link module:handle~Handle#event:HANDLE_WEBRTCUP}
- * @property {string} HANDLE_SLOWLINK - {@link module:handle~Handle#event:HANDLE_SLOWLINK}
- * @property {string} CONNECTION_ERROR - {@link module:connection~Connection#event:CONNECTION_ERROR}
- */
-module.exports.EVENT = EVENT;
+  /**
+   * Events emitted by Janode
+   *
+   * @type {object}
+   * @property {string} CONNECTION_CLOSED - {@link module:connection~Connection#event:CONNECTION_CLOSED}
+   * @property {string} SESSION_DESTROYED - {@link module:session~Session#event:SESSION_DESTROYED}
+   * @property {string} HANDLE_DETACHED - {@link module:handle~Handle#event:HANDLE_DETACHED}
+   * @property {string} HANDLE_HANGUP - {@link module:handle~Handle#event:HANDLE_HANGUP}
+   * @property {string} HANDLE_MEDIA - {@link module:handle~Handle#event:HANDLE_MEDIA}
+   * @property {string} HANDLE_WEBRTCUP - {@link module:handle~Handle#event:HANDLE_WEBRTCUP}
+   * @property {string} HANDLE_SLOWLINK - {@link module:handle~Handle#event:HANDLE_SLOWLINK}
+   * @property {string} CONNECTION_ERROR - {@link module:connection~Connection#event:CONNECTION_ERROR}
+   */
+  EVENT,
+};

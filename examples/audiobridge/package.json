@@ -1,6 +1,7 @@
 {
   "name": "janode-audiobridge",
   "description": "Janode audiobridge app",
+  "type": "module",
   "keywords": [
     "janus",
     "webrtc",

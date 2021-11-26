@@ -22,7 +22,7 @@
     "url": "https://github.com/meetecho/janode/issues"
   },
   "license": "ISC",
-  "main": "src/janode.js",
+  "exports": "./src/janode.js",
   "files": [
     "src/*.js",
     "src/utils/*.js",
@@ -33,7 +33,7 @@
     "ws": "^8.0.0"
   },
   "engines": {
-    "node": ">=12"
+    "node": " >=14.13.1 || >=16.0.0"
   },
   "scripts": {
     "build": "npm install --production"

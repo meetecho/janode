@@ -72,6 +72,7 @@ async function initBackEnd() {
 
     session.once(Janode.EVENT.SESSION_DESTROYED, () => {
       Logger.info(`${LOG_NS} session destroyed`);
+      janodeSession = null;
     });
 
     const handle = await session.attach(AudioBridgePlugin);

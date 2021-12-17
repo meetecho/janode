@@ -100,7 +100,7 @@ function trickle({ candidate }) {
   });
 }
 
-function configure({ display, muted, record, filename, group, jsep }) {
+function configure({ display, muted, record, filename, bitrate, expected_loss, group, jsep }) {
   const configureData = {};
   const configureId = getId();
 
@@ -108,6 +108,8 @@ function configure({ display, muted, record, filename, group, jsep }) {
   if (typeof muted === 'boolean') configureData.muted = muted;
   if (typeof record === 'boolean') configureData.record = record;
   if (filename) configureData.filename = filename;
+  if (typeof bitrate === 'number') configureData.bitrate = bitrate;
+  if (typeof expected_loss === 'number') configureData.expected_loss = expected_loss;
   if (group) configureData.group = group;
   if (jsep) {
     configureData.jsep = jsep;
@@ -148,13 +150,15 @@ function _listRooms() {
   });
 }
 
-function _create({ room = myRoom, description, permanent = false, pin = null, secret = null, allow_rtp = true, groups } = {}) {
+function _create({ room = myRoom, description, permanent = false, pin = null, secret = null, allow_rtp = true, bitrate = 0, expected_loss = 0, groups } = {}) {
   socket.emit('create', {
     data: {
       room,
       description,
       permanent,
       allow_rtp,
+      bitrate,
+      expected_loss,
       groups,
       pin,
       secret,

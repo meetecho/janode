@@ -150,7 +150,7 @@ function _listRooms() {
   });
 }
 
-function _create({ room = myRoom, description, permanent = false, pin = null, secret = null, allow_rtp = true, bitrate = 0, expected_loss = 0, groups } = {}) {
+function _create({ room = myRoom, description, permanent = false, pin = null, secret = null, allow_rtp = true, bitrate = 0, expected_loss = 0, talking_events = false, talking_level_threshold = 25, talking_packets_threshold = 100, groups } = {}) {
   socket.emit('create', {
     data: {
       room,
@@ -159,6 +159,9 @@ function _create({ room = myRoom, description, permanent = false, pin = null, se
       allow_rtp,
       bitrate,
       expected_loss,
+      talking_events,
+      talking_level_threshold,
+      talking_packets_threshold,
       groups,
       pin,
       secret,
@@ -330,6 +333,14 @@ socket.on('leaving', ({ data }) => {
 socket.on('peer-leaving', ({ data }) => {
   console.log('peer feed leaving', data);
   removeAudioElement(data.feed);
+});
+
+socket.on('talking', ({ data }) => {
+  console.log('own talking notify', data);
+});
+
+socket.on('peer-talking', ({ data }) => {
+  console.log('peer talking notify', data);
 });
 
 socket.on('exists', ({ data }) => {

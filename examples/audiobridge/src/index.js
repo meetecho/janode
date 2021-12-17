@@ -151,6 +151,14 @@ function initFrontEnd() {
           replyEvent(socket, 'peer-kicked', evtdata);
         });
 
+        audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_TALKING, evtdata => {
+          replyEvent(socket, 'talking', evtdata);
+        });
+
+        audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_PEER_TALKING, evtdata => {
+          replyEvent(socket, 'peer-talking', evtdata);
+        });
+
         // generic audiobridge events
         audioHandle.on(Janode.EVENT.HANDLE_WEBRTCUP, () => Logger.info(`${LOG_NS} ${audioHandle.name} webrtcup event`));
         audioHandle.on(Janode.EVENT.HANDLE_MEDIA, evtdata => Logger.info(`${LOG_NS} ${audioHandle.name} media event ${JSON.stringify(evtdata)}`));

@@ -39,6 +39,8 @@ const PLUGIN_EVENT = {
   PEER_LEAVING: 'audiobridge_peer_leaving',
   KICKED: 'audiobridge_kicked',
   PEER_KICKED: 'audiobridge_peer_kicked',
+  TALKING: 'audiobridge_talking',
+  PEER_TALKING: 'audiobridge_peer_talking',
   EXISTS: 'audiobridge_exists',
   ROOMS_LIST: 'audiobridge_list',
   CREATED: 'audiobridge_created',
@@ -172,7 +174,7 @@ class AudioBridgeHandle extends Handle {
             if (typeof message_data.setup !== 'undefined') janode_event.data.setup = message_data.setup;
             if (typeof message_data.rtp !== 'undefined') janode_event.data.rtp = message_data.rtp;
             /* Add participants data */
-            janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, rtp }) => {
+            janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, rtp, talking }) => {
               const peer = {
                 feed: id,
                 display,
@@ -180,6 +182,7 @@ class AudioBridgeHandle extends Handle {
                 setup,
                 rtp,
               };
+              if (typeof talking !== 'undefined') peer.talking = talking;
               return peer;
             });
             janode_event.event = PLUGIN_EVENT.JOINED;
@@ -191,13 +194,14 @@ class AudioBridgeHandle extends Handle {
             if (typeof message_data.participants[0].muted !== 'undefined') janode_event.data.muted = message_data.participants[0].muted;
             if (typeof message_data.participants[0].setup !== 'undefined') janode_event.data.setup = message_data.participants[0].setup;
             if (typeof message_data.participants[0].rtp !== 'undefined') janode_event.data.rtp = message_data.participants[0].rtp;
+            if (typeof message_data.participants[0].talking !== 'undefined') janode_event.data.talking = message_data.participants[0].talking;
             janode_event.event = PLUGIN_EVENT.PEER_JOINED;
           }
           break;
 
         /* Participants list */
         case 'participants':
-          janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, rtp }) => {
+          janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, rtp, talking }) => {
             const peer = {
               feed: id,
               display,
@@ -205,6 +209,7 @@ class AudioBridgeHandle extends Handle {
               setup,
               rtp,
             };
+            if (typeof talking !== 'undefined') peer.talking = talking;
             return peer;
           });
           janode_event.event = PLUGIN_EVENT.PARTICIPANTS_LIST;
@@ -248,6 +253,14 @@ class AudioBridgeHandle extends Handle {
             return forwarder;
           });
           janode_event.event = PLUGIN_EVENT.FWD_LIST;
+          break;
+
+        /* Talking events */
+        case 'talking':
+        case 'stopped-talking':
+          janode_event.data.feed = message_data.id;
+          janode_event.data.talking = (audiobridge === 'talking');
+          janode_event.event = message_data.id !== this.feed ? PLUGIN_EVENT.PEER_TALKING : PLUGIN_EVENT.TALKING;
           break;
 
         /* Generic event (e.g. errors) */
@@ -369,24 +382,28 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.display] - The display name to use
    * @param {boolean} [params.muted] - Set muted status
    * @param {number} [params.quality] - Set opus quality
+   * @param {number} [params.bitrate] - Set received bitrate (overrides room default)
    * @param {number} [params.volume] - Set volume percent
    * @param {boolean} [params.record] - Enable recording
    * @param {string} [params.filename] - Set recording filename
-   * @param {number} [params.prebuffer] - Set a new prebuffer value
+   * @param {number} [params.expected_loss] - Set a new expected_loss value for this participant (overrides room default)
+   * @param {number} [params.prebuffer] - Set a new prebuffer value (overrides room default)
    * @param {string} [params.group] - Set the group that the participant belongs to
    * @param {RTCSessionDescription} [params.jsep=null] - JSEP offer
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_CONFIGURED>}
    */
-  async configure({ display, muted, quality, volume, record, filename, prebuffer, group, jsep = null }) {
+  async configure({ display, muted, quality, bitrate, volume, record, filename, expected_loss, prebuffer, group, jsep = null }) {
     const body = {
       request: REQUEST_CONFIGURE,
     };
     if (typeof display === 'string') body.display = display;
     if (typeof muted === 'boolean') body.muted = muted;
     if (typeof quality === 'number') body.quality = quality;
+    if (typeof bitrate === 'number') body.bitrate = bitrate;
     if (typeof volume === 'number') body.volume = volume;
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
+    if (typeof expected_loss === 'number') body.expected_loss = expected_loss;
     if (typeof prebuffer === 'number') body.prebuffer = prebuffer;
     if (typeof group === 'string') body.group = group;
 
@@ -553,17 +570,23 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.description] - A room description
    * @param {boolean} [params.permanent] - Set to true to persist the room in the Janus config file
    * @param {number} [params.sampling_rate] - The sampling rate (bps) to be used in the room
+   * @param {number} [params.bitrate] - The bitrate (bps) to be used in the room, if missing the encoder decides
    * @param {boolean} [params.is_private] - Set room as private (hidden in list)
    * @param {string} [params.secret] - The secret to be used when managing the room
    * @param {string} [params.pin] - The ping needed for joining the room
    * @param {boolean} [params.record] - True to record the mixed audio
    * @param {string} [params.filename] - The recording filename
+   * @param {boolean} [params.talking_events] - True to enable talking events
+   * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
+   * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
+   * @param {number} [params.expected_loss] - The expected loss percentage in the audiobridge, if > 0 enables FEC
    * @param {number} [params.prebuffer] - The prebuffer to use for every participant
    * @param {boolean} [params.allow_rtp] - Allow plain RTP participants
    * @param {string[]} [params.groups] - The available groups in the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_CREATED>}
    */
-  async create({ room, description, permanent, sampling_rate, is_private, secret, pin, record, filename, prebuffer, allow_rtp, groups }) {
+  async create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, record, filename,
+    talking_events, talking_level_threshold, talking_packets_threshold, expected_loss, prebuffer, allow_rtp, groups }) {
     const body = {
       request: REQUEST_CREATE,
       room,
@@ -571,11 +594,16 @@ class AudioBridgeHandle extends Handle {
     if (typeof description === 'string') body.description = description;
     if (typeof permanent === 'boolean') body.permanent = permanent;
     if (typeof sampling_rate === 'number') body.sampling = sampling_rate;
+    if (typeof bitrate === 'number') body.default_bitrate = bitrate;
     if (typeof is_private === 'boolean') body.is_private = is_private;
     if (typeof secret === 'string') body.secret = secret;
     if (typeof pin === 'string') body.pin = pin;
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.record_file = filename;
+    if (typeof talking_events === 'boolean') body.audiolevel_event = talking_events;
+    if (typeof talking_level_threshold === 'number' && talking_level_threshold >= 0 && talking_level_threshold <= 127) body.audio_level_average = talking_level_threshold;
+    if (typeof talking_packets_threshold === 'number' && talking_packets_threshold > 0) body.audio_active_packets = talking_packets_threshold;
+    if (typeof expected_loss === 'number') body.default_expectedloss = expected_loss;
     if (typeof prebuffer === 'number') body.default_prebuffering = prebuffer;
     if (typeof allow_rtp === 'boolean') body.allow_rtp_participants = allow_rtp;
     if (Array.isArray(groups)) body.groups = groups;
@@ -791,6 +819,7 @@ class AudioBridgeHandle extends Handle {
  * @property {string} [participants[].display] - The participant display name
  * @property {boolean} [participants[].muted] - The muted status of the participant
  * @property {boolean} [participants[].setup] - True if participant PeerConnection is up
+ * @property {boolean} [participants[].talking] - True if participant is talking
  */
 
 /**
@@ -877,6 +906,8 @@ class AudioBridgeHandle extends Handle {
  * @property {string} EVENT.AUDIOBRIDGE_PEER_CONFIGURED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_CONFIGURED}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_KICKED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_KICKED}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_LEAVING}
+ * @property {string} EVENT.AUDIOBRIDGE_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_TALKING}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_TALKING}
  * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
  */
 export default {
@@ -948,6 +979,28 @@ export default {
      * @property {number|string} feed
      */
     AUDIOBRIDGE_PEER_LEAVING: PLUGIN_EVENT.PEER_LEAVING,
+
+    /**
+     * Notify if the current user is talking.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_TALKING
+     * @type {object}
+     * @property {number|string} room
+     * @property {number|string} feed
+     * @property {boolean} talking
+     */
+    AUDIOBRIDGE_TALKING: PLUGIN_EVENT.TALKING,
+
+    /**
+     * Notify if a participant is talking.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_TALKING
+     * @type {object}
+     * @property {number|string} room
+     * @property {number|string} feed
+     * @property {boolean} talking
+     */
+    AUDIOBRIDGE_PEER_TALKING: PLUGIN_EVENT.PEER_TALKING,
 
     /**
      * Generic audiobridge error.

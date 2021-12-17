@@ -80,6 +80,7 @@ async function initBackEnd() {
 
     session.once(Janode.EVENT.SESSION_DESTROYED, () => {
       Logger.info(`${LOG_NS} session destroyed`);
+      janodeSession = null;
     });
 
     const handle = await session.attach(AudioBridgePlugin);
@@ -156,6 +157,14 @@ function initFrontEnd() {
 
         audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_PEER_KICKED, evtdata => {
           replyEvent(socket, 'peer-kicked', evtdata);
+        });
+
+        audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_TALKING, evtdata => {
+          replyEvent(socket, 'talking', evtdata);
+        });
+
+        audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_PEER_TALKING, evtdata => {
+          replyEvent(socket, 'peer-talking', evtdata);
         });
 
         // generic audiobridge events

@@ -72,6 +72,7 @@ async function initBackEnd() {
 
     session.once(Janode.EVENT.SESSION_DESTROYED, () => {
       Logger.info(`${LOG_NS} session ${session.id} destroyed`);
+      janodeSession = null;
     });
 
     const handle = await session.attach(VideoRoomPlugin);
@@ -178,6 +179,10 @@ function initFrontEnd() {
 
         pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_DISPLAY, evtdata => {
           replyEvent(socket, 'display', evtdata);
+        });
+
+        pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_TALKING, evtdata => {
+          replyEvent(socket, 'talking', evtdata);
         });
 
         pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_KICKED, evtdata => {

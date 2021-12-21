@@ -51,6 +51,7 @@ const PLUGIN_EVENT = {
   UNPUBLISHED: 'videoroom_unpublished',
   LEAVING: 'videoroom_leaving',
   KICKED: 'videoroom_kicked',
+  TALKING: 'videoroom_talking',
   ALLOWED: 'videoroom_allowed',
   EXISTS: 'videoroom_exists',
   ROOMS_LIST: 'videoroom_list',
@@ -167,11 +168,12 @@ class VideoRoomHandle extends Handle {
 
           janode_event.data.feed = message_data.id;
           janode_event.data.description = message_data.description;
-          janode_event.data.publishers = message_data.publishers.map(({ id, display }) => {
+          janode_event.data.publishers = message_data.publishers.map(({ id, display, talking }) => {
             const pub = {
               feed: id,
               display,
             };
+            if (typeof talking !== 'undefined') pub.talking = talking;
             return pub;
           });
           janode_event.event = PLUGIN_EVENT.PUB_JOINED;
@@ -197,12 +199,13 @@ class VideoRoomHandle extends Handle {
 
         /* Participants list */
         case 'participants':
-          janode_event.data.participants = message_data.participants.map(({ id, display, publisher }) => {
+          janode_event.data.participants = message_data.participants.map(({ id, display, publisher, talking }) => {
             const peer = {
               feed: id,
               display,
               publisher,
             };
+            if (typeof talking !== 'undefined') peer.talking = talking;
             return peer;
           });
           janode_event.event = PLUGIN_EVENT.PARTICIPANTS_LIST;
@@ -284,6 +287,15 @@ class VideoRoomHandle extends Handle {
           janode_event.event = PLUGIN_EVENT.RTP_FWD_LIST;
           break;
 
+        /* Talking events */
+        case 'talking':
+        case 'stopped-talking':
+          janode_event.data.feed = message_data.id;
+          janode_event.data.talking = (videoroom === 'talking');
+          janode_event.data.audio_level = message_data['audio-level-dBov-avg'];
+          janode_event.event = PLUGIN_EVENT.TALKING;
+          break;
+
         /* Generic events (error, notifications ...) */
         case 'event':
           /* VideoRoom Error */
@@ -305,11 +317,12 @@ class VideoRoomHandle extends Handle {
           /* Publisher list notification */
           if (message_data.publishers) {
             janode_event.event = PLUGIN_EVENT.PUB_LIST;
-            janode_event.data.publishers = message_data.publishers.map(({ id, display }) => {
+            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking }) => {
               const pub = {
                 feed: id,
                 display,
               };
+              if (typeof talking !== 'undefined') pub.talking = talking;
               return pub;
             });
             break;
@@ -855,6 +868,9 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.fir_freq] - The PLI interval in seconds
    * @param {string} [params.audiocodec] - Comma separated list of allowed audio codecs
    * @param {string} [params.videocodec] - Comma separated list of allowed video codecs
+   * @param {boolean} [params.talking_events] - True to enable talking events
+   * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
+   * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
    * @param {boolean} [params.record] - Wheter to enable recording of any publisher
    * @param {string} [params.rec_dir] - Folder where recordings should be stored
    * @param {boolean} [params.videoorient] - Whether the video-orientation RTP extension must be negotiated
@@ -862,7 +878,7 @@ class VideoRoomHandle extends Handle {
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CREATED>}
    */
   async create({ room = 0, description, max_publishers, permanent, is_private, secret, pin, bitrate,
-    bitrate_cap, fir_freq, audiocodec, videocodec, record, rec_dir, videoorient, h264_profile }) {
+    bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold, record, rec_dir, videoorient, h264_profile }) {
     const body = {
       request: REQUEST_CREATE,
       room,
@@ -878,6 +894,9 @@ class VideoRoomHandle extends Handle {
     if (typeof fir_freq === 'number') body.fir_freq = fir_freq;
     if (typeof audiocodec === 'string') body.audiocodec = audiocodec;
     if (typeof videocodec === 'string') body.videocodec = videocodec;
+    if (typeof talking_events === 'boolean') body.audiolevel_event = talking_events;
+    if (typeof talking_level_threshold === 'number' && talking_level_threshold >= 0 && talking_level_threshold <= 127) body.audio_level_average = talking_level_threshold;
+    if (typeof talking_packets_threshold === 'number' && talking_packets_threshold > 0) body.audio_active_packets = talking_packets_threshold;
     if (typeof record === 'boolean') body.record = record;
     if (typeof rec_dir === 'string') body.rec_dir = rec_dir;
     if (typeof videoorient === 'boolean') body.videoorient_ext = videoorient;
@@ -1079,6 +1098,7 @@ class VideoRoomHandle extends Handle {
  * @property {number|string} participants[].feed - Feed identifier of the participant
  * @property {string} [participants[].display] - The participant display name, if available
  * @property {boolean} participants[].publisher - Whether the user is an active publisher in the room
+ * @property {boolean} [participants[].talking] - True if participant is talking
  */
 
 /**
@@ -1230,6 +1250,7 @@ class VideoRoomHandle extends Handle {
  * @property {string} EVENT.VIDEOROOM_LEAVING {@link module:videoroom-plugin~VIDEOROOM_LEAVING}
  * @property {string} EVENT.VIDEOROOM_DISPLAY {@link module:videoroom-plugin~VIDEOROOM_DISPLAY}
  * @property {string} EVENT.VIDEOROOM_KICKED {@link module:videoroom-plugin~VIDEOROOM_KICKED}
+ * @property {string} EVENT.VIDEOROOM_TALKING {@link module:videoroom-plugin~VIDEOROOM_TALKING}
  * @property {string} EVENT.VIDEOROOM_ERROR {@link module:videoroom-plugin~VIDEOROOM_ERROR}
  */
 export default {
@@ -1305,6 +1326,18 @@ export default {
      * @property {number} bitrate - The current bitrate cap for the participant
      */
     VIDEOROOM_SLOWLINK: PLUGIN_EVENT.SLOW_LINK,
+
+    /**
+     * Notify if the current user is talking.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_TALKING
+     * @type {object}
+     * @property {number|string} room - The involved room
+     * @property {number|string} feed - The feed of the peer this talking notification refers to
+     * @property {boolean} talking - True if the participant is talking
+     * @property {number} audio_level - The audio level of the participant in the range [0,127]
+     */
+    VIDEOROOM_TALKING: PLUGIN_EVENT.TALKING,
 
     /**
      * A feed has been kicked out.

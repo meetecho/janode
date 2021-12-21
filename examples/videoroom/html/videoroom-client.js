@@ -196,7 +196,7 @@ function _listRooms() {
   });
 }
 
-function _create({ room, description, max_publishers = 6, audiocodec = 'opus', videocodec = 'vp8', permanent = false }) {
+function _create({ room, description, max_publishers = 6, audiocodec = 'opus', videocodec = 'vp8', talking_events = false, talking_level_threshold = 25, talking_packets_threshold = 100, permanent = false }) {
   socket.emit('create', {
     data: {
       room,
@@ -204,6 +204,9 @@ function _create({ room, description, max_publishers = 6, audiocodec = 'opus', v
       max_publishers,
       audiocodec,
       videocodec,
+      talking_events,
+      talking_level_threshold,
+      talking_packets_threshold,
       permanent,
     },
     _id: getId(),
@@ -322,6 +325,10 @@ socket.on('subscribed', async ({ data }) => {
 
 socket.on('participants-list', ({ data }) => {
   console.log('participants list', data);
+});
+
+socket.on('talking', ({ data }) => {
+  console.log('talking notify', data);
 });
 
 socket.on('kicked', ({ data }) => {

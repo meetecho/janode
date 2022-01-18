@@ -75,4 +75,4 @@ class Configuration {
   }
 }
 
-module.exports = Configuration;
+export default Configuration;

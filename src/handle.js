@@ -6,12 +6,12 @@
  * @private
  */
 
-const { EventEmitter } = require('events');
+import { EventEmitter } from 'events';
 
-const Logger = require('./utils/logger.js');
+import Logger from './utils/logger.js';
 const LOG_NS = '[handle.js]';
-const { getNumericID } = require('./utils/utils.js');
-const { JANUS, JANODE, isAckData, isResponseData, isErrorData } = require('./protocol.js');
+import { getNumericID } from './utils/utils.js';
+import { JANUS, JANODE, isAckData, isResponseData, isErrorData } from './protocol.js';
 
 /**
  * Class representing a Janode handle.<br>
@@ -557,4 +557,4 @@ class Handle extends EventEmitter {
 
 }
 
-module.exports = Handle;
+export default Handle;

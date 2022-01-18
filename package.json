@@ -2,6 +2,7 @@
   "name": "janode",
   "description": "Meetecho adapter for the Janus WebRTC Server",
   "version": "1.5.2",
+  "type": "module",
   "keywords": [
     "janus",
     "webrtc",
@@ -21,7 +22,7 @@
     "url": "https://github.com/meetecho/janode/issues"
   },
   "license": "ISC",
-  "main": "src/janode.js",
+  "exports": "./src/janode.js",
   "files": [
     "src/*.js",
     "src/utils/*.js",
@@ -35,7 +36,7 @@
     "unix-dgram": "^2.0.4"
   },
   "engines": {
-    "node": ">=12"
+    "node": " >=14.13.1 || >=16.0.0"
   },
   "scripts": {
     "build": "npm install --production"

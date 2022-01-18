@@ -1,21 +1,30 @@
 'use strict';
 
-const fs = require('fs');
-const Janode = require('../../../src/janode.js');
-const { janode: janodeConfig, web: serverConfig } = require('./config.js');
+import { readFileSync } from 'fs';
+import Janode from '../../../src/janode.js';
+import config from './config.js';
+const { janode: janodeConfig, web: serverConfig } = config;
+
+import { fileURLToPath } from 'url';
+import { dirname, basename } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const { Logger } = Janode;
-const LOG_NS = `[${require('path').basename(__filename)}]`;
-const EchoTestPlugin = require('../../../src/plugins/echotest-plugin');
+const LOG_NS = `[${basename(__filename)}]`;
+import EchoTestPlugin from '../../../src/plugins/echotest-plugin.js';
 
-const express = require('express');
+import express from 'express';
 const app = express();
 const options = {
-  key: serverConfig.key ? fs.readFileSync(serverConfig.key) : null,
-  cert: serverConfig.cert ? fs.readFileSync(serverConfig.cert) : null,
+  key: serverConfig.key ? readFileSync(serverConfig.key) : null,
+  cert: serverConfig.cert ? readFileSync(serverConfig.cert) : null,
 };
-const server = (options.key && options.cert) ? require('https').createServer(options, app) : require('http').createServer(app);
-const io = require('socket.io')(server);
+import { createServer as createHttpsServer } from 'https';
+import { createServer as createHttpServer } from 'http';
+const httpServer = (options.key && options.cert) ? createHttpsServer(options, app) : createHttpServer(app);
+import { Server } from 'socket.io';
+const io = new Server(httpServer);
 
 const scheduleBackEndConnection = (function () {
   let task = null;
@@ -84,7 +93,7 @@ async function initBackEnd() {
 }
 
 function initFrontEnd() {
-  if (server.listening) return Promise.reject(new Error('Server already listening'));
+  if (httpServer.listening) return Promise.reject(new Error('Server already listening'));
 
   Logger.info(`${LOG_NS} initializing socketio front end...`);
 
@@ -198,7 +207,7 @@ function initFrontEnd() {
   // http server binding
   return new Promise((resolve, reject) => {
     // web server binding
-    server.listen(
+    httpServer.listen(
       serverConfig.port,
       serverConfig.bind,
       () => {
@@ -207,7 +216,7 @@ function initFrontEnd() {
       }
     );
 
-    server.on('error', e => reject(e));
+    httpServer.on('error', e => reject(e));
   });
 }
 

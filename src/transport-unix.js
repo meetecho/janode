@@ -6,15 +6,15 @@
  * @private
  */
 
-const { Buffer } = require('buffer');
-const { unlinkSync } = require('fs');
+import { Buffer } from 'buffer';
+import { unlinkSync } from 'fs';
 
 /* External dependency with Unix dgram sockets implementation */
-const unix = require('unix-dgram');
+import { createSocket } from 'unix-dgram';
 
-const Logger = require('./utils/logger.js');
+import Logger from './utils/logger.js';
 const LOG_NS = '[transport-unix.js]';
-const { delayOp } = require('./utils/utils.js');
+import { delayOp } from './utils/utils.js';
 
 /**
  * Class representing a connection through Unix dgram sockets transport.<br>
@@ -116,7 +116,7 @@ class TransportUnix {
       let bound = false;
 
       try {
-        socket = unix.createSocket('unix_dgram');
+        socket = createSocket('unix_dgram');
       } catch (error) {
         Logger.error(`${LOG_NS} ${this.name} unix socket create error (${error.message})`);
         reject(error);
@@ -132,7 +132,7 @@ class TransportUnix {
       });
 
       socket.on('connect', _ => {
-        Logger.info(`${LOG_NS} ${this.name} unix socket connected`)
+        Logger.info(`${LOG_NS} ${this.name} unix socket connected`);
         connected = true;
         if (bound && connected) resolve(this);
       });
@@ -327,4 +327,4 @@ class TransportUnix {
 
 }
 
-module.exports = TransportUnix;
+export default TransportUnix;

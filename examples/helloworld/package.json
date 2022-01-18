@@ -1,6 +1,7 @@
 {
   "name": "janode-helloworld",
   "description": "Janode helloworld app",
+  "type": "module",
   "keywords": [
     "janus",
     "webrtc",

@@ -2,9 +2,13 @@
     "env": {
         "node": true,
         "browser": false,
-        "es2020": true
+        "es2021": true
     },
     "extends": "eslint:recommended",
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaVersion": "latest"
+    },
     "rules": {
         "no-unused-vars": [
             "warn",

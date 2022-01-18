@@ -1,5 +1,4 @@
-module.exports = {
-
+export default {
   janode: [{
     server_key: 'janus_1_api',
     address: [{
@@ -23,5 +22,5 @@ module.exports = {
     }],
     // seconds between retries after a connection setup error
     retry_time_secs: 10
-  }],
+  }]
 };

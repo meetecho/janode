@@ -1,10 +1,16 @@
 'use strict';
 
-const Janode = require('../../../src/janode.js');
-const { janode: janodeConfig } = require('./config.js');
+import Janode from '../../../src/janode.js';
+import config from './config.js';
+const { janode: janodeConfig } = config;
+
+import { fileURLToPath } from 'url';
+import { dirname, basename } from 'path';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const { Logger } = Janode;
-const LOG_NS = `[${require('path').basename(__filename)}]`;
+const LOG_NS = `[${basename(__filename)}]`;
 
 const closeAfterSecs = 120;
 
@@ -46,8 +52,8 @@ const closeAfterSecs = 120;
 
     session.on(Janode.EVENT.SESSION_DESTROYED, () => Logger.info(`${LOG_NS} ***** SESSION DESTROYED *****`));
 
-    // Session API: Janus ATTACH PLUGIN
-    // returns the raw plugin handle
+    /* Session API: Janus ATTACH PLUGIN */
+    /* returns the raw plugin handle */
     const handle = await session.attach({ id: 'janus.plugin.echotest' });
 
     Logger.info(`${LOG_NS} ***** HANDLE ATTACHED *****`);

@@ -6,16 +6,16 @@
  * @private
  */
 
-const { EventEmitter } = require('events');
+import { EventEmitter } from 'events';
 
-const Logger = require('./utils/logger.js');
+import Logger from './utils/logger.js';
 const LOG_NS = '[connection.js]';
-const { getNumericID, checkUrl, newIterator } = require('./utils/utils.js');
-const { JANODE, JANUS, isResponseData, isErrorData } = require('./protocol.js');
-const WsTransport = require('./transport-ws.js');
-const UnixTransport = require('./transport-unix.js');
-const JanodeSession = require('./session.js');
-const TransactionManager = require('./tmanager.js');
+import { getNumericID, checkUrl, newIterator } from './utils/utils.js';
+import { JANODE, JANUS, isResponseData, isErrorData } from './protocol.js';
+import WsTransport from './transport-ws.js';
+import UnixTransport from './transport-unix.js';
+import JanodeSession from './session.js';
+import TransactionManager from './tmanager.js';
 
 
 /**
@@ -100,7 +100,7 @@ class Connection extends EventEmitter {
       close: async _ => { throw new Error('transport does not implement the "close" function'); },
       send: async _ => { throw new Error('transport does not implement the "send" function'); },
       getRemoteHostname: _ => { throw new Error('transport does not implement the "getRemoteHostname" function'); },
-    }
+    };
 
     try {
       let transport;
@@ -515,4 +515,4 @@ class Connection extends EventEmitter {
 
 }
 
-module.exports = Connection;
+export default Connection;

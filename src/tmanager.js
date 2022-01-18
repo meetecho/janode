@@ -18,9 +18,9 @@
  * @property {function} error - The error callback
  */
 
-const Logger = require('./utils/logger.js');
+import Logger from './utils/logger.js';
 const LOG_NS = '[tmanager.js]';
-const { getNumericID, getCliArgument } = require('./utils/utils.js');
+import { getNumericID, getCliArgument } from './utils/utils.js';
 
 const debug = getCliArgument('debug-tx', 'boolean', false);
 
@@ -204,7 +204,7 @@ class TransactionManager {
   }
 }
 
-module.exports = TransactionManager;
+export default TransactionManager;
 
 
 

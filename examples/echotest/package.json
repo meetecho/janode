@@ -1,6 +1,7 @@
 {
   "name": "janode-echotest",
   "description": "Janode echotest app",
+  "type": "module",
   "keywords": [
     "janus",
     "webrtc",

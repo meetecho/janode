@@ -22,7 +22,7 @@ Read the examples [on the git repo](https://github.com/meetecho/janode) to have 
 ```js
 import Janode from 'janode';
 const { Logger } = Janode;
-import EchoTestPlugin from 'janode/src/plugins/echotest-plugin.js';
+import EchoTestPlugin from 'janode/plugins/echotest';
 
 const connection = await Janode.connect({
   is_admin: false,

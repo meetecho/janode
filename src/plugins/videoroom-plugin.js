@@ -254,36 +254,81 @@ class VideoRoomHandle extends Handle {
 
         /* RTP forwarders list */
         case 'forwarders':
-          janode_event.data.forwarders = message_data.rtp_forwarders.map(({ publisher_id, rtp_forwarder }) => {
-            const pub = {
-              feed: publisher_id,
-            };
-
-            pub.forwarders = rtp_forwarder.map(forw => {
-              const forwarder = {
-                host: forw.ip,
+          if (janode_event.data.forwarders) {
+            janode_event.data.forwarders = message_data.rtp_forwarders.map(({ publisher_id, rtp_forwarder }) => {
+              const pub = {
+                feed: publisher_id,
               };
 
-              if (forw.audio_stream_id) {
-                forwarder.audio_port = forw.port;
-                forwarder.audio_rtcp_port = forw.remote_rtcp_port;
-                forwarder.audio_stream = forw.audio_stream_id;
-              }
-              if (forw.video_stream_id) {
-                forwarder.video_port = forw.port;
-                forwarder.video_rtcp_port = forw.remote_rtcp_port;
-                forwarder.video_stream = forw.video_stream_id;
-              }
-              if (forw.data_stream_id) {
-                forwarder.data_port = forw.port;
-                forwarder.data_stream = forw.data_stream_id;
-              }
+              pub.forwarders = rtp_forwarder.map(forw => {
+                const forwarder = {
+                  host: forw.ip,
+                };
 
-              return forwarder;
+                if (forw.audio_stream_id) {
+                  forwarder.audio_port = forw.port;
+                  forwarder.audio_rtcp_port = forw.remote_rtcp_port;
+                  forwarder.audio_stream = forw.audio_stream_id;
+                }
+                if (forw.video_stream_id) {
+                  forwarder.video_port = forw.port;
+                  forwarder.video_rtcp_port = forw.remote_rtcp_port;
+                  forwarder.video_stream = forw.video_stream_id;
+                }
+                if (forw.data_stream_id) {
+                  forwarder.data_port = forw.port;
+                  forwarder.data_stream = forw.data_stream_id;
+                }
+
+                return forwarder;
+              });
+
+              return pub;
             });
+          }
+          else if (janode_event.data.publishers) {
+            janode_event.data.forwarders = message_data.publishers.map(({ publisher_id, forwarders }) => {
+              const pub = {
+                feed: publisher_id,
+              };
 
-            return pub;
-          });
+              pub.forwarders = forwarders.map(forw => {
+                const forwarder = {
+                  host: forw.host,
+                };
+
+                if (forw.type === 'audio') {
+                  forwarder.audio_port = forw.port;
+                  forwarder.audio_rtcp_port = forw.remote_rtcp_port;
+                  forwarder.audio_stream = forw.stream_id;
+                }
+                if (forw.type === 'video') {
+                  forwarder.video_port = forw.port;
+                  forwarder.video_rtcp_port = forw.remote_rtcp_port;
+                  forwarder.video_stream = forw.stream_id;
+                  if (typeof forw.substream !== 'undefined') {
+                    forwarder.substream = forw.substream;
+                  }
+                }
+                if (forw.type === 'data') {
+                  forwarder.data_port = forw.port;
+                  forwarder.data_stream = forw.stream_id;
+                }
+
+                if (typeof forw.ssrc !== 'undefined')
+                  forwarder.ssrc = forw.ssrc;
+                if (typeof forw.pt !== 'undefined')
+                  forwarder.pt = forw.pt;
+                if (typeof forw.srtp !== 'undefined')
+                  forwarder.srtp = forw.srtp;
+
+                return forwarder;
+              });
+
+              return pub;
+            });
+          }
+
           janode_event.event = PLUGIN_EVENT.RTP_FWD_LIST;
           break;
 
@@ -1137,6 +1182,10 @@ class VideoRoomHandle extends Handle {
  * @property {number} [video_stream] - The video forwarder identifier
  * @property {number} [data_port] - The datachannels target port
  * @property {number} [data_stream] - The datachannels forwarder identifier
+ * @property {number} [ssrc] - SSRC this forwarder is using
+ * @property {number} [pt] - payload type this forwarder is using
+ * @property {number} [substream] - video substream this video forwarder is relaying
+ * @property {boolean} [srtp] - whether the RTP stream is encrypted
  */
 
 /**

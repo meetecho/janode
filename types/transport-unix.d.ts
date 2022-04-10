@@ -1,3 +1,5 @@
+import Connection from "janode/types/connection";
+
 export default TransportUnix;
 /**
  * Class representing a connection through Unix dgram sockets transport.<br>
@@ -78,7 +80,7 @@ declare class TransportUnix {
      *
      * @returns {Promise<module:connection~Connection>}
      */
-    _initUnixSocket(): Promise<module>;
+    _initUnixSocket(): Promise<Connection>;
     /**
      * Internal helper to open a unix socket connection.
      * In case of error retry the connection with another address from the available pool.
@@ -93,7 +95,7 @@ declare class TransportUnix {
      *
      * @returns {Promise<module:connection~Connection>} A promise resolving with the Janode connection
      */
-    open(): Promise<module>;
+    open(): Promise<Connection>;
     /**
      * Get the remote Janus hostname.
      * It is called from the parent connection.

@@ -1,3 +1,4 @@
+import Connection from './connection.d'
 export default TransportWs;
 /**
  * Class representing a connection through WebSocket transport.<br>
@@ -83,7 +84,7 @@ declare class TransportWs {
      *
      * @returns {Promise<module:connection~Connection>}
      */
-    _initWebSocket(): Promise<module>;
+    _initWebSocket(): Promise<Connection>;
     /**
      * Internal helper to open a websocket connection.
      * In case of error retry the connection with another address from the available pool.
@@ -97,7 +98,7 @@ declare class TransportWs {
      *
      * @returns {Promise<module:connection~Connection>} A promise resolving with the Janode connection
      */
-    open(): Promise<module>;
+    open(): Promise<Connection>;
     /**
      * Send a ws ping frame.
      * This API is only available when the library is not used in a browser.

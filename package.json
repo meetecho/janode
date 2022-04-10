@@ -34,6 +34,8 @@
     "src/utils/*.js",
     "src/plugins/*.js"
   ],
+  "main": "src/janode.js",
+  "typings": "./types/janode.d",
   "dependencies": {
     "isomorphic-ws": "^4.0.1",
     "ws": "^8.0.0"

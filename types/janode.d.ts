@@ -1,6 +1,7 @@
-import Connection from './connection.d'
-import Handle from './handle.d'
-import Logger from './utils/logger.d'
+import Handle from './handle.js'
+import Logger from './utils/logger.js'
+
+import Connection from "./connection.js";
 
 declare namespace _default {
     export { connect };
@@ -8,6 +9,10 @@ declare namespace _default {
     export { EVENT };
 }
 
+// declare module 'janode/plugins/audiobridge' {
+//   export { default } from './plugins/audiobridge-plugin'
+//   export * from './plugins/audiobridge-plugin'
+// }
 export default _default;
 /**
  * An object describing a janus server (e.g. url, secret).

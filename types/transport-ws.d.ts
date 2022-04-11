@@ -1,4 +1,4 @@
-import Connection from './connection.d'
+import Connection from './connection.js'
 export default TransportWs;
 /**
  * Class representing a connection through WebSocket transport.<br>

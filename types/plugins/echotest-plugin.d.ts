@@ -1,5 +1,5 @@
-import {PluginDescriptor} from "../janode.d"
-import Handle from "../handle.d"
+import {PluginDescriptor} from "../janode.js"
+import Handle from "../handle.js"
 
 /**
  * The payload of the plugin message (cfr. Janus docs).

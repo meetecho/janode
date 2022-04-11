@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import Session from './session.d'
+import Session from './session.js'
 export default Handle;
 /**
  * Class representing a Janode handle.<br>

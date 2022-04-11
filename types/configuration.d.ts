@@ -1,4 +1,4 @@
-import {ServerObjectConf } from './janode.d'
+import { ServerObjectConf } from './janode.js'
 export default Configuration;
 /**
  * Class representing a Janode configuration.

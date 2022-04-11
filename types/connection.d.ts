@@ -1,4 +1,4 @@
-import Session from './session.d'
+import Session from './session.js'
 import EventEmitter from 'events';
 export default Connection;
 /**

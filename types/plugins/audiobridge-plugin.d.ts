@@ -1,4 +1,4 @@
-import Handle from  '../handle.d'
+import Handle from  '../handle.js'
 /**
  * The payload of the plugin message (cfr. Janus docs).
  * {@link https://janus.conf.meetecho.com/docs/audiobridge.html}

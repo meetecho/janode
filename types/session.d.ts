@@ -1,9 +1,9 @@
-import Connection from  './connection.d'
+import Connection from  './connection.js'
 import EventEmitter from 'events'
-import {AudioBridgeEvent, AudioBridgeHandle} from './plugins/audiobridge.d'
-import {EchoTestHandle} from './plugins/echotest.d'
-import {StreamingHandle} from './plugins/streaming.d'
-import {VideoRoomHandle} from './plugins/videoroom.d'
+import {AudioBridgeEvent, AudioBridgeHandle} from './plugins/audiobridge-plugin.js'
+import {EchoTestHandle} from './plugins/echotest.js'
+import {StreamingHandle} from './plugins/streaming.js'
+import {VideoRoomHandle} from './plugins/videoroom.js'
 
 export default Session;
 /**

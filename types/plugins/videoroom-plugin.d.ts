@@ -1,4 +1,4 @@
-import Handle from "../handle.d";
+import Handle from "../handle.js";
 /**
  * The class implementing the VideoRoom plugin (ref. {@link https://janus.conf.meetecho.com/docs/videoroom.html}).<br>
  *

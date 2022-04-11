@@ -1,4 +1,4 @@
-import Connection from "janode/types/connection";
+import Connection from "./connection.js";
 
 export default TransportUnix;
 /**

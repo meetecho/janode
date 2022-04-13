@@ -4,7 +4,7 @@
   "version": "1.6.1",
   "type": "module",
   "main": "src/janode.js",
-  "types": "./src/janode.d",
+  "types": "./types/janode.d",
   "keywords": [
     "janus",
     "webrtc",
@@ -27,7 +27,7 @@
   "exports": {
     ".": {
       "import": {
-        "types": "./types/janode.js",
+        "types": "./types/janode.d.ts",
         "default": "./src/janode.js"
       }
     },

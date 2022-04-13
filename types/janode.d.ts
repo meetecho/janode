@@ -9,10 +9,6 @@ declare namespace _default {
     export { EVENT };
 }
 
-// declare module 'janode/plugins/audiobridge' {
-//   export { default } from './plugins/audiobridge-plugin'
-//   export * from './plugins/audiobridge-plugin'
-// }
 export default _default;
 /**
  * An object describing a janus server (e.g. url, secret).

@@ -1,5 +1,5 @@
 import Session from './session.js'
-import EventEmitter from 'events';
+import { EventEmitter } from 'events'
 export default Connection;
 /**
  * Class representing a Janode connection.<br>

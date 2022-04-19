@@ -3,7 +3,7 @@
 /**
  * This module contains the WebSocket transport implementation.
  * @module transport-ws
- * @private
+ * @access private
  */
 
 /* Isomorphic implementation of WebSocket */

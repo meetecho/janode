@@ -3,7 +3,7 @@
 /**
  * This module contains the Connection class definition.
  * @module connection
- * @private
+ * @access private
  */
 
 import { EventEmitter } from 'events';

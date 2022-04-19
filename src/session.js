@@ -3,7 +3,7 @@
 /**
  * This module contains the Session class definition.
  * @module session
- * @private
+ * @access private
  */
 
 import { EventEmitter } from 'events';

@@ -3,7 +3,7 @@
 /**
  * This module contains the Handle class definition.
  * @module handle
- * @private
+ * @access private
  */
 
 import { EventEmitter } from 'events';

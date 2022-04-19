@@ -62,6 +62,7 @@ export const JANUS = {
     TIMEOUT: 'timeout',
     WEBRTCUP: 'webrtcup',
     SLOWLINK: 'slowlink',
+    TRICKLE: 'trickle',
   },
   /**
    * Janus Admin API requests
@@ -92,6 +93,7 @@ export const JANODE = {
     HANDLE_MEDIA: 'handle_media',
     HANDLE_WEBRTCUP: 'handle_webrtcup',
     HANDLE_SLOWLINK: 'handle_slowlink',
+    HANDLE_TRICKLE: 'handle_trickle',
     CONNECTION_ERROR: 'connection_error',
   },
 };

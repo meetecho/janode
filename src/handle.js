@@ -322,6 +322,33 @@ class Handle extends EventEmitter {
         break;
       }
 
+      /* Trickle from Janus */
+      case JANUS.EVENT.TRICKLE: {
+        /**
+         * The handle has received a trickle notification.
+         *
+         * @event module:handle~Handle#event:HANDLE_TRICKLE
+         * @type {object}
+         * @property {boolean} [completed] - If true, this notifies the end of triclking (the other fields of the event are missing in this case)
+         * @property {string} [sdpMid] - The mid the candidate refers to
+         * @property {number} [sdpMLineIndex] - The m-line the candidate refers to
+         * @property {string} [candidate] - The candidate string
+         */
+
+        const { completed, sdpMid, sdpMLineIndex, candidate } = janus_message.candidate;
+        if (!completed) {
+          janode_event_data.sdpMid = sdpMid;
+          janode_event_data.sdpMLineIndex = sdpMLineIndex;
+          janode_event_data.candidate = candidate;
+        }
+        else {
+          janode_event_data.completed = true;
+        }
+
+        this.emit(JANODE.EVENT.HANDLE_TRICKLE, janode_event_data);
+        break;
+      }
+
       default:
         Logger.error(`${LOG_NS} ${this.name} unknown janus event directed to the handle ${JSON.stringify(janus_message)}`);
     }

@@ -151,6 +151,8 @@ function initFrontEnd() {
         streamingHandle.once(Janode.EVENT.HANDLE_DETACHED, () => {
           Logger.info(`${LOG_NS} ${streamingHandle.name} detached event`);
         });
+        streamingHandle.on(Janode.EVENT.HANDLE_TRICKLE, evtdata => Logger.info(`${LOG_NS} ${streamingHandle.name} trickle event ${JSON.stringify(evtdata)}`));
+
 
         const { jsep, restart = false } = await streamingHandle.watch(watchdata);
         replyEvent(socket, 'offer', { jsep, restart }, _id);

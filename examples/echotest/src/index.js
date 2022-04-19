@@ -132,6 +132,7 @@ function initFrontEnd() {
         echoHandle.on(Janode.EVENT.HANDLE_SLOWLINK, evtdata => Logger.info(`${LOG_NS} ${echoHandle.name} slowlink event ${JSON.stringify(evtdata)}`));
         echoHandle.on(Janode.EVENT.HANDLE_HANGUP, evtdata => Logger.info(`${LOG_NS} ${echoHandle.name} hangup event ${JSON.stringify(evtdata)}`));
         echoHandle.on(Janode.EVENT.HANDLE_DETACHED, () => Logger.info(`${LOG_NS} ${echoHandle.name} detached event`));
+        echoHandle.on(Janode.EVENT.HANDLE_TRICKLE, evtdata => Logger.info(`${LOG_NS} ${echoHandle.name} trickle event ${JSON.stringify(evtdata)}`));
 
         replyEvent(socket, 'ready', {}, _id);
 

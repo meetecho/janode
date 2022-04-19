@@ -175,6 +175,7 @@ function initFrontEnd() {
         audioHandle.once(Janode.EVENT.HANDLE_DETACHED, () => {
           Logger.info(`${LOG_NS} ${audioHandle.name} detached event`);
         });
+        audioHandle.on(Janode.EVENT.HANDLE_TRICKLE, evtdata => Logger.info(`${LOG_NS} ${audioHandle.name} trickle event ${JSON.stringify(evtdata)}`));
 
         const response = await audioHandle.join(joindata);
 

@@ -7,7 +7,7 @@ const RTCPeerConnection = (window.RTCPeerConnection || window.webkitRTCPeerConne
 
 let audioPeerConnection;
 let pendingOfferMap = new Map();
-const myRoom = getURLParameter('room') ? parseInt(getURLParameter('room')) : 1234;
+const myRoom = getURLParameter('room') ? parseInt(getURLParameter('room')) : (getURLParameter('room_str') || 1234);
 const randName = ('John_Doe_' + Math.floor(10000 * Math.random()));
 const myName = getURLParameter('name') || randName;
 const skipJoin = getURLParameter('skipjoin') || false;
@@ -150,7 +150,7 @@ function _listRooms() {
   });
 }
 
-function _create({ room = myRoom, description, permanent = false, pin = null, secret = null, allow_rtp = true, bitrate = 0, expected_loss = 0, talking_events = false, talking_level_threshold = 25, talking_packets_threshold = 100, groups } = {}) {
+function _create({ room, description, permanent = false, pin = null, secret = null, allow_rtp = true, bitrate = 0, expected_loss = 0, talking_events = false, talking_level_threshold = 25, talking_packets_threshold = 100, groups } = {}) {
   socket.emit('create', {
     data: {
       room,

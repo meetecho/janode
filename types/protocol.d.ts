@@ -27,6 +27,7 @@ export namespace JANUS {
         export const TIMEOUT: string;
         export const WEBRTCUP: string;
         export const SLOWLINK: string;
+        export const TRICKLE: string;
     }
     namespace ADMIN {
         const LIST_SESSIONS: string;
@@ -43,6 +44,7 @@ export namespace JANODE {
         const HANDLE_DETACHED: string;
         const HANDLE_HANGUP: string;
         const HANDLE_MEDIA: string;
+        const HANDLE_TRICKLE: string;
         const HANDLE_WEBRTCUP: string;
         const HANDLE_SLOWLINK: string;
         const CONNECTION_ERROR: string;

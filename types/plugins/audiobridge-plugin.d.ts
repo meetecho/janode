@@ -52,17 +52,19 @@ export type AUDIOBRIDGE_EVENT_JOINED = {
      */
     display?: string;
     /**
-     * - True if the user joind in muted state
-     */
-    muted?: boolean;
-    /**
-     * - True if the Peer Connection has been established
-     */
-    setup?: boolean;
-    /**
      * - True if the peer is a plain RTP participant
      */
     rtp?: any;
+    /**
+     * - True if the peer is a plain RTP participant
+     */
+    participants: Array<{
+        feed: number | string
+        display: string
+        muted: boolean
+        setup: boolean
+    }>;
+
 };
 /**
  * The response event for configure request.

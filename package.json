@@ -65,7 +65,8 @@
   "files": [
     "src/*.js",
     "src/utils/*.js",
-    "src/plugins/*.js"
+    "src/plugins/*.js",
+    "types/**/*"
   ],
   "dependencies": {
     "isomorphic-ws": "^4.0.1",

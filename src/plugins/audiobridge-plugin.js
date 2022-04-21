@@ -336,7 +336,7 @@ class AudioBridgeHandle extends Handle {
    *
    * @param {object} params
    * @param {number|string} params.room - The room to join
-   * @param {number} [params.feed=0] - The feed identifier for the participant, picked by Janus if omitted
+   * @param {number|string} [params.feed] - The feed identifier for the participant, picked by Janus if omitted
    * @param {string} [params.display] - The display name to use
    * @param {boolean} [params.muted] - True to join in muted status
    * @param {string} [params.pin] - The pin needed to join
@@ -349,12 +349,12 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.group] - The group to assign to this participant
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
    */
-  async join({ room, feed = 0, display, muted, pin, token, quality, volume, record, filename, rtp_participant, group }) {
+  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, rtp_participant, group }) {
     const body = {
       request: REQUEST_JOIN,
       room,
-      id: feed,
     };
+    if (typeof feed === 'string' || typeof feed === 'number') body.id = feed;
     if (typeof display === 'string') body.display = display;
     if (typeof muted === 'boolean') body.muted = muted;
     if (typeof pin === 'string') body.pin = pin;

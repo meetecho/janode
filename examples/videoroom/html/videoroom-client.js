@@ -7,7 +7,7 @@ const RTCPeerConnection = (window.RTCPeerConnection || window.webkitRTCPeerConne
 
 const pcMap = new Map();
 let pendingOfferMap = new Map();
-const myRoom = getURLParameter('room') ? parseInt(getURLParameter('room')) : 1234;
+const myRoom = getURLParameter('room') ? parseInt(getURLParameter('room')) : (getURLParameter('room_str') || 1234);
 const randName = ('John_Doe_' + Math.floor(10000 * Math.random()));
 const myName = getURLParameter('name') || randName;
 

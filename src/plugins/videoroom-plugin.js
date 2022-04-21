@@ -452,7 +452,7 @@ class VideoRoomHandle extends Handle {
    *
    * @param {object} params
    * @param {number|string} params.room - The room to join to
-   * @param {number|string} [params.feed=0] - The feed identifier to use, if missing it is picked by Janus
+   * @param {number|string} [params.feed] - The feed identifier to use, if missing it is picked by Janus
    * @param {boolean} [params.audio] - True to request audio relaying
    * @param {boolean} [params.video] - True to request video relaying
    * @param {boolean} [params.data] - True to request datachannel relaying
@@ -464,13 +464,13 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_PUB_JOINED>}
    */
-  async joinPublisher({ room, feed = 0, audio, video, data, bitrate, record, filename, display, token, pin }) {
+  async joinPublisher({ room, feed, audio, video, data, bitrate, record, filename, display, token, pin }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_PUBLISHER,
       room,
-      id: feed,
     };
+    if (typeof feed === 'string' || typeof feed === 'number') body.id = feed;
     if (typeof display === 'string') body.display = display;
     if (typeof audio === 'boolean') body.audio = audio;
     if (typeof video === 'boolean') body.video = video;
@@ -496,7 +496,7 @@ class VideoRoomHandle extends Handle {
    *
    * @param {object} params
    * @param {number|string} params.room - The room to join to
-   * @param {number|string} [params.feed=0] - The feed identifier to use, if missing it is picked by Janus
+   * @param {number|string} [params.feed] - The feed identifier to use, if missing it is picked by Janus
    * @param {boolean} [params.audio] - True to request audio relaying
    * @param {boolean} [params.video] - True to request video relaying
    * @param {boolean} [params.data] - True to request datachannel relaying
@@ -509,13 +509,13 @@ class VideoRoomHandle extends Handle {
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_PUB_JOINED>}
    */
-  async joinConfigurePublisher({ room, feed = 0, audio, video, data, bitrate, record, filename, display, token, pin, jsep }) {
+  async joinConfigurePublisher({ room, feed, audio, video, data, bitrate, record, filename, display, token, pin, jsep }) {
     const body = {
       request: REQUEST_JOIN_CONFIGURE,
       ptype: PTYPE_PUBLISHER,
       room,
-      id: feed,
     };
+    if (typeof feed === 'string' || typeof feed === 'number') body.id = feed;
     if (typeof display === 'string') body.display = display;
     if (typeof audio === 'boolean') body.audio = audio;
     if (typeof video === 'boolean') body.video = video;
@@ -922,12 +922,12 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.h264_profile] - H264 specific profile to prefer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CREATED>}
    */
-  async create({ room = 0, description, max_publishers, permanent, is_private, secret, pin, bitrate,
+  async create({ room, description, max_publishers, permanent, is_private, secret, pin, bitrate,
     bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold, record, rec_dir, videoorient, h264_profile }) {
     const body = {
       request: REQUEST_CREATE,
-      room,
     };
+    if (typeof room === 'string' || typeof room === 'number') body.room = room;
     if (typeof description === 'string') body.description = description;
     if (typeof max_publishers === 'number') body.publishers = max_publishers;
     if (typeof permanent === 'boolean') body.permanent = permanent;

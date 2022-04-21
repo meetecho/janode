@@ -3,7 +3,7 @@
 /**
  * This module contains the Handle class definition.
  * @module handle
- * @private
+ * @access private
  */
 
 import { EventEmitter } from 'events';
@@ -319,6 +319,33 @@ class Handle extends EventEmitter {
          * @property {number} nacks - Number of nacks in the last time slot
          */
         this.emit(JANODE.EVENT.HANDLE_SLOWLINK, janode_event_data);
+        break;
+      }
+
+      /* Trickle from Janus */
+      case JANUS.EVENT.TRICKLE: {
+        /**
+         * The handle has received a trickle notification.
+         *
+         * @event module:handle~Handle#event:HANDLE_TRICKLE
+         * @type {object}
+         * @property {boolean} [completed] - If true, this notifies the end of triclking (the other fields of the event are missing in this case)
+         * @property {string} [sdpMid] - The mid the candidate refers to
+         * @property {number} [sdpMLineIndex] - The m-line the candidate refers to
+         * @property {string} [candidate] - The candidate string
+         */
+
+        const { completed, sdpMid, sdpMLineIndex, candidate } = janus_message.candidate;
+        if (!completed) {
+          janode_event_data.sdpMid = sdpMid;
+          janode_event_data.sdpMLineIndex = sdpMLineIndex;
+          janode_event_data.candidate = candidate;
+        }
+        else {
+          janode_event_data.completed = true;
+        }
+
+        this.emit(JANODE.EVENT.HANDLE_TRICKLE, janode_event_data);
         break;
       }
 

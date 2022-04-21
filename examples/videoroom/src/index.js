@@ -209,6 +209,7 @@ function initFrontEnd() {
           Logger.info(`${LOG_NS} ${pubHandle.name} detached event`);
           clientHandles.removeHandle(pubHandle);
         });
+        pubHandle.on(Janode.EVENT.HANDLE_TRICKLE, evtdata => Logger.info(`${LOG_NS} ${pubHandle.name} trickle event ${JSON.stringify(evtdata)}`));
 
         const response = await pubHandle.joinPublisher(joindata);
 
@@ -242,6 +243,7 @@ function initFrontEnd() {
           Logger.info(`${LOG_NS} ${subHandle.name} detached event`);
           clientHandles.removeHandle(subHandle);
         });
+        subHandle.on(Janode.EVENT.HANDLE_TRICKLE, evtdata => Logger.info(`${LOG_NS} ${subHandle.name} trickle event ${JSON.stringify(evtdata)}`));
 
         const response = await subHandle.joinListener(joindata);
 

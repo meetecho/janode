@@ -3,7 +3,7 @@
 /**
  * This module contains the Unix Sockets transport implementation.
  * @module transport-unix
- * @private
+ * @access private
  */
 
 import { Buffer } from 'buffer';

@@ -7,7 +7,7 @@
  *
  * Default logging level is "info".
  * @module logger
- * @private
+ * @access private
  */
 
 import { getCliArgument } from './utils.js';

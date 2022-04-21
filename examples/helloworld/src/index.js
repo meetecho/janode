@@ -63,6 +63,7 @@ const closeAfterSecs = 120;
     handle.on(Janode.EVENT.HANDLE_MEDIA, data => Logger.info(`${LOG_NS} ***** HANDLE MEDIA ***** ${JSON.stringify(data)}`));
     handle.on(Janode.EVENT.HANDLE_HANGUP, data => Logger.info(`${LOG_NS} ***** HANDLE HANGUP ***** ${JSON.stringify(data)}`));
     handle.on(Janode.EVENT.HANDLE_DETACHED, () => Logger.info(`${LOG_NS} ***** HANDLE DETACHED *****`));
+    handle.on(Janode.EVENT.HANDLE_TRICKLE, evtdata => Logger.info(`${LOG_NS} ${handle.name} ***** HANDLE TRICKLE ***** ${JSON.stringify(evtdata)}`));
 
   } catch ({ message }) {
     Logger.error(`${LOG_NS} xxxxx JANODE SETUP ERROR xxxxx (${message})`);

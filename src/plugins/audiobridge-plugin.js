@@ -169,18 +169,14 @@ class AudioBridgeHandle extends Handle {
             this.feed = message_data.id;
             /* Set event data (feed, display name, setup, muted etc.) */
             janode_event.data.feed = message_data.id;
-            if (typeof message_data.display === 'string') janode_event.data.display = message_data.display;
-            if (typeof message_data.muted !== 'undefined') janode_event.data.muted = message_data.muted;
-            if (typeof message_data.setup !== 'undefined') janode_event.data.setup = message_data.setup;
             if (typeof message_data.rtp !== 'undefined') janode_event.data.rtp = message_data.rtp;
             /* Add participants data */
-            janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, rtp, talking }) => {
+            janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking }) => {
               const peer = {
                 feed: id,
                 display,
                 muted,
                 setup,
-                rtp,
               };
               if (typeof talking !== 'undefined') peer.talking = talking;
               return peer;
@@ -193,21 +189,18 @@ class AudioBridgeHandle extends Handle {
             if (typeof message_data.participants[0].display === 'string') janode_event.data.display = message_data.participants[0].display;
             if (typeof message_data.participants[0].muted !== 'undefined') janode_event.data.muted = message_data.participants[0].muted;
             if (typeof message_data.participants[0].setup !== 'undefined') janode_event.data.setup = message_data.participants[0].setup;
-            if (typeof message_data.participants[0].rtp !== 'undefined') janode_event.data.rtp = message_data.participants[0].rtp;
-            if (typeof message_data.participants[0].talking !== 'undefined') janode_event.data.talking = message_data.participants[0].talking;
             janode_event.event = PLUGIN_EVENT.PEER_JOINED;
           }
           break;
 
         /* Participants list */
         case 'participants':
-          janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, rtp, talking }) => {
+          janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking }) => {
             const peer = {
               feed: id,
               display,
               muted,
               setup,
-              rtp,
             };
             if (typeof talking !== 'undefined') peer.talking = talking;
             return peer;
@@ -770,10 +763,12 @@ class AudioBridgeHandle extends Handle {
  * @typedef {object} AUDIOBRIDGE_EVENT_JOINED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed identifier
- * @property {string} [display] - The display name, if available
- * @property {boolean} [muted] - True if the user joind in muted state
- * @property {boolean} [setup] - True if the Peer Connection has been established
- * @property {module:audiobridge-plugin~RtpParticipant} [rtp] - True if the peer is a plain RTP participant
+ * @property {module:audiobridge-plugin~RtpParticipant} [rtp] - The descriptor in case this is a plain RTP participant
+ * @property {object[]} participants - The list of participants
+ * @property {number|string} participants[].feed - The participant feed identifier
+ * @property {string} [participants[].display] - The participant display name
+ * @property {boolean} [participants[].muted] - The muted status of the participant
+ * @property {boolean} [participants[].setup] - True if participant PeerConnection is up
  */
 
 /**
@@ -943,7 +938,6 @@ export default {
      * @property {string} [display]
      * @property {boolean} [muted]
      * @property {boolean} [setup]
-     * @property {object} [rtp]
      */
     AUDIOBRIDGE_PEER_JOINED: PLUGIN_EVENT.PEER_JOINED,
 

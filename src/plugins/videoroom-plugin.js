@@ -50,6 +50,7 @@ const PLUGIN_EVENT = {
   DISPLAY: 'videoroom_display',
   UNPUBLISHED: 'videoroom_unpublished',
   LEAVING: 'videoroom_leaving',
+  UPDATED: 'videoroom_updated',
   KICKED: 'videoroom_kicked',
   TALKING: 'videoroom_talking',
   ALLOWED: 'videoroom_allowed',
@@ -339,6 +340,12 @@ class VideoRoomHandle extends Handle {
           janode_event.data.talking = (videoroom === 'talking');
           janode_event.data.audio_level = message_data['audio-level-dBov-avg'];
           janode_event.event = PLUGIN_EVENT.TALKING;
+          break;
+
+        /* [multistream] updated event */
+        case 'updated':
+          janode_event.data.streams = message_data.streams;
+          janode_event.event = PLUGIN_EVENT.UPDATED;
           break;
 
         /* Generic events (error, notifications ...) */
@@ -1395,6 +1402,17 @@ export default {
      * @type {module:videoroom-plugin~VIDEOROOM_EVENT_KICKED}
      */
     VIDEOROOM_KICKED: PLUGIN_EVENT.KICKED,
+
+    /**
+     * A multistream subscription has been updated.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_UPDATED
+     * @type {object}
+     * @property {number|string} room - The involved room
+     * @param {RTCSessionDescription} [params.jsep] - The updated JSEP offer
+     * @param {object[]} streams - List of the streams in this subscription
+     */
+    VIDEOROOM_UPDATED: PLUGIN_EVENT.UPDATED,
 
     /**
      * A generic videoroom error.

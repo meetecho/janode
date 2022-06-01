@@ -167,6 +167,16 @@ function initFrontEnd() {
           replyEvent(socket, 'peer-talking', evtdata);
         });
 
+
+        audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_PEER_SUSPENDED, evtdata => {
+          replyEvent(socket, 'peer-suspended', evtdata);
+        });
+
+
+        audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_PEER_RESUMED, evtdata => {
+          replyEvent(socket, 'peer-resumed', evtdata);
+        });
+
         // generic audiobridge events
         audioHandle.on(Janode.EVENT.HANDLE_WEBRTCUP, () => Logger.info(`${LOG_NS} ${audioHandle.name} webrtcup event`));
         audioHandle.on(Janode.EVENT.HANDLE_MEDIA, evtdata => Logger.info(`${LOG_NS} ${audioHandle.name} media event ${JSON.stringify(evtdata)}`));
@@ -412,6 +422,36 @@ function initFrontEnd() {
         Logger.info(`${LOG_NS} ${remote} rtp-fwd-list sent`);
       } catch ({ message }) {
         replyError(socket, message, rtplistdata, _id);
+      }
+    });
+
+    socket.on('suspend-peer', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} suspend-peer received`);
+      const { _id, data: suspendpeerdata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        await janodeManagerHandle.suspend(suspendpeerdata);
+        replyEvent(socket, 'peer-suspended', {}, _id);
+        Logger.info(`${LOG_NS} ${remote} peer-suspended sent`);
+      } catch ({ message }) {
+        replyError(socket, message, suspendpeerdata, _id);
+      }
+    });
+
+    socket.on('resume-peer', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} resume-peer received`);
+      const { _id, data: resumepeerdata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        await janodeManagerHandle.resume(resumepeerdata);
+        replyEvent(socket, 'peer-resumed', {}, _id);
+        Logger.info(`${LOG_NS} ${remote} peer-resumed sent`);
+      } catch ({ message }) {
+        replyError(socket, message, resumepeerdata, _id);
       }
     });
 

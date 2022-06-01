@@ -25,6 +25,8 @@ const REQUEST_ALLOW = 'allowed';
 const REQUEST_RTP_FWD_START = 'rtp_forward';
 const REQUEST_RTP_FWD_STOP = 'stop_rtp_forward';
 const REQUEST_RTP_FWD_LIST = 'listforwarders';
+const REQUEST_SUSPEND_PARTICIPANT = 'suspend';
+const REQUEST_RESUME_PARTICIPANT = 'resume';
 
 /* These are the events/responses that the Janode plugin will manage */
 /* Some of them will be exported in the plugin descriptor */
@@ -41,6 +43,8 @@ const PLUGIN_EVENT = {
   PEER_KICKED: 'audiobridge_peer_kicked',
   TALKING: 'audiobridge_talking',
   PEER_TALKING: 'audiobridge_peer_talking',
+  PEER_SUSPENDED: 'audiobridge_peer_suspended',
+  PEER_RESUMED: 'audiobridge_peer_resumed',
   EXISTS: 'audiobridge_exists',
   ROOMS_LIST: 'audiobridge_list',
   CREATED: 'audiobridge_created',
@@ -171,7 +175,7 @@ class AudioBridgeHandle extends Handle {
             janode_event.data.feed = message_data.id;
             if (typeof message_data.rtp !== 'undefined') janode_event.data.rtp = message_data.rtp;
             /* Add participants data */
-            janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking }) => {
+            janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended }) => {
               const peer = {
                 feed: id,
                 display,
@@ -179,6 +183,7 @@ class AudioBridgeHandle extends Handle {
                 setup,
               };
               if (typeof talking !== 'undefined') peer.talking = talking;
+              if (typeof suspended !== 'undefined') peer.suspended = suspended;
               return peer;
             });
             janode_event.event = PLUGIN_EVENT.JOINED;
@@ -189,13 +194,14 @@ class AudioBridgeHandle extends Handle {
             if (typeof message_data.participants[0].display === 'string') janode_event.data.display = message_data.participants[0].display;
             if (typeof message_data.participants[0].muted !== 'undefined') janode_event.data.muted = message_data.participants[0].muted;
             if (typeof message_data.participants[0].setup !== 'undefined') janode_event.data.setup = message_data.participants[0].setup;
+            if (typeof message_data.participants[0].suspended !== 'undefined') janode_event.data.suspended = message_data.participants[0].suspended;
             janode_event.event = PLUGIN_EVENT.PEER_JOINED;
           }
           break;
 
         /* Participants list */
         case 'participants':
-          janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking }) => {
+          janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended }) => {
             const peer = {
               feed: id,
               display,
@@ -203,6 +209,7 @@ class AudioBridgeHandle extends Handle {
               setup,
             };
             if (typeof talking !== 'undefined') peer.talking = talking;
+            if (typeof suspended !== 'undefined') peer.suspended = suspended;
             return peer;
           });
           janode_event.event = PLUGIN_EVENT.PARTICIPANTS_LIST;
@@ -279,6 +286,7 @@ class AudioBridgeHandle extends Handle {
             if (typeof message_data.participants[0].display === 'string') janode_event.data.display = message_data.participants[0].display;
             if (typeof message_data.participants[0].muted !== 'undefined') janode_event.data.muted = message_data.participants[0].muted;
             if (typeof message_data.participants[0].setup !== 'undefined') janode_event.data.setup = message_data.participants[0].setup;
+            if (typeof message_data.participants[0].suspended !== 'undefined') janode_event.data.suspended = message_data.participants[0].suspended;
             janode_event.event = PLUGIN_EVENT.PEER_CONFIGURED;
             break;
           }
@@ -300,6 +308,18 @@ class AudioBridgeHandle extends Handle {
             else {
               janode_event.event = PLUGIN_EVENT.PEER_KICKED;
             }
+            break;
+          }
+          /* A participant has been suspended */
+          if (typeof message_data.suspended != 'undefined') {
+            janode_event.data.feed = message_data.suspended;
+            janode_event.event = PLUGIN_EVENT.PEER_SUSPENDED;
+            break;
+          }
+          /* A participant has been resumed */
+          if (typeof message_data.resumed != 'undefined') {
+            janode_event.data.feed = message_data.resumed;
+            janode_event.event = PLUGIN_EVENT.PEER_RESUMED;
             break;
           }
       }
@@ -740,6 +760,41 @@ class AudioBridgeHandle extends Handle {
     throw (error);
   }
 
+  async suspend({ room, feed, stop_record, secret }) {
+    const body = {
+      request: REQUEST_SUSPEND_PARTICIPANT,
+      room,
+      id: feed
+    };
+    if (typeof stop_record === 'boolean') body.stop_record = stop_record;
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS)
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  async resume({ room, feed, record, filename, secret }) {
+    const body = {
+      request: REQUEST_RESUME_PARTICIPANT,
+      room,
+      id: feed
+    };
+    if (typeof record === 'boolean') body.record = record;
+    if (typeof filename === 'string') body.filename = filename;
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS)
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
 }
 
 /**
@@ -995,6 +1050,10 @@ export default {
      * @property {boolean} talking
      */
     AUDIOBRIDGE_PEER_TALKING: PLUGIN_EVENT.PEER_TALKING,
+
+    AUDIOBRIDGE_PEER_SUSPENDED: PLUGIN_EVENT.PEER_SUSPENDED,
+
+    AUDIOBRIDGE_PEER_RESUMED: PLUGIN_EVENT.PEER_RESUMED,
 
     /**
      * Generic audiobridge error.

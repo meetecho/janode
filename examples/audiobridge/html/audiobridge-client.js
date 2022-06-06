@@ -182,6 +182,20 @@ function _destroy({ room = myRoom, permanent = false, secret = 'adminpwd' } = {}
   });
 }
 
+function _enableRecording({ room = myRoom, record, filename = null, secret = 'adminpwd' }) {
+  const recData = {
+    room,
+    secret,
+    record,
+  };
+  if (filename) recData.filename = filename;
+
+  socket.emit('enable-recording', {
+    data: recData,
+    _id: getId(),
+  });
+}
+
 // add remove enable disable token mgmt
 function _allow({ room = myRoom, action, token = null, secret = 'adminpwd' }) {
   const allowData = {
@@ -360,6 +374,10 @@ socket.on('destroyed', ({ data }) => {
   pendingOfferMap.clear();
   removeAllAudioElements();
   closePC();
+});
+
+socket.on('recording-status', ({ data }) => {
+  console.log('recording status', data);
 });
 
 socket.on('allowed', ({ data }) => {

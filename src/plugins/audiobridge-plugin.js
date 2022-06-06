@@ -21,6 +21,7 @@ const REQUEST_EXISTS = 'exists';
 const REQUEST_LIST_ROOMS = 'list';
 const REQUEST_CREATE = 'create';
 const REQUEST_DESTROY = 'destroy';
+const REQUEST_RECORDING = 'enable_recording';
 const REQUEST_ALLOW = 'allowed';
 const REQUEST_RTP_FWD_START = 'rtp_forward';
 const REQUEST_RTP_FWD_STOP = 'stop_rtp_forward';
@@ -45,6 +46,7 @@ const PLUGIN_EVENT = {
   ROOMS_LIST: 'audiobridge_list',
   CREATED: 'audiobridge_created',
   DESTROYED: 'audiobridge_destroyed',
+  RECORDING: 'audiobrige_recording',
   RTP_FWD: 'audiobridge_rtp_fwd',
   FWD_LIST: 'audiobridge_rtp_list',
   ALLOWED: 'audiobridge_allowed',
@@ -136,6 +138,12 @@ class AudioBridgeHandle extends Handle {
           if (typeof message_data.list !== 'undefined') {
             janode_event.data.list = message_data.list;
             janode_event.event = PLUGIN_EVENT.ROOMS_LIST;
+            break;
+          }
+          /* Enable recording API */
+          if (typeof message_data.record !== 'undefined') {
+            janode_event.data.record = message_data.record;
+            janode_event.event = PLUGIN_EVENT.RECORDING;
             break;
           }
 
@@ -635,6 +643,35 @@ class AudioBridgeHandle extends Handle {
   }
 
   /**
+   * Enable/disable mixed audio recording.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The room identifier
+   * @param {boolean} params.record - Enable/disable recording
+   * @param {string} [params.secret] - The secret to be used when managing the room
+   * @param {string} [params.filename] - The recording filename
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RECORDING>}
+   */
+  async enableRecording({ room, record, filename, secret }) {
+    const body = {
+      request: REQUEST_RECORDING,
+      room,
+      record,
+    };
+    if (typeof filename === 'string') body.record_file = filename;
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.RECORDING) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
    * Edit an audiobridge token list.
    *
    * @param {object} params
@@ -865,6 +902,14 @@ class AudioBridgeHandle extends Handle {
  *
  * @typedef {object} AUDIOBRIDGE_EVENT_DESTROYED
  * @property {number|string} room - The destroyed room
+ */
+
+/**
+ * The response event for audiobridge ACL token edit request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_RECORDING
+ * @property {number|string} room - The involved room
+ * @property {boolean} record - Wheter recording is active or not
  */
 
 /**

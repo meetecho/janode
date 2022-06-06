@@ -355,6 +355,21 @@ function initFrontEnd() {
       }
     });
 
+    socket.on('enable-recording', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} enable-recording received`);
+      const { _id, data: recordingdata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        const response = await janodeManagerHandle.enableRecording(recordingdata);
+        replyEvent(socket, 'recording-status', response, _id);
+        Logger.info(`${LOG_NS} ${remote} recording-status sent`);
+      } catch ({ message }) {
+        replyError(socket, message, recordingdata, _id);
+      }
+    });
+
     socket.on('allow', async (evtdata = {}) => {
       Logger.info(`${LOG_NS} ${remote} allow received`);
       const { _id, data: allowdata = {} } = evtdata;

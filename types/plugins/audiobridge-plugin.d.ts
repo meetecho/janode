@@ -18,6 +18,7 @@ export type AudioBridgeMsg = 'join'
 |'rtp_forward'
 |'stop_rtp_forward'
 |'listforwarders'
+|'enable_recording'
 
 
 export type AudioBridgeData = object;
@@ -267,6 +268,14 @@ export type AUDIOBRIDGE_EVENT_ALLOWED = {
      */
     list: string[];
 };
+
+export type AUDIOBRIDGE_EVENT_ENABLE_RECORDING = {
+    room: number | string;
+    secret: string;
+    record: boolean;
+    filename ?: string;
+    dir ?: string;
+}
 
 export class AudioBridgeHandle extends Handle {
     /**
@@ -524,6 +533,14 @@ export class AudioBridgeHandle extends Handle {
         room: number | string;
         secret?: string;
     }): Promise<AUDIOBRIDGE_EVENT_FWD_LIST>
+
+    enableRecording({ room, secret, record, filename }: {
+        room: number | string;
+        secret: string;
+        record: boolean;
+        filename ?: string;
+    }): Promise<{success: boolean}>
+
 }
 
 export type AudioBridgeEvent = {

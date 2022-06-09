@@ -577,6 +577,7 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.pin] - The ping needed for joining the room
    * @param {boolean} [params.record] - True to record the mixed audio
    * @param {string} [params.filename] - The recording filename
+   * @param {string} [params.rec_dir] - The optional recording folder
    * @param {boolean} [params.talking_events] - True to enable talking events
    * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
    * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
@@ -586,7 +587,7 @@ class AudioBridgeHandle extends Handle {
    * @param {string[]} [params.groups] - The available groups in the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_CREATED>}
    */
-  async create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, record, filename,
+  async create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, record, filename, rec_dir,
     talking_events, talking_level_threshold, talking_packets_threshold, expected_loss, prebuffer, allow_rtp, groups }) {
     const body = {
       request: REQUEST_CREATE,
@@ -601,6 +602,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof pin === 'string') body.pin = pin;
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.record_file = filename;
+    if (typeof rec_dir === 'string') body.record_dir = rec_dir;
     if (typeof talking_events === 'boolean') body.audiolevel_event = talking_events;
     if (typeof talking_level_threshold === 'number' && talking_level_threshold >= 0 && talking_level_threshold <= 127) body.audio_level_average = talking_level_threshold;
     if (typeof talking_packets_threshold === 'number' && talking_packets_threshold > 0) body.audio_active_packets = talking_packets_threshold;
@@ -650,15 +652,17 @@ class AudioBridgeHandle extends Handle {
    * @param {boolean} params.record - Enable/disable recording
    * @param {string} [params.secret] - The secret to be used when managing the room
    * @param {string} [params.filename] - The recording filename
+   * @param {string} [params.rec_dir] - The optional recording folder
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RECORDING>}
    */
-  async enableRecording({ room, record, filename, secret }) {
+  async enableRecording({ room, record, filename, rec_dir, secret }) {
     const body = {
       request: REQUEST_RECORDING,
       room,
       record,
     };
     if (typeof filename === 'string') body.record_file = filename;
+    if (typeof rec_dir === 'string') body.record_dir = rec_dir;
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);

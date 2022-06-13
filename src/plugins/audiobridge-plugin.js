@@ -710,11 +710,14 @@ class AudioBridgeHandle extends Handle {
    * @param {boolean} [params.always] - Whether silence should be forwarded when the room is empty
    * @param {string} params.host - The host to forward to
    * @param {number} params.audio_port - The port to forward to
+   * @param {number} [params.ssrc] - The SSRC to use to use when forwarding
+   * @param {number} [params.ptype] - The payload type to use to use when forwarding
+   * @param {string} [params.codec] - The codec to use in the forwarder
    * @param {string} [params.group] - The group to forward
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RTP_FWD>}
    */
-  async startForward({ room, always, host, audio_port, group, secret }) {
+  async startForward({ room, always, host, audio_port, ssrc, ptype, codec, group, secret }) {
     const body = {
       request: REQUEST_RTP_FWD_START,
       room,
@@ -722,6 +725,9 @@ class AudioBridgeHandle extends Handle {
     if (typeof always === 'boolean') body.always_on = always;
     if (typeof host === 'string') body.host = host;
     if (typeof audio_port === 'number') body.port = audio_port;
+    if (typeof ssrc === 'number') body.ssrc = ssrc;
+    if (typeof ptype === 'number') body.ptype = ptype;
+    if (typeof codec === 'string') body.codec = codec;
     if (typeof group === 'string') body.group = group;
     if (typeof secret === 'string') body.secret = secret;
 

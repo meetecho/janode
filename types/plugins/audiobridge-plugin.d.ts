@@ -274,7 +274,7 @@ export type AUDIOBRIDGE_EVENT_ENABLE_RECORDING = {
     secret: string;
     record: boolean;
     filename ?: string;
-    dir ?: string;
+    rec_dir ?: string;
 }
 
 export class AudioBridgeHandle extends Handle {
@@ -312,6 +312,7 @@ export class AudioBridgeHandle extends Handle {
      * @param {number} [params.volume] - The percent volume
      * @param {boolean} [params.record] - True to enable recording
      * @param {string} [params.filename] - The recording filename
+     * @param {string} [params.rec_dir] - The optional recording folder
      * @param {module:audiobridge-plugin~RtpParticipant|boolean} [params.rtp_participant] - True if this feed is a plain RTP participant (use an object to pass a participant descriptor)
      * @param {string} [params.group] - The group to assign to this participant
      * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
@@ -429,6 +430,7 @@ export class AudioBridgeHandle extends Handle {
      * @param {string} [params.pin] - The ping needed for joining the room
      * @param {boolean} [params.record] - True to record the mixed audio
      * @param {string} [params.filename] - The recording filename
+     * @param {string} [params.rec_dir] - The optional recording folder
      * @param {boolean} [params.talking_events] - True to enable talking events
      * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
      * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
@@ -438,7 +440,7 @@ export class AudioBridgeHandle extends Handle {
      * @param {string[]} [params.groups] - The available groups in the room
      * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_CREATED>}
      */
-    create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, record, filename, talking_events, talking_level_threshold, talking_packets_threshold, expected_loss, prebuffer, allow_rtp, groups }: {
+    create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, record, filename, rec_dir, talking_events, talking_level_threshold, talking_packets_threshold, expected_loss, prebuffer, allow_rtp, groups }: {
         room: number | string;
         description?: string;
         permanent?: boolean;
@@ -449,6 +451,7 @@ export class AudioBridgeHandle extends Handle {
         pin?: string;
         record?: boolean;
         filename?: string;
+        rec_dir?: string;
         talking_events?: boolean;
         talking_level_threshold?: number;
         talking_packets_threshold?: number;
@@ -495,15 +498,21 @@ export class AudioBridgeHandle extends Handle {
      * @param {boolean} [params.always] - Whether silence should be forwarded when the room is empty
      * @param {string} params.host - The host to forward to
      * @param {number} params.audio_port - The port to forward to
+     * @param {number} [params.ssrc] - The SSRC to use to use when forwarding
+     * @param {number} [params.ptype] - The payload type to use to use when forwarding
+     * @param {string} [params.codec] - The codec to use in the forwarder
      * @param {string} [params.group] - The group to forward
      * @param {string} [params.secret] - The optional secret needed to manage the room
      * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RTP_FWD>}
      */
-    startForward({ room, always, host, audio_port, group, secret }: {
+    startForward({ room, always, host, audio_port, group, ssrc, ptype, codec, secret }: {
         room: number | string;
         always?: boolean;
         host: string;
         audio_port: number;
+        ssrc?: number;
+        ptype?: number;
+        codec?: string;
         group?: string;
         secret?: string;
     }): Promise<AUDIOBRIDGE_EVENT_RTP_FWD>
@@ -534,11 +543,23 @@ export class AudioBridgeHandle extends Handle {
         secret?: string;
     }): Promise<AUDIOBRIDGE_EVENT_FWD_LIST>
 
-    enableRecording({ room, secret, record, filename }: {
+  /**
+   * Enable/disable mixed audio recording.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The room identifier
+   * @param {boolean} params.record - Enable/disable recording
+   * @param {string} [params.secret] - The secret to be used when managing the room
+   * @param {string} [params.filename] - The recording filename
+   * @param {string} [params.rec_dir] - The optional recording folder
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RECORDING>}
+   */
+    enableRecording({ room, secret, record, filename, rec_dir }: {
         room: number | string;
         secret: string;
         record: boolean;
         filename ?: string;
+        rec_dir ?: string;
     }): Promise<{success: boolean}>
 
 }

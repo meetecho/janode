@@ -26,6 +26,8 @@ const REQUEST_ALLOW = 'allowed';
 const REQUEST_RTP_FWD_START = 'rtp_forward';
 const REQUEST_RTP_FWD_STOP = 'stop_rtp_forward';
 const REQUEST_RTP_FWD_LIST = 'listforwarders';
+const REQUEST_MUTE_ROOM = 'mute_room'
+const REQUEST_UNMUTE_ROOM = 'unmute_room'
 
 /* These are the events/responses that the Janode plugin will manage */
 /* Some of them will be exported in the plugin descriptor */
@@ -52,6 +54,7 @@ const PLUGIN_EVENT = {
   ALLOWED: 'audiobridge_allowed',
   SUCCESS: 'audiobridge_success',
   ERROR: 'audiobridge_error',
+  ROOM_MUTED: 'audiobridge_room_muted'
 };
 
 /**
@@ -296,6 +299,13 @@ class AudioBridgeHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.PEER_LEAVING;
             break;
           }
+          /* Room muted event */
+          if (typeof message_data.muted !== 'undefined') {
+            janode_event.data.room = message_data.room;
+            janode_event.data.muted = message_data.muted;
+            janode_event.event = PLUGIN_EVENT.ROOM_MUTED;
+            break;
+          }
           /* This handle or another participant kicked-out */
           if (typeof message_data.kicked !== 'undefined') {
             janode_event.data.feed = message_data.kicked;
@@ -350,7 +360,7 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.group] - The group to assign to this participant
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
    */
-  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, rtp_participant, group }) {
+  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, rtp_participant, group, generate_offer }) {
     const body = {
       request: REQUEST_JOIN,
       room,
@@ -367,6 +377,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof rtp_participant === 'object' && rtp_participant) body.rtp = rtp_participant;
     else if (typeof rtp_participant === 'boolean' && rtp_participant) body.rtp = {};
     if (typeof group === 'string') body.group = group;
+    if (typeof generate_offer === 'boolean') body.generate_offer = generate_offer;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -787,6 +798,50 @@ class AudioBridgeHandle extends Handle {
     throw (error);
   }
 
+  /**
+   * 
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @returns {} - Returns event as success or error
+   */
+  async muteRoom({ room, secret }) {
+    const body = {
+      request: REQUEST_MUTE_ROOM,
+      room,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS)
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+   /**
+   * 
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @returns {} - Returns event as success or error
+   */
+    async unmuteRoom({ room, secret }) {
+      const body = {
+        request: REQUEST_UNMUTE_ROOM,
+        room,
+      };
+      if (typeof secret === 'string') body.secret = secret;
+  
+      const response = await this.message(body);
+      const { event, data: evtdata } = response._janode || {};
+      if (event === PLUGIN_EVENT.SUCCESS)
+        return evtdata;
+      const error = new Error(`unexpected response to ${body.request} request`);
+      throw (error);
+    }
+
 }
 
 /**
@@ -959,7 +1014,9 @@ class AudioBridgeHandle extends Handle {
  * @property {string} EVENT.AUDIOBRIDGE_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_TALKING}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_TALKING}
  * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
+ * @property {string} EVENT.AUDIOBRIDGE_ROOM_MUTED {@link module:audiobridge-plugin~AUDIOBRIDGE_ROOM_MUTED}
  */
+
 export default {
   id: PLUGIN_ID,
   Handle: AudioBridgeHandle,
@@ -1058,5 +1115,15 @@ export default {
      * @type {Error}
      */
     AUDIOBRIDGE_ERROR: PLUGIN_EVENT.ERROR,
+
+    /**
+     * The room has been muted or not.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ROOM_MUTED
+     * @type {object}
+     * @property {number|string} room
+     * @property {boolean} muted
+     */
+    AUDIOBRIDGE_ROOM_MUTED: PLUGIN_EVENT.ROOM_MUTED,
   },
 };

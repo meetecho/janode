@@ -52,9 +52,9 @@ const PLUGIN_EVENT = {
   RTP_FWD: 'audiobridge_rtp_fwd',
   FWD_LIST: 'audiobridge_rtp_list',
   ALLOWED: 'audiobridge_allowed',
+  ROOM_MUTED: 'audiobridge_room_muted',
   SUCCESS: 'audiobridge_success',
-  ERROR: 'audiobridge_error',
-  ROOM_MUTED: 'audiobridge_room_muted'
+  ERROR: 'audiobridge_error'
 };
 
 /**
@@ -301,7 +301,6 @@ class AudioBridgeHandle extends Handle {
           }
           /* Room muted event */
           if (typeof message_data.muted !== 'undefined') {
-            janode_event.data.room = message_data.room;
             janode_event.data.muted = message_data.muted;
             janode_event.event = PLUGIN_EVENT.ROOM_MUTED;
             break;
@@ -358,6 +357,7 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.filename] - The recording filename
    * @param {module:audiobridge-plugin~RtpParticipant|boolean} [params.rtp_participant] - True if this feed is a plain RTP participant (use an object to pass a participant descriptor)
    * @param {string} [params.group] - The group to assign to this participant
+   * @param {boolean} [params.generate_offer] - True to get Janus to send the SDP offer.
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
    */
   async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, rtp_participant, group, generate_offer }) {
@@ -799,11 +799,12 @@ class AudioBridgeHandle extends Handle {
   }
 
   /**
+   * Mute the given room for every participant.
    * 
    * @param {object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
-   * @returns {} - Returns event as success or error
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_MUTE_ROOM_RESPONSE>}
    */
   async muteRoom({ room, secret }) {
     const body = {
@@ -820,12 +821,13 @@ class AudioBridgeHandle extends Handle {
     throw (error);
   }
 
-   /**
+  /**
+   * Unmute the given room for every participant.
    * 
    * @param {object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
-   * @returns {} - Returns event as success or error
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE>} 
    */
     async unmuteRoom({ room, secret }) {
       const body = {
@@ -990,6 +992,20 @@ class AudioBridgeHandle extends Handle {
  * @property {string} [forwarders[].group] - The group that is being forwarded
  */
 
+/** 
+ * The response event for audiobridge mute request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_MUTE_ROOM_RESPONSE
+ * @property {number|string} room - The involved room
+ */
+
+/** 
+ * The response event for audiobridge unmute request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE
+ * @property {number|string} room - The involved room
+ */
+
 /**
  * The response event for audiobridge ACL token edit request.
  *
@@ -1013,10 +1029,9 @@ class AudioBridgeHandle extends Handle {
  * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_LEAVING}
  * @property {string} EVENT.AUDIOBRIDGE_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_TALKING}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_TALKING}
- * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
  * @property {string} EVENT.AUDIOBRIDGE_ROOM_MUTED {@link module:audiobridge-plugin~AUDIOBRIDGE_ROOM_MUTED}
+ * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
  */
-
 export default {
   id: PLUGIN_ID,
   Handle: AudioBridgeHandle,
@@ -1109,14 +1124,6 @@ export default {
     AUDIOBRIDGE_PEER_TALKING: PLUGIN_EVENT.PEER_TALKING,
 
     /**
-     * Generic audiobridge error.
-     *
-     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ERROR
-     * @type {Error}
-     */
-    AUDIOBRIDGE_ERROR: PLUGIN_EVENT.ERROR,
-
-    /**
      * The room has been muted or not.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ROOM_MUTED
@@ -1125,5 +1132,13 @@ export default {
      * @property {boolean} muted
      */
     AUDIOBRIDGE_ROOM_MUTED: PLUGIN_EVENT.ROOM_MUTED,
+
+    /**
+     * Generic audiobridge error.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ERROR
+     * @type {Error}
+     */
+    AUDIOBRIDGE_ERROR: PLUGIN_EVENT.ERROR,
   },
 };

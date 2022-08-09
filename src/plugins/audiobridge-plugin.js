@@ -26,8 +26,8 @@ const REQUEST_ALLOW = 'allowed';
 const REQUEST_RTP_FWD_START = 'rtp_forward';
 const REQUEST_RTP_FWD_STOP = 'stop_rtp_forward';
 const REQUEST_RTP_FWD_LIST = 'listforwarders';
-const REQUEST_MUTE_ROOM = 'mute_room'
-const REQUEST_UNMUTE_ROOM = 'unmute_room'
+const REQUEST_MUTE_ROOM = 'mute_room';
+const REQUEST_UNMUTE_ROOM = 'unmute_room';
 
 /* These are the events/responses that the Janode plugin will manage */
 /* Some of them will be exported in the plugin descriptor */
@@ -54,7 +54,7 @@ const PLUGIN_EVENT = {
   ALLOWED: 'audiobridge_allowed',
   ROOM_MUTED: 'audiobridge_room_muted',
   SUCCESS: 'audiobridge_success',
-  ERROR: 'audiobridge_error'
+  ERROR: 'audiobridge_error',
 };
 
 /**
@@ -816,6 +816,7 @@ class AudioBridgeHandle extends Handle {
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
     if (event === PLUGIN_EVENT.SUCCESS)
+      evtdata.room = body.room;
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
@@ -839,6 +840,7 @@ class AudioBridgeHandle extends Handle {
       const response = await this.message(body);
       const { event, data: evtdata } = response._janode || {};
       if (event === PLUGIN_EVENT.SUCCESS)
+        evtdata.room = body.room;
         return evtdata;
       const error = new Error(`unexpected response to ${body.request} request`);
       throw (error);

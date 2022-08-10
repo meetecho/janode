@@ -815,9 +815,10 @@ class AudioBridgeHandle extends Handle {
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
-    if (event === PLUGIN_EVENT.SUCCESS)
+    if (event === PLUGIN_EVENT.SUCCESS){
       evtdata.room = body.room;
       return evtdata;
+    }
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
   }
@@ -839,9 +840,10 @@ class AudioBridgeHandle extends Handle {
   
       const response = await this.message(body);
       const { event, data: evtdata } = response._janode || {};
-      if (event === PLUGIN_EVENT.SUCCESS)
+      if (event === PLUGIN_EVENT.SUCCESS){
         evtdata.room = body.room;
         return evtdata;
+      }
       const error = new Error(`unexpected response to ${body.request} request`);
       throw (error);
     }

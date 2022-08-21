@@ -1,5 +1,5 @@
 {
-  "name": "janode",
+  "name": "@bitsy-ai/janode",
   "description": "Meetecho adapter for the Janus WebRTC Server",
   "version": "1.6.2",
   "type": "module",

@@ -800,7 +800,7 @@ class AudioBridgeHandle extends Handle {
 
   /**
    * Mute the given room for every participant.
-   * 
+   *
    * @param {object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
@@ -815,7 +815,7 @@ class AudioBridgeHandle extends Handle {
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
-    if (event === PLUGIN_EVENT.SUCCESS){
+    if (event === PLUGIN_EVENT.SUCCESS) {
       evtdata.room = body.room;
       return evtdata;
     }
@@ -825,28 +825,28 @@ class AudioBridgeHandle extends Handle {
 
   /**
    * Unmute the given room for every participant.
-   * 
+   *
    * @param {object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
-   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE>} 
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE>}
    */
-    async unmuteRoom({ room, secret }) {
-      const body = {
-        request: REQUEST_UNMUTE_ROOM,
-        room,
-      };
-      if (typeof secret === 'string') body.secret = secret;
-  
-      const response = await this.message(body);
-      const { event, data: evtdata } = response._janode || {};
-      if (event === PLUGIN_EVENT.SUCCESS){
-        evtdata.room = body.room;
-        return evtdata;
-      }
-      const error = new Error(`unexpected response to ${body.request} request`);
-      throw (error);
+  async unmuteRoom({ room, secret }) {
+    const body = {
+      request: REQUEST_UNMUTE_ROOM,
+      room,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      evtdata.room = body.room;
+      return evtdata;
     }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
 
 }
 
@@ -996,14 +996,14 @@ class AudioBridgeHandle extends Handle {
  * @property {string} [forwarders[].group] - The group that is being forwarded
  */
 
-/** 
+/**
  * The response event for audiobridge mute request.
  *
  * @typedef {object} AUDIOBRIDGE_EVENT_MUTE_ROOM_RESPONSE
  * @property {number|string} room - The involved room
  */
 
-/** 
+/**
  * The response event for audiobridge unmute request.
  *
  * @typedef {object} AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE

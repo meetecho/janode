@@ -61,11 +61,14 @@ function join({ room = myRoom, display = myName, token = null } = {}) {
   });
 }
 
-function subscribe({ feed, room = myRoom }) {
+function subscribe({ feed, room = myRoom, substream, temporal }) {
   const subscribeData = {
     room,
     feed,
   };
+
+  if (typeof substream !== 'undefined') subscribeData.sc_substream_layer = substream;
+  if (typeof temporal !== 'undefined') subscribeData.sc_temporal_layers = temporal;
 
   socket.emit('subscribe', {
     data: subscribeData,
@@ -90,13 +93,15 @@ function trickle({ feed, candidate }) {
   });
 }
 
-function configure({ feed, jsep, restart }) {
+function configure({ feed, jsep, restart, substream, temporal }) {
   const configureData = {
     feed,
     audio: true,
     video: true,
     data: true,
   };
+  if (typeof substream !== 'undefined') configureData.sc_substream_layer = substream;
+  if (typeof temporal !== 'undefined') configureData.sc_temporal_layers = temporal;
   if (jsep) configureData.jsep = jsep;
   if (typeof restart === 'boolean') configureData.restart = restart;
 

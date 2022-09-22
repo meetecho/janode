@@ -53,6 +53,8 @@ const PLUGIN_EVENT = {
   UPDATED: 'videoroom_updated',
   KICKED: 'videoroom_kicked',
   TALKING: 'videoroom_talking',
+  SC_SUBSTREAM_LAYER: 'videoroom_sc_substream_layer',
+  SC_TEMPORAL_LAYERS: 'videoroom_sc_temporal_layers',
   ALLOWED: 'videoroom_allowed',
   EXISTS: 'videoroom_exists',
   ROOMS_LIST: 'videoroom_list',
@@ -308,7 +310,7 @@ class VideoRoomHandle extends Handle {
                   forwarder.video_rtcp_port = forw.remote_rtcp_port;
                   forwarder.video_stream = forw.stream_id;
                   if (typeof forw.substream !== 'undefined') {
-                    forwarder.substream = forw.substream;
+                    forwarder.sc_substream_layer = forw.substream;
                   }
                 }
                 if (forw.type === 'data') {
@@ -430,6 +432,20 @@ class VideoRoomHandle extends Handle {
           if (typeof message_data.left !== 'undefined') {
             janode_event.event = PLUGIN_EVENT.LEAVING;
             janode_event.data.feed = this.feed;
+            break;
+          }
+          /* Simulcast substream layer switch */
+          if (typeof message_data.substream !== 'undefined') {
+            janode_event.event = PLUGIN_EVENT.SC_SUBSTREAM_LAYER;
+            janode_event.data.feed = this.feed;
+            janode_event.data.sc_substream_layer = message_data.substream;
+            break;
+          }
+          /* Simulcast temporal layers switch */
+          if (typeof message_data.temporal !== 'undefined') {
+            janode_event.event = PLUGIN_EVENT.SC_TEMPORAL_LAYERS;
+            janode_event.data.feed = this.feed;
+            janode_event.data.sc_temporal_layers = message_data.temporal;
             break;
           }
       }
@@ -582,10 +598,13 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording (publishers only)
    * @param {boolean} [params.restart] - Set to force a ICE restart
    * @param {boolean} [params.update] - Set to force a renegotiation
+   * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled (subscribers only)
+   * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below (subscribers only)
+   * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled (subscribers only)
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer (publishers only)
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, jsep }) {
+  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, jsep }) {
     const body = {
       request: REQUEST_CONFIGURE,
     };
@@ -598,6 +617,9 @@ class VideoRoomHandle extends Handle {
     if (typeof display === 'string') body.display = display;
     if (typeof restart === 'boolean') body.restart = restart;
     if (typeof update === 'boolean') body.update = update;
+    if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
+    if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
+    if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -719,10 +741,13 @@ class VideoRoomHandle extends Handle {
    * @param {boolean} [params.audio] - True to subscribe to the audio feed
    * @param {boolean} [params.video] - True to subscribe to the video feed
    * @param {boolean} [params.data] - True to subscribe to the datachannels of the feed
+   * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled
+   * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below
+   * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled
    * @param {string} [params.token] - The optional token needed
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
-  async joinSubscriber({ room, feed, audio, video, data, token }) {
+  async joinSubscriber({ room, feed, audio, video, data, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, token }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_LISTENER,
@@ -733,6 +758,9 @@ class VideoRoomHandle extends Handle {
     if (typeof video === 'boolean') body.video = video;
     if (typeof data === 'boolean') body.data = data;
     if (typeof token === 'string') body.token = token;
+    if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
+    if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
+    if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -1191,7 +1219,7 @@ class VideoRoomHandle extends Handle {
  * @property {number} [data_stream] - The datachannels forwarder identifier
  * @property {number} [ssrc] - SSRC this forwarder is using
  * @property {number} [pt] - payload type this forwarder is using
- * @property {number} [substream] - video substream this video forwarder is relaying
+ * @property {number} [sc_substream_layer] - video simulcast substream this video forwarder is relaying
  * @property {boolean} [srtp] - whether the RTP stream is encrypted
  */
 
@@ -1402,6 +1430,28 @@ export default {
      * @type {module:videoroom-plugin~VIDEOROOM_EVENT_KICKED}
      */
     VIDEOROOM_KICKED: PLUGIN_EVENT.KICKED,
+
+    /**
+     * A switch to a different simulcast substream has been completed.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SC_SUBSTREAM_LAYER
+     * @type {object}
+     * @property {number|string} room - The involved room
+     * @property {number|string} feed - The feed of the peer this notification refers to
+     * @property {number} sc_substream_layer - The new simuclast substream layer relayed
+     */
+    VIDEOROOM_SC_SUBSTREAM_LAYER: PLUGIN_EVENT.SC_SUBSTREAM_LAYER,
+
+    /**
+     * A switch to a different number of simulcast temporal layers has been completed.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SC_TEMPORAL_LAYERS
+     * @type {object}
+     * @property {number|string} room - The involved room
+     * @property {number|string} feed - The feed of the peer this switch notification refers to
+     * @property {number} sc_temporal_layers - The new number of simuclast teporal layers relayed
+     */
+    VIDEOROOM_SC_TEMPORAL_LAYERS: PLUGIN_EVENT.SC_TEMPORAL_LAYERS,
 
     /**
      * A multistream subscription has been updated.

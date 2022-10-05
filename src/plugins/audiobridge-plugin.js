@@ -180,7 +180,12 @@ class AudioBridgeHandle extends Handle {
             this.feed = message_data.id;
             /* Set event data (feed, display name, setup, muted etc.) */
             janode_event.data.feed = message_data.id;
-            if (typeof message_data.rtp !== 'undefined') janode_event.data.rtp = message_data.rtp;
+            if (typeof message_data.rtp !== 'undefined') {
+              janode_event.data.rtp_participant = message_data.rtp;
+              /* This is left here just for backward compatibility */
+              /* It will be removed eventually */
+              janode_event.data.rtp = message_data.rtp;
+            }
             /* Add participants data */
             janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking }) => {
               const peer = {
@@ -355,7 +360,7 @@ class AudioBridgeHandle extends Handle {
    * @param {number} [params.volume] - The percent volume
    * @param {boolean} [params.record] - True to enable recording
    * @param {string} [params.filename] - The recording filename
-   * @param {module:audiobridge-plugin~RtpParticipant|boolean} [params.rtp_participant] - True if this feed is a plain RTP participant (use an object to pass a participant descriptor)
+   * @param {module:audiobridge-plugin~RtpParticipant} [params.rtp_participant] - Set a descriptor object if you need a RTP participant
    * @param {string} [params.group] - The group to assign to this participant
    * @param {boolean} [params.generate_offer] - True to get Janus to send the SDP offer.
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
@@ -375,7 +380,6 @@ class AudioBridgeHandle extends Handle {
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
     if (typeof rtp_participant === 'object' && rtp_participant) body.rtp = rtp_participant;
-    else if (typeof rtp_participant === 'boolean' && rtp_participant) body.rtp = {};
     if (typeof group === 'string') body.group = group;
     if (typeof generate_offer === 'boolean') body.generate_offer = generate_offer;
 
@@ -871,7 +875,7 @@ class AudioBridgeHandle extends Handle {
  * @typedef {object} AUDIOBRIDGE_EVENT_JOINED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed identifier
- * @property {module:audiobridge-plugin~RtpParticipant} [rtp] - The descriptor in case this is a plain RTP participant
+ * @property {module:audiobridge-plugin~RtpParticipant} [rtp_participant] - The descriptor in case this is a plain RTP participant
  * @property {object[]} participants - The list of participants
  * @property {number|string} participants[].feed - The participant feed identifier
  * @property {string} [participants[].display] - The participant display name

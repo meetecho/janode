@@ -50,7 +50,7 @@ const socket = io({
   reconnection: false,
 });
 
-function join({ room = myRoom, display = myName, muted = false, token = null, rtp_participant = false, group = null } = {}) {
+function join({ room = myRoom, display = myName, muted = false, token = null, rtp_participant = null, group = null } = {}) {
   const joinData = {
     room,
     display,

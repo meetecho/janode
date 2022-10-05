@@ -45,6 +45,6 @@
     "node": " >=14.13.1 || >=16.0.0"
   },
   "scripts": {
-    "build": "npm install --production"
+    "build": "npm install --omit=dev"
   }
 }

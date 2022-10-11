@@ -39,10 +39,14 @@
     "ws": "^8.0.0",
     "unix-dgram": "^2.0.4"
   },
+  "devDependencies": {
+    "eslint": "^8.25.0"
+  },
   "engines": {
     "node": " >=14.13.1 || >=16.0.0"
   },
   "scripts": {
-    "build": "npm install --omit=dev"
+    "build": "npm install --omit=dev",
+    "lint": "node_modules/.bin/eslint --ext .js --config .eslintrc.json src"
   }
 }

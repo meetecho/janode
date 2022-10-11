@@ -36,9 +36,7 @@
   ],
   "dependencies": {
     "isomorphic-ws": "^4.0.1",
-    "ws": "^8.0.0"
-  },
-  "optionalDependencies": {
+    "ws": "^8.0.0",
     "unix-dgram": "^2.0.4"
   },
   "engines": {

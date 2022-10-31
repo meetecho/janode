@@ -20,6 +20,7 @@ const REQUEST_START = 'start';
 const REQUEST_PAUSE = 'pause';
 const REQUEST_PUBLISH = 'publish';
 const REQUEST_UNPUBLISH = 'unpublish';
+const REQUEST_UPDATE = 'update';
 const REQUEST_LEAVE = 'leave';
 
 const REQUEST_EXISTS = 'exists';
@@ -171,10 +172,13 @@ class VideoRoomHandle extends Handle {
 
           janode_event.data.feed = message_data.id;
           janode_event.data.description = message_data.description;
-          janode_event.data.publishers = message_data.publishers.map(({ id, display, talking }) => {
+          janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, audio_codec, video_codec, streams }) => {
             const pub = {
               feed: id,
               display,
+              audio_codec,
+              video_codec,
+              streams,
             };
             if (typeof talking !== 'undefined') pub.talking = talking;
             return pub;
@@ -190,6 +194,7 @@ class VideoRoomHandle extends Handle {
 
           janode_event.data.feed = message_data.id;
           janode_event.data.display = message_data.display;
+          janode_event.data.streams = message_data.streams;
           janode_event.event = PLUGIN_EVENT.SUB_JOINED;
           break;
 
@@ -349,6 +354,10 @@ class VideoRoomHandle extends Handle {
           janode_event.data.streams = message_data.streams;
           janode_event.event = PLUGIN_EVENT.UPDATED;
           break;
+        case 'updating':
+          janode_event.data.streams = message_data.streams;
+          janode_event.event = PLUGIN_EVENT.UPDATED;
+          break;
 
         /* Generic events (error, notifications ...) */
         case 'event':
@@ -371,10 +380,11 @@ class VideoRoomHandle extends Handle {
           /* Publisher list notification */
           if (message_data.publishers) {
             janode_event.event = PLUGIN_EVENT.PUB_LIST;
-            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking }) => {
+            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, streams  }) => {
               const pub = {
                 feed: id,
                 display,
+                streams,
               };
               if (typeof talking !== 'undefined') pub.talking = talking;
               return pub;
@@ -604,7 +614,7 @@ class VideoRoomHandle extends Handle {
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer (publishers only)
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, jsep }) {
+  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, streams, descriptions, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, jsep }) {
     const body = {
       request: REQUEST_CONFIGURE,
     };
@@ -620,6 +630,8 @@ class VideoRoomHandle extends Handle {
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
     if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
+    if (typeof streams === 'object') body.streams = streams;
+    if (typeof descriptions === 'object') body.descriptions = descriptions;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -668,7 +680,7 @@ class VideoRoomHandle extends Handle {
    * @param {RTCSessionDescription} params.jsep - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async publish({ audio, video, data, bitrate, record, filename, display, jsep }) {
+  async publish({ audio, video, data, bitrate, record, filename, streams, display, jsep }) {
     if (typeof jsep === 'object' && jsep && jsep.type !== 'offer') {
       const error = new Error('jsep must be an offer');
       return Promise.reject(error);
@@ -683,6 +695,8 @@ class VideoRoomHandle extends Handle {
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
     if (typeof display === 'string') body.display = display;
+    if (typeof streams === 'object') body.streams = streams;
+    if (typeof descriptions === 'object') body.descriptions = descriptions;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -747,12 +761,11 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.token] - The optional token needed
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
-  async joinSubscriber({ room, feed, audio, video, data, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, token }) {
+  async joinSubscriber({ room, feed, audio, video, data, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, token, streams }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_LISTENER,
       room,
-      feed,
     };
     if (typeof audio === 'boolean') body.audio = audio;
     if (typeof video === 'boolean') body.video = video;
@@ -761,10 +774,36 @@ class VideoRoomHandle extends Handle {
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
     if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
+    if (typeof streams === 'object') body.streams = streams;
+    if (typeof feed === 'number') body.feed = feed;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
     if (event === PLUGIN_EVENT.SUB_JOINED)
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Update an existing subscribe handle
+   *
+   * @param {array} subscribe The array of streams to subscribe
+   * @param {array} unsubscribe The array of stream to unsubscribe
+   * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED>}
+   */
+  async update({ subscribe, unsubscribe }) {
+    const body = {
+      request: REQUEST_UPDATE,
+    };
+
+    if (typeof subscribe === 'object') body.subscribe = subscribe;
+    if (typeof unsubscribe === 'object') body.unsubscribe = unsubscribe;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+
+    if (event === PLUGIN_EVENT.UPDATED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);

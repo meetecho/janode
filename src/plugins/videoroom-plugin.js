@@ -608,6 +608,7 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording (publishers only)
    * @param {boolean} [params.restart] - Set to force a ICE restart
    * @param {boolean} [params.update] - Set to force a renegotiation
+   * @param {boolean} [params.streams] - The streams object, each stream includes mid, keyframe, send, min_delay, max_delay
    * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled (subscribers only)
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below (subscribers only)
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled (subscribers only)
@@ -677,6 +678,7 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.bitrate] - Bitrate cap
    * @param {boolean} [params.record] - True to record the feed
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
+   * @param {boolean} [params.streams] - The streams object, each stream includes mid, keyframe, send, min_delay, max_delay
    * @param {RTCSessionDescription} params.jsep - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
@@ -759,6 +761,7 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled
    * @param {string} [params.token] - The optional token needed
+   * @param {boolean} [params.streams] - The streams object, each stream includes mid, keyframe, send, min_delay, max_delay
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
   async joinSubscriber({ room, feed, audio, video, data, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, token, streams }) {
@@ -789,7 +792,7 @@ class VideoRoomHandle extends Handle {
    * Update an existing subscribe handle
    *
    * @param {array} subscribe The array of streams to subscribe
-   * @param {array} unsubscribe The array of stream to unsubscribe
+   * @param {array} unsubscribe The array of streams to unsubscribe
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED>}
    */
   async update({ subscribe, unsubscribe }) {

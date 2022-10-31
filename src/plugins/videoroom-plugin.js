@@ -678,7 +678,7 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.bitrate] - Bitrate cap
    * @param {boolean} [params.record] - True to record the feed
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
-   * @param {boolean} [params.streams] - The streams object, each stream includes mid, keyframe, send, min_delay, max_delay
+   * @param {boolean} [params.streams] - The streams object, each stream includes type, mid, description, disabled, simulcast
    * @param {RTCSessionDescription} params.jsep - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
@@ -761,7 +761,7 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled
    * @param {string} [params.token] - The optional token needed
-   * @param {boolean} [params.streams] - The streams object, each stream includes mid, keyframe, send, min_delay, max_delay
+   * @param {boolean} [params.streams] - The streams object, each stream include feed, mid is optional
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
   async joinSubscriber({ room, feed, audio, video, data, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, token, streams }) {

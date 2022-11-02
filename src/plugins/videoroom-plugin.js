@@ -176,10 +176,10 @@ class VideoRoomHandle extends Handle {
             const pub = {
               feed: id,
               display,
-              audio_codec,
-              video_codec,
-              streams,
             };
+            if (typeof audio_codec !== 'undefined') pub.audio_codec = audio_codec;
+            if (typeof video_codec !== 'undefined') pub.video_codec = video_codec;
+            if (typeof streams !== 'undefined') pub.streams = streams;
             if (typeof talking !== 'undefined') pub.talking = talking;
             return pub;
           });
@@ -194,7 +194,7 @@ class VideoRoomHandle extends Handle {
 
           janode_event.data.feed = message_data.id;
           janode_event.data.display = message_data.display;
-          janode_event.data.streams = message_data.streams;
+          if (typeof message_data.streams !== 'undefined') janode_event.data.streams = message_data.streams;
           janode_event.event = PLUGIN_EVENT.SUB_JOINED;
           break;
 
@@ -380,12 +380,12 @@ class VideoRoomHandle extends Handle {
           /* Publisher list notification */
           if (message_data.publishers) {
             janode_event.event = PLUGIN_EVENT.PUB_LIST;
-            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, streams  }) => {
+            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, streams }) => {
               const pub = {
                 feed: id,
                 display,
-                streams,
               };
+              if (typeof streams !== 'undefined') pub.streams = streams;
               if (typeof talking !== 'undefined') pub.talking = talking;
               return pub;
             });
@@ -608,7 +608,8 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording (publishers only)
    * @param {boolean} [params.restart] - Set to force a ICE restart
    * @param {boolean} [params.update] - Set to force a renegotiation
-   * @param {boolean} [params.streams] - The streams object, each stream includes mid, keyframe, send, min_delay, max_delay
+   * @param {object[]} [params.streams] - The streams object, each stream includes mid, keyframe, send, min_delay, max_delay
+   * @param {object[]} [params.descriptions] - The descriptions object, can define a description for the tracks separately e.g. track mid:0 'Video Camera', track mid:1 'Screen'
    * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled (subscribers only)
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below (subscribers only)
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled (subscribers only)
@@ -631,8 +632,8 @@ class VideoRoomHandle extends Handle {
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
     if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
-    if (typeof streams === 'object') body.streams = streams;
-    if (typeof descriptions === 'object') body.descriptions = descriptions;
+    if (streams && Array.isArray(streams)) body.streams = streams;
+    if (descriptions && Array.isArray(descriptions)) body.descriptions = descriptions;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -698,8 +699,8 @@ class VideoRoomHandle extends Handle {
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
     if (typeof display === 'string') body.display = display;
-    if (typeof streams === 'object') body.streams = streams;
-    if (typeof descriptions === 'object') body.descriptions = descriptions;
+    if (streams && Array.isArray(streams)) body.streams = streams;
+    if (descriptions && Array.isArray(descriptions)) body.descriptions = descriptions;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -762,7 +763,7 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled
    * @param {string} [params.token] - The optional token needed
-   * @param {boolean} [params.streams] - The streams object, each stream include feed, mid is optional
+   * @param {object[]} [params.streams] - The streams object, each stream include feed, mid is optional
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
   async joinSubscriber({ room, feed, audio, video, data, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, token, streams }) {
@@ -778,8 +779,8 @@ class VideoRoomHandle extends Handle {
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
     if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
-    if (typeof streams === 'object') body.streams = streams;
-    if (typeof feed === 'number') body.feed = feed;
+    if (streams && Array.isArray(streams)) body.streams = streams;
+    else if (typeof feed === 'number' || typeof feed === 'string' ) body.feed = feed;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -792,8 +793,8 @@ class VideoRoomHandle extends Handle {
   /**
    * Update an existing subscribe handle
    *
-   * @param {array} subscribe The array of streams to subscribe
-   * @param {array} unsubscribe The array of streams to unsubscribe
+   * @param {object[]} subscribe The array of streams to subscribe
+   * @param {object[]} unsubscribe The array of streams to unsubscribe
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED>}
    */
   async update({ subscribe, unsubscribe }) {
@@ -801,8 +802,8 @@ class VideoRoomHandle extends Handle {
       request: REQUEST_UPDATE,
     };
 
-    if (typeof subscribe === 'object') body.subscribe = subscribe;
-    if (typeof unsubscribe === 'object') body.unsubscribe = unsubscribe;
+    if (subscribe && Array.isArray(subscribe)) body.subscribe = subscribe;
+    if (unsubscribe && Array.isArray(unsubscribe)) body.unsubscribe = unsubscribe;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};

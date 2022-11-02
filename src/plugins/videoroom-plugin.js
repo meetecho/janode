@@ -679,8 +679,8 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.bitrate] - Bitrate cap
    * @param {boolean} [params.record] - True to record the feed
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
-   * @param {boolean} [params.streams] - The streams object, each stream includes type, mid, description, disabled, simulcast
-   * @param {boolean} [params.descriptions] - The descriptions object, for each stream you can define description
+   * @param {object[]} [params.streams] - The streams object, each stream includes type, mid, description, disabled, simulcast
+   * @param {object[]} [params.descriptions] - The descriptions object, for each stream you can define description
    * @param {RTCSessionDescription} params.jsep - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */

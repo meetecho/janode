@@ -19,18 +19,20 @@ const { EVENT } = JANODE_PROTO;
  *
  * @typedef {object} ServerObjectConf
  * @property {string} url - The URL to reach this server API
- * @property {string} api_secret - The API secret for this server
+ * @property {string} apisecret - The API secret for this server
+ * @property {string} [token] - The optional Janus API token
  */
 
 /**
  * The configuration passed by the user.
  *
  * @typedef {object} RawConfiguration
- * @property {string} server_key - The key used to refer to this server in Janode.connect
+ * @property {string} [server_key] - The key used to refer to this server in Janode.connect
  * @property {module:janode~ServerObjectConf[]|module:janode~ServerObjectConf} address - The server to connect to
- * @property {number} retry_time_secs - The seconds between any connection attempts
- * @property {number} max_retries - The maximum number of retries before issuing a connection error
- * @property {boolean} is_admin - True if the connection is dedicated to the Janus Admin API
+ * @property {number} [retry_time_secs=10] - The seconds between any connection attempts
+ * @property {number} [max_retries=5] - The maximum number of retries before issuing a connection error
+ * @property {boolean} [is_admin=false] - True if the connection is dedicated to the Janus Admin API
+ * @property {object} [ws_options] - Specific WebSocket transport options
  */
 
 /**

@@ -15,6 +15,7 @@ const REQUEST_JOIN = 'join';
 const REQUEST_CONFIGURE = 'configure';
 const REQUEST_JOIN_CONFIGURE = 'joinandconfigure';
 const REQUEST_LIST_PARTICIPANTS = 'listparticipants';
+const REQUEST_ENABLE_RECORDING = "enable_recording";
 const REQUEST_KICK = 'kick';
 const REQUEST_START = 'start';
 const REQUEST_PAUSE = 'pause';
@@ -52,6 +53,7 @@ const PLUGIN_EVENT = {
   LEAVING: 'videoroom_leaving',
   UPDATED: 'videoroom_updated',
   KICKED: 'videoroom_kicked',
+  ENABLE_RECORDING: 'videoroom_enable_recording',
   TALKING: 'videoroom_talking',
   SC_SUBSTREAM_LAYER: 'videoroom_sc_substream_layer',
   SC_TEMPORAL_LAYERS: 'videoroom_sc_temporal_layers',
@@ -124,7 +126,6 @@ class VideoRoomHandle extends Handle {
         /* The event payload */
         data: {},
       };
-
       /* Add JSEP data if available */
       if (jsep) janode_event.data.jsep = jsep;
       /* Add room information if available */
@@ -159,6 +160,13 @@ class VideoRoomHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.ALLOWED;
             break;
           }
+          /* Global recording enabled or disabled */
+          if (typeof message_data.record !== 'undefined') {
+            janode_event.event = PLUGIN_EVENT.ENABLE_RECORDING;
+            janode_event.data.record = message_data.record;
+            break;
+          }
+
           /* Generic success event */
           janode_event.event = PLUGIN_EVENT.SUCCESS;
           break;
@@ -866,6 +874,33 @@ class VideoRoomHandle extends Handle {
   }
 
   /**
+   * Enable or disable recording for all participants in a room, while the conference is in progress.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The room where the kick is being requested
+   * @param {string} params.secret - The optional secret for the operation
+   * @param {boolean} params.record - Whether participants in this room should be automatically recorded or not
+   * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_ENABLE_RECORDING>}
+   */
+  async enable_recording({ room, secret , record}) {
+    const body = {
+      request: REQUEST_ENABLE_RECORDING,
+      room,
+      record
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.ENABLE_RECORDING) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
    * Kick a publisher out from a room.
    *
    * @param {object} params
@@ -1321,6 +1356,14 @@ class VideoRoomHandle extends Handle {
  */
 
 /**
+ * The response event for the recording enabled request.
+ *
+ * @typedef {object} VIDEOROOM_EVENT_ENABLE_RECORDING
+ * @property {number|string} room - The involved room
+ * @property {boolean} recording - Whether or not the room recording is now enabled
+ */
+
+/**
  * The exported plugin descriptor.
  *
  * @type {object}
@@ -1334,6 +1377,7 @@ class VideoRoomHandle extends Handle {
  * @property {string} EVENT.VIDEOROOM_LEAVING {@link module:videoroom-plugin~VIDEOROOM_LEAVING}
  * @property {string} EVENT.VIDEOROOM_DISPLAY {@link module:videoroom-plugin~VIDEOROOM_DISPLAY}
  * @property {string} EVENT.VIDEOROOM_KICKED {@link module:videoroom-plugin~VIDEOROOM_KICKED}
+ * @property {string} EVENT.VIDEOROOM_ENABLE_RECORDING {@link module:videoroom-plugin~VIDEOROOM_ENABLE_RECORDING}
  * @property {string} EVENT.VIDEOROOM_TALKING {@link module:videoroom-plugin~VIDEOROOM_TALKING}
  * @property {string} EVENT.VIDEOROOM_ERROR {@link module:videoroom-plugin~VIDEOROOM_ERROR}
  */
@@ -1430,6 +1474,14 @@ export default {
      * @type {module:videoroom-plugin~VIDEOROOM_EVENT_KICKED}
      */
     VIDEOROOM_KICKED: PLUGIN_EVENT.KICKED,
+
+    /**
+     * Global recording has been enabled or disabled.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_ENABLE_RECORDING
+     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_ENABLE_RECORDING}
+     */
+    VIDEOROOM_ENABLE_RECORDING: PLUGIN_EVENT.ENABLE_RECORDING,
 
     /**
      * A switch to a different simulcast substream has been completed.

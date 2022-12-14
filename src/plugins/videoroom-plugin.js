@@ -126,6 +126,7 @@ class VideoRoomHandle extends Handle {
         /* The event payload */
         data: {},
       };
+
       /* Add JSEP data if available */
       if (jsep) janode_event.data.jsep = jsep;
       /* Add room information if available */

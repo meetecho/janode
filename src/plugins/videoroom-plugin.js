@@ -19,6 +19,7 @@ const REQUEST_ENABLE_RECORDING = 'enable_recording';
 const REQUEST_KICK = 'kick';
 const REQUEST_START = 'start';
 const REQUEST_PAUSE = 'pause';
+const REQUEST_SWITCH = 'switch';
 const REQUEST_PUBLISH = 'publish';
 const REQUEST_UNPUBLISH = 'unpublish';
 const REQUEST_LEAVE = 'leave';
@@ -46,6 +47,7 @@ const PLUGIN_EVENT = {
   PUB_PEER_JOINED: 'videoroom_publisher_joined',
   STARTED: 'videoroom_started',
   PAUSED: 'videoroom_paused',
+  SWITCHED: 'videoroom_switched',
   CONFIGURED: 'videoroom_configured',
   SLOW_LINK: 'videoroom_slowlink',
   DISPLAY: 'videoroom_display',
@@ -398,7 +400,7 @@ class VideoRoomHandle extends Handle {
             break;
           }
           /* Display name changed event */
-          if (typeof message_data.display !== 'undefined') {
+          if (typeof message_data.display !== 'undefined' && typeof message_data.switched === 'undefined') {
             janode_event.event = PLUGIN_EVENT.DISPLAY;
             janode_event.data.feed = message_data.id;
             janode_event.data.display = message_data.display;
@@ -416,6 +418,18 @@ class VideoRoomHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.PAUSED;
             janode_event.data.feed = this.feed;
             janode_event.data.paused = message_data.paused;
+            break;
+          }
+          /* Subscribed feed switched */
+          if (typeof message_data.switched !== 'undefined') {
+            janode_event.event = PLUGIN_EVENT.SWITCHED;
+            janode_event.data.switched = message_data.switched;
+            if (message_data.switched === 'ok' && typeof message_data.id !== 'undefined') {
+              janode_event.data.from_feed = this.feed;
+              this.feed = message_data.id;
+              janode_event.data.to_feed = this.feed;
+              janode_event.data.display = message_data.display;
+            }
             break;
           }
           /* Unpublished own or other feed */
@@ -827,6 +841,34 @@ class VideoRoomHandle extends Handle {
   }
 
   /**
+   * Switch to another feed.
+   *
+   * @param {object} params
+   * @param {number|string} params.to_feed - The feed id of the new publisher to switch to
+   * @param {boolean} [params.audio] - True to subscribe to the audio feed
+   * @param {boolean} [params.video] - True to subscribe to the video feed
+   * @param {boolean} [params.data] - True to subscribe to the datachannels of the feed
+   * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SWITCHED>}
+   */
+  async switch({ to_feed, audio, video, data }) {
+    const body = {
+      request: REQUEST_SWITCH,
+      feed: to_feed,
+    };
+    if (typeof audio === 'boolean') body.audio = audio;
+    if (typeof video === 'boolean') body.video = video;
+    if (typeof data === 'boolean') body.data = data;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SWITCHED && evtdata.switched === 'ok') {
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
    * Leave a room.
    * Can be used by both publishers and subscribers.
    *
@@ -883,7 +925,7 @@ class VideoRoomHandle extends Handle {
    * @param {boolean} params.record - True starts recording for all participants in an already running conference, false stops the recording
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_RECORDING_ENABLED_STATE>}
    */
-  async enable_recording({ room, secret , record}) {
+  async enable_recording({ room, secret, record }) {
     const body = {
       request: REQUEST_ENABLE_RECORDING,
       room,
@@ -1329,6 +1371,17 @@ class VideoRoomHandle extends Handle {
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed that has been paused
  * @property {string} paused - A string with the value returned by Janus
+ */
+
+/**
+ * The response event for subscriber switch request.
+ *
+ * @typedef {object} VIDEOROOM_EVENT_SWITCHED
+ * @property {number|string} room - The involved room
+ * @property {number|string} from_feed - The feed that has been switched from
+ * @property {number|string} to_feed - The feed that has been switched to
+ * @property {string} switched - A string with the value returned by Janus
+ * @property {string} display - The display name of the new feed
  */
 
 /**

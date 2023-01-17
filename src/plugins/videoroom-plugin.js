@@ -1499,6 +1499,14 @@ export default {
     VIDEOROOM_DISPLAY: PLUGIN_EVENT.DISPLAY,
 
     /**
+     * A handle received a configured event.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_CONFIGURED
+     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED}
+     */
+    VIDEOROOM_CONFIGURED: PLUGIN_EVENT.CONFIGURED,
+
+    /**
      * A handle received a slow link notification.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_DISPLAY
@@ -1565,7 +1573,7 @@ export default {
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_UPDATED
      * @type {object}
      * @property {number|string} room - The involved room
-     * @param {RTCSessionDescription} [params.jsep] - The updated JSEP offer
+     * @param {RTCSessionDescription} [jsep] - The updated JSEP offer
      * @param {object[]} streams - List of the streams in this subscription
      */
     VIDEOROOM_UPDATED: PLUGIN_EVENT.UPDATED,

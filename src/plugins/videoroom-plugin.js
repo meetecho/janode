@@ -23,6 +23,7 @@ const REQUEST_SWITCH = 'switch';
 const REQUEST_PUBLISH = 'publish';
 const REQUEST_UNPUBLISH = 'unpublish';
 const REQUEST_LEAVE = 'leave';
+const REQUEST_UPDATE = 'update';
 
 const REQUEST_EXISTS = 'exists';
 const REQUEST_LIST_ROOMS = 'list';
@@ -182,12 +183,14 @@ class VideoRoomHandle extends Handle {
 
           janode_event.data.feed = message_data.id;
           janode_event.data.description = message_data.description;
-          janode_event.data.publishers = message_data.publishers.map(({ id, display, talking }) => {
+          janode_event.data.private_id = message_data.private_id;
+          janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, streams }) => {
             const pub = {
               feed: id,
               display,
             };
             if (typeof talking !== 'undefined') pub.talking = talking;
+            if (typeof streams !== 'undefined') pub.streams = streams;
             return pub;
           });
           janode_event.event = PLUGIN_EVENT.PUB_JOINED;
@@ -382,12 +385,13 @@ class VideoRoomHandle extends Handle {
           /* Publisher list notification */
           if (message_data.publishers) {
             janode_event.event = PLUGIN_EVENT.PUB_LIST;
-            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking }) => {
+            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, streams }) => {
               const pub = {
                 feed: id,
                 display,
               };
               if (typeof talking !== 'undefined') pub.talking = talking;
+              if (typeof streams !== 'undefined') pub.streams = streams;
               return pub;
             });
             break;
@@ -764,13 +768,14 @@ class VideoRoomHandle extends Handle {
    * @param {boolean} [params.audio] - True to subscribe to the audio feed
    * @param {boolean} [params.video] - True to subscribe to the video feed
    * @param {boolean} [params.data] - True to subscribe to the datachannels of the feed
+   * @param {number} [params.private_id] - The private id to correlate with publisher
    * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled
    * @param {string} [params.token] - The optional token needed
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
-  async joinSubscriber({ room, feed, audio, video, data, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, token }) {
+  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, token }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_LISTENER,
@@ -780,6 +785,7 @@ class VideoRoomHandle extends Handle {
     if (typeof audio === 'boolean') body.audio = audio;
     if (typeof video === 'boolean') body.video = video;
     if (typeof data === 'boolean') body.data = data;
+    if (typeof private_id === 'number') body.private_id = private_id;
     if (typeof token === 'string') body.token = token;
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
@@ -883,6 +889,27 @@ class VideoRoomHandle extends Handle {
     const { event, data: evtdata } = response._janode || {};
     if (event === PLUGIN_EVENT.LEAVING)
       return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * [multistream] Update a subscription.
+   *
+   * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED>}
+   */
+  async update({ subscribe, unsubscribe }) {
+    const body = {
+      request: REQUEST_UPDATE,
+    };
+    if (Array.isArray(subscribe)) body.subscribe = subscribe;
+    if (Array.isArray(unsubscribe)) body.unsubscribe = unsubscribe;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.UPDATED) {
+      return evtdata;
+    }
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
   }
@@ -1029,6 +1056,7 @@ class VideoRoomHandle extends Handle {
    * @param {boolean} [params.talking_events] - True to enable talking events
    * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
    * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
+   * @param {boolean} [params.require_pvtid] - whether subscriptions are required to provide a valid private_id
    * @param {boolean} [params.record] - Wheter to enable recording of any publisher
    * @param {string} [params.rec_dir] - Folder where recordings should be stored
    * @param {boolean} [params.videoorient] - Whether the video-orientation RTP extension must be negotiated
@@ -1036,7 +1064,8 @@ class VideoRoomHandle extends Handle {
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CREATED>}
    */
   async create({ room, description, max_publishers, permanent, is_private, secret, pin, bitrate,
-    bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold, record, rec_dir, videoorient, h264_profile }) {
+    bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold,
+    require_pvtid, record, rec_dir, videoorient, h264_profile }) {
     const body = {
       request: REQUEST_CREATE,
     };
@@ -1055,6 +1084,7 @@ class VideoRoomHandle extends Handle {
     if (typeof talking_events === 'boolean') body.audiolevel_event = talking_events;
     if (typeof talking_level_threshold === 'number' && talking_level_threshold >= 0 && talking_level_threshold <= 127) body.audio_level_average = talking_level_threshold;
     if (typeof talking_packets_threshold === 'number' && talking_packets_threshold > 0) body.audio_active_packets = talking_packets_threshold;
+    if (typeof require_pvtid === 'boolean') body.require_pvtid = require_pvtid;
     if (typeof record === 'boolean') body.record = record;
     if (typeof rec_dir === 'string') body.rec_dir = rec_dir;
     if (typeof videoorient === 'boolean') body.videoorient_ext = videoorient;
@@ -1231,9 +1261,11 @@ class VideoRoomHandle extends Handle {
  * @property {number|string} feed - The feed identifier
  * @property {string} [display] - The dsplay name, if available
  * @property {string} description - A description of the room, if available
+ * @property {number} private_id - The private id that can be used when subscribing
  * @property {object[]} publishers - The list of active publishers
  * @property {number|string} publishers[].feed - The feed of an active publisher
  * @property {string} publishers[].display - The display name of an active publisher
+ * @property {object[]} [publishers[].streams] - [multistream] streams description
  * @property {RTCSessionDescription} [jsep] - The JSEP answer
  */
 
@@ -1418,6 +1450,15 @@ class VideoRoomHandle extends Handle {
  */
 
 /**
+ * [multistream] The response event for update subscriber request.
+ *
+ * @typedef {object} VIDEOROOM_EVENT_UPDATED
+ * @property {number|string} room - The involved room
+ * @property {RTCSessionDescription} [jsep] - The updated JSEP offer
+ * @property {object[]} streams - List of the updated streams in this subscription
+ */
+
+/**
  * The exported plugin descriptor.
  *
  * @type {object}
@@ -1460,6 +1501,7 @@ export default {
      * @property {object[]} publishers - List of the new publishers
      * @property {number|string} publishers[].feed - Feed identifier of the new publisher
      * @property {string} publishers[].display - Display name of the new publisher
+     * @property {object[]} [publishers[].streams] - [multistream] streams description
      */
     VIDEOROOM_PUB_LIST: PLUGIN_EVENT.PUB_LIST,
 
@@ -1571,10 +1613,7 @@ export default {
      * A multistream subscription has been updated.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_UPDATED
-     * @type {object}
-     * @property {number|string} room - The involved room
-     * @param {RTCSessionDescription} [jsep] - The updated JSEP offer
-     * @param {object[]} streams - List of the streams in this subscription
+     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED}
      */
     VIDEOROOM_UPDATED: PLUGIN_EVENT.UPDATED,
 

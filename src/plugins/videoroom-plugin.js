@@ -364,6 +364,12 @@ class VideoRoomHandle extends Handle {
           janode_event.event = PLUGIN_EVENT.UPDATED;
           break;
 
+        /* [multistream] updating event, sent when janus receives another "update" before getting a JSEP answer for the previous one */
+        case 'updating':
+          janode_event.data.streams = message_data.streams;
+          janode_event.event = PLUGIN_EVENT.UPDATED;
+          break;
+
         /* Generic events (error, notifications ...) */
         case 'event':
           /* VideoRoom Error */
@@ -1265,7 +1271,7 @@ class VideoRoomHandle extends Handle {
  * @property {object[]} publishers - The list of active publishers
  * @property {number|string} publishers[].feed - The feed of an active publisher
  * @property {string} publishers[].display - The display name of an active publisher
- * @property {object[]} [publishers[].streams] - [multistream] streams description
+ * @property {object[]} [publishers[].streams] - [multistream] Streams description
  * @property {RTCSessionDescription} [jsep] - The JSEP answer
  */
 
@@ -1501,7 +1507,7 @@ export default {
      * @property {object[]} publishers - List of the new publishers
      * @property {number|string} publishers[].feed - Feed identifier of the new publisher
      * @property {string} publishers[].display - Display name of the new publisher
-     * @property {object[]} [publishers[].streams] - [multistream] streams description
+     * @property {object[]} [publishers[].streams] - [multistream] Streams description
      */
     VIDEOROOM_PUB_LIST: PLUGIN_EVENT.PUB_LIST,
 

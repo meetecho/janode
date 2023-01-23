@@ -184,12 +184,16 @@ class VideoRoomHandle extends Handle {
           janode_event.data.feed = message_data.id;
           janode_event.data.description = message_data.description;
           janode_event.data.private_id = message_data.private_id;
-          janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, streams }) => {
+          janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, audio_codec, video_codec, simulcast, streams }) => {
             const pub = {
               feed: id,
               display,
             };
             if (typeof talking !== 'undefined') pub.talking = talking;
+            if (typeof audio_codec !== 'undefined') pub.audiocodec = audio_codec;
+            if (typeof video_codec !== 'undefined') pub.videocodec = video_codec;
+            if (typeof simulcast !== 'undefined') pub.simulcast = simulcast;
+            // Multistream
             if (typeof streams !== 'undefined') pub.streams = streams;
             return pub;
           });
@@ -391,12 +395,16 @@ class VideoRoomHandle extends Handle {
           /* Publisher list notification */
           if (message_data.publishers) {
             janode_event.event = PLUGIN_EVENT.PUB_LIST;
-            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, streams }) => {
+            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, audio_codec, video_codec, simulcast, streams }) => {
               const pub = {
                 feed: id,
                 display,
               };
               if (typeof talking !== 'undefined') pub.talking = talking;
+              if (typeof audio_codec !== 'undefined') pub.audiocodec = audio_codec;
+              if (typeof video_codec !== 'undefined') pub.videocodec = video_codec;
+              if (typeof simulcast !== 'undefined') pub.simulcast = simulcast;
+              // Multistream
               if (typeof streams !== 'undefined') pub.streams = streams;
               return pub;
             });
@@ -778,10 +786,11 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled
+   * @param {boolean} [params.autoupdate] - [multistream] Whether a new SDP offer is sent automatically when a subscribed publisher leaves
    * @param {string} [params.token] - The optional token needed
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
-  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, token }) {
+  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, autoupdate, token }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_LISTENER,
@@ -796,6 +805,8 @@ class VideoRoomHandle extends Handle {
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
     if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
+    // Multistream
+    if (typeof autoupdate === 'boolean') body.autoupdate = autoupdate;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -1270,7 +1281,11 @@ class VideoRoomHandle extends Handle {
  * @property {number} private_id - The private id that can be used when subscribing
  * @property {object[]} publishers - The list of active publishers
  * @property {number|string} publishers[].feed - The feed of an active publisher
- * @property {string} publishers[].display - The display name of an active publisher
+ * @property {string} [publishers[].display] - The display name of an active publisher
+ * @property {boolean} [publishers[].talking] - Whether the publisher is talking or not
+ * @property {string} [publishers[].audiocodec] - The audio codec used by active publisher
+ * @property {string} [publishers[].videocodec] - The video codec used by active publisher
+ * @property {boolean} publishers[].simulcast - True if the publisher uses simulcast (VP8 and H.264 only)
  * @property {object[]} [publishers[].streams] - [multistream] Streams description
  * @property {RTCSessionDescription} [jsep] - The JSEP answer
  */
@@ -1292,7 +1307,7 @@ class VideoRoomHandle extends Handle {
  * @property {number|string} feed - The current published feed
  * @property {object[]} participants - The list of current participants
  * @property {number|string} participants[].feed - Feed identifier of the participant
- * @property {string} [participants[].display] - The participant display name, if available
+ * @property {string} [participants[].display] - The participant's display name, if available
  * @property {boolean} participants[].publisher - Whether the user is an active publisher in the room
  * @property {boolean} [participants[].talking] - True if participant is talking
  */
@@ -1507,6 +1522,10 @@ export default {
      * @property {object[]} publishers - List of the new publishers
      * @property {number|string} publishers[].feed - Feed identifier of the new publisher
      * @property {string} publishers[].display - Display name of the new publisher
+     * @property {boolean} [publishers[].talking] - Whether the publisher is talking or not
+     * @property {string} [publishers[].audiocodec] - The audio codec used by active publisher
+     * @property {string} [publishers[].videocodec] - The video codec used by active publisher
+     * @property {boolean} publishers[].simulcast - True if the publisher uses simulcast (VP8 and H.264 only)
      * @property {object[]} [publishers[].streams] - [multistream] Streams description
      */
     VIDEOROOM_PUB_LIST: PLUGIN_EVENT.PUB_LIST,

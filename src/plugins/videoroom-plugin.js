@@ -132,6 +132,7 @@ class VideoRoomHandle extends Handle {
 
       /* Add JSEP data if available */
       if (jsep) janode_event.data.jsep = jsep;
+      if (jsep && typeof jsep.e2ee === 'boolean') janode_event.data.e2ee = jsep.e2ee;
       /* Add room information if available */
       if (room) janode_event.data.room = room;
 
@@ -570,10 +571,11 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.pin] - The optional pin needed to join the room
    * @param {boolean} [params.record] - Enable the recording
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
+   * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_PUB_JOINED>}
    */
-  async joinConfigurePublisher({ room, feed, audio, video, data, bitrate, record, filename, display, token, pin, jsep }) {
+  async joinConfigurePublisher({ room, feed, audio, video, data, bitrate, record, filename, display, token, pin, e2ee, jsep }) {
     const body = {
       request: REQUEST_JOIN_CONFIGURE,
       ptype: PTYPE_PUBLISHER,
@@ -589,6 +591,7 @@ class VideoRoomHandle extends Handle {
     if (typeof filename === 'string') body.filename = filename;
     if (typeof token === 'string') body.token = token;
     if (typeof pin === 'string') body.pin = pin;
+    if (typeof e2ee === 'boolean' && jsep) jsep.e2ee = e2ee;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -642,10 +645,11 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled (subscribers only)
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below (subscribers only)
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled (subscribers only)
+   * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer (publishers only)
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, jsep }) {
+  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, e2ee, jsep }) {
     const body = {
       request: REQUEST_CONFIGURE,
     };
@@ -661,6 +665,7 @@ class VideoRoomHandle extends Handle {
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
     if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
+    if (typeof e2ee === 'boolean' && jsep) jsep.e2ee = e2ee;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -706,10 +711,11 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.bitrate] - Bitrate cap
    * @param {boolean} [params.record] - True to record the feed
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
+   * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} params.jsep - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async publish({ audio, video, data, bitrate, record, filename, display, jsep }) {
+  async publish({ audio, video, data, bitrate, record, filename, display, e2ee, jsep }) {
     if (typeof jsep === 'object' && jsep && jsep.type !== 'offer') {
       const error = new Error('jsep must be an offer');
       return Promise.reject(error);
@@ -724,6 +730,7 @@ class VideoRoomHandle extends Handle {
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
     if (typeof display === 'string') body.display = display;
+    if (typeof e2ee === 'boolean' && jsep) jsep.e2ee = e2ee;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -1073,7 +1080,8 @@ class VideoRoomHandle extends Handle {
    * @param {boolean} [params.talking_events] - True to enable talking events
    * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
    * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
-   * @param {boolean} [params.require_pvtid] - whether subscriptions are required to provide a valid private_id
+   * @param {boolean} [params.require_pvtid] - Whether subscriptions are required to provide a valid private_id
+   * @param {boolean} [params.require_e2ee] - Whether all participants are required to publish and subscribe using e2e encryption
    * @param {boolean} [params.record] - Wheter to enable recording of any publisher
    * @param {string} [params.rec_dir] - Folder where recordings should be stored
    * @param {boolean} [params.videoorient] - Whether the video-orientation RTP extension must be negotiated
@@ -1082,7 +1090,7 @@ class VideoRoomHandle extends Handle {
    */
   async create({ room, description, max_publishers, permanent, is_private, secret, pin, bitrate,
     bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold,
-    require_pvtid, record, rec_dir, videoorient, h264_profile }) {
+    require_pvtid, require_e2ee, record, rec_dir, videoorient, h264_profile }) {
     const body = {
       request: REQUEST_CREATE,
     };
@@ -1102,6 +1110,7 @@ class VideoRoomHandle extends Handle {
     if (typeof talking_level_threshold === 'number' && talking_level_threshold >= 0 && talking_level_threshold <= 127) body.audio_level_average = talking_level_threshold;
     if (typeof talking_packets_threshold === 'number' && talking_packets_threshold > 0) body.audio_active_packets = talking_packets_threshold;
     if (typeof require_pvtid === 'boolean') body.require_pvtid = require_pvtid;
+    if (typeof require_e2ee === 'boolean') body.require_e2ee = require_e2ee;
     if (typeof record === 'boolean') body.record = record;
     if (typeof rec_dir === 'string') body.rec_dir = rec_dir;
     if (typeof videoorient === 'boolean') body.videoorient_ext = videoorient;

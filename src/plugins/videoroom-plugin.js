@@ -809,11 +809,12 @@ class VideoRoomHandle extends Handle {
    * @param {object[]} [params.streams] - The streams object, each stream include feed, mid is optional
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
-  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, autoupdate, token, streams }) {
+  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, autoupdate, token }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_LISTENER,
       room,
+      feed,
     };
     if (typeof audio === 'boolean') body.audio = audio;
     if (typeof video === 'boolean') body.video = video;
@@ -823,8 +824,6 @@ class VideoRoomHandle extends Handle {
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
     if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
-    if (streams && Array.isArray(streams)) body.streams = streams;
-    else if (typeof feed === 'number' || typeof feed === 'string' ) body.feed = feed;
     // Multistream
     if (typeof autoupdate === 'boolean') body.autoupdate = autoupdate;
 

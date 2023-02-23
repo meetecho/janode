@@ -335,7 +335,6 @@ function initFrontEnd() {
 
       try {
         const response = await handle.start(startdata);
-        delete evtdata.started;
         replyEvent(socket, 'started', response, _id);
         Logger.info(`${LOG_NS} ${remote} started sent`);
       } catch ({ message }) {
@@ -352,11 +351,31 @@ function initFrontEnd() {
 
       try {
         const response = await handle.pause();
-        delete evtdata.paused;
         replyEvent(socket, 'paused', response, _id);
         Logger.info(`${LOG_NS} ${remote} paused sent`);
       } catch ({ message }) {
         replyError(socket, message, pausedata, _id);
+      }
+    });
+
+    socket.on('switch', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} switch received`);
+      const { _id, data: switchdata = {} } = evtdata;
+
+      const handle = clientHandles.getHandleByFeed(switchdata.from_feed);
+      if (!checkSessions(janodeSession, handle, socket, evtdata)) return;
+
+      try {
+        const response = await handle.switch({
+          to_feed: switchdata.to_feed,
+          audio: switchdata.audio,
+          video: switchdata.video,
+          data: switchdata.data,
+        });
+        replyEvent(socket, 'switched', response, _id);
+        Logger.info(`${LOG_NS} ${remote} switched sent`);
+      } catch ({ message }) {
+        replyError(socket, message, switchdata, _id);
       }
     });
 

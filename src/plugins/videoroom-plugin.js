@@ -22,8 +22,8 @@ const REQUEST_PAUSE = 'pause';
 const REQUEST_SWITCH = 'switch';
 const REQUEST_PUBLISH = 'publish';
 const REQUEST_UNPUBLISH = 'unpublish';
-const REQUEST_UPDATE = 'update';
 const REQUEST_LEAVE = 'leave';
+const REQUEST_UPDATE = 'update';
 
 const REQUEST_EXISTS = 'exists';
 const REQUEST_LIST_ROOMS = 'list';
@@ -190,8 +190,6 @@ class VideoRoomHandle extends Handle {
               feed: id,
               display,
             };
-            if (typeof audio_codec !== 'undefined') pub.audio_codec = audio_codec;
-            if (typeof video_codec !== 'undefined') pub.video_codec = video_codec;
             if (typeof streams !== 'undefined') pub.streams = streams;
             if (typeof talking !== 'undefined') pub.talking = talking;
             if (typeof audio_codec !== 'undefined') pub.audiocodec = audio_codec;
@@ -372,6 +370,7 @@ class VideoRoomHandle extends Handle {
           janode_event.data.streams = message_data.streams;
           janode_event.event = PLUGIN_EVENT.UPDATED;
           break;
+
         /* [multistream] updating event, sent when janus receives another "update" before getting a JSEP answer for the previous one */
         case 'updating':
           janode_event.data.streams = message_data.streams;
@@ -836,7 +835,7 @@ class VideoRoomHandle extends Handle {
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
   }
-  
+
   /**
    * Alias for "joinSubscriber".
    *

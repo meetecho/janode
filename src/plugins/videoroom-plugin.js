@@ -372,11 +372,6 @@ class VideoRoomHandle extends Handle {
           janode_event.data.streams = message_data.streams;
           janode_event.event = PLUGIN_EVENT.UPDATED;
           break;
-        case 'updating':
-          janode_event.data.streams = message_data.streams;
-          janode_event.event = PLUGIN_EVENT.UPDATED;
-          break;
-
         /* [multistream] updating event, sent when janus receives another "update" before getting a JSEP answer for the previous one */
         case 'updating':
           janode_event.data.streams = message_data.streams;
@@ -841,31 +836,7 @@ class VideoRoomHandle extends Handle {
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
   }
-
-  /**
-   * Update an existing subscribe handle
-   *
-   * @param {object[]} subscribe The array of streams to subscribe
-   * @param {object[]} unsubscribe The array of streams to unsubscribe
-   * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED>}
-   */
-  async update({ subscribe, unsubscribe }) {
-    const body = {
-      request: REQUEST_UPDATE,
-    };
-
-    if (subscribe && Array.isArray(subscribe)) body.subscribe = subscribe;
-    if (unsubscribe && Array.isArray(unsubscribe)) body.unsubscribe = unsubscribe;
-
-    const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
-
-    if (event === PLUGIN_EVENT.UPDATED)
-      return evtdata;
-    const error = new Error(`unexpected response to ${body.request} request`);
-    throw (error);
-  }
-
+  
   /**
    * Alias for "joinSubscriber".
    *
@@ -963,6 +934,8 @@ class VideoRoomHandle extends Handle {
   /**
    * [multistream] Update a subscription.
    *
+   * @param {object[]} subscribe The array of streams to subscribe
+   * @param {object[]} unsubscribe The array of streams to unsubscribe
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED>}
    */
   async update({ subscribe, unsubscribe }) {

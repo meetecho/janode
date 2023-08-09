@@ -13,6 +13,8 @@ The supported Janus plugins currently are:
 - Streaming
 - VideoRoom
 
+The library is available on [npm](https://www.npmjs.com/package/janode) and the source code is on [github](https://github.com/meetecho/janode).
+
 ## Example of usage
 
 This is just a pretty simple hello world for the echotest plugin.
@@ -102,6 +104,16 @@ const admin = await Janode.connect({
 ```
 
 ## Installation
+
+Installing the library from npm is as easy as:
+
+
+```bash
+npm install janode
+```
+
+On the other hand, in case you got the code from git you must build the library through:
+
 
 ```bash
 npm run build

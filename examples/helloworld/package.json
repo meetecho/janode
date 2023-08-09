@@ -19,7 +19,7 @@
   "private": true,
   "main": "src/index.js",
   "scripts": {
-    "build": "npm install --production",
+    "build": "npm install --omit=dev",
     "build-config": "node -e \"var fs = require('fs');fs.createReadStream('src/config.template.js').pipe(fs.createWriteStream('src/config.js'));\"",
     "start": "node src/index.js"
   }

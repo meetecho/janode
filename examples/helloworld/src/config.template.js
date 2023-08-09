@@ -3,7 +3,8 @@ export default {
     server_key: 'janus_1_api',
     address: [{
       url: 'ws://127.0.0.1:8188/',
-      apisecret: 'secret'
+      apisecret: 'secret',
+      token: 'janustoken'
     }],
     // seconds between retries after a connection setup error
     retry_time_secs: 10

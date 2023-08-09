@@ -186,7 +186,7 @@ class Connection extends EventEmitter {
     const { session_id, transaction, janus } = janus_message;
 
     /* Check if a session is involved */
-    if (session_id) {
+    if (session_id && !this._config.isAdmin()) {
       /* Look for the session in the map */
       const session = this._sessions.get(session_id);
       /* If the handle is missing notifies the user */

@@ -50,7 +50,7 @@ const socket = io({
   reconnection: false,
 });
 
-function join({ room = myRoom, display = myName, muted = false, token = null, rtp_participant = false, group = null } = {}) {
+function join({ room = myRoom, display = myName, muted = false, token = null, rtp_participant = null, group = null } = {}) {
   const joinData = {
     room,
     display,
@@ -251,6 +251,30 @@ function _listForward({ room = myRoom, secret = 'adminpwd' } = {}) {
   });
 }
 
+function _muteRoom({ room = myRoom, secret = 'adminpwd' } = {}) {
+  let muteData = {
+    room,
+    secret,
+  };
+
+  socket.emit('mute-room', {
+    data: muteData,
+    _id: getId(),
+  });
+}
+
+function _unmuteRoom({ room = myRoom, secret = 'adminpwd' } = {}) {
+  let unmuteData = {
+    room,
+    secret,
+  };
+
+  socket.emit('unmute-room', {
+    data: unmuteData,
+    _id: getId(),
+  });
+}
+
 socket.on('connect', () => {
   console.log('socket connected');
   socket.sendBuffer = [];
@@ -394,6 +418,18 @@ socket.on('rtp-fwd-stopped', ({ data }) => {
 
 socket.on('rtp-fwd-list', ({ data }) => {
   console.log('rtp forwarders list', data);
+});
+
+socket.on('room-muted', ({ data }) => {
+  console.log('room muted', data);
+});
+
+socket.on('room-unmuted', ({ data }) => {
+  console.log('room unmuted', data);
+});
+
+socket.on('room-muted-update', ({ data }) => {
+  console.log('room muted update', data);
 });
 
 async function _restartParticipant() {

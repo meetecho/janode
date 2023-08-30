@@ -9,6 +9,8 @@ const remoteVideo = document.getElementById('remoteVideo');
 const myStream = parseInt(getURLParameter('stream')) || 1;
 const myPin = getURLParameter('pin') || null;
 
+const decoder = new TextDecoder();
+
 const button = document.getElementById('button');
 button.onclick = () => {
   if (socket.connected)
@@ -278,7 +280,11 @@ async function doAnswer(offer) {
         console.log("[pc.ondatachannel] Opening data channel!");
       };
       channel.onmessage = (event) => {
-        console.log(event.data);
+        let decodedData = event.data;
+        if (event.data?.byteLength) { // is ArrayBuffer
+          decodedData = decoder.decode(event.data);
+        }
+        console.log(decodedData);
       };
     };
 

@@ -270,6 +270,10 @@ async function doAnswer(offer) {
       //'sdpSemantics': 'unified-plan',
     });
 
+    // DataChannel
+    pc.createDataChannel("channel");
+    pc.ondatachannel = (event) => console.log('pc.ondatachannel', event)
+
     pc.onnegotiationneeded = event => console.log('pc.onnegotiationneeded', event);
     pc.onicecandidate = event => trickle({ candidate: event.candidate });
     pc.oniceconnectionstatechange = () => {

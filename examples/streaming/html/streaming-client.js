@@ -272,7 +272,15 @@ async function doAnswer(offer) {
 
     // DataChannel
     pc.createDataChannel("channel");
-    pc.ondatachannel = (event) => console.log('pc.ondatachannel', event)
+    pc.ondatachannel = (event) => {
+      const channel = event.channel;
+      channel.onopen = (event) => {
+        console.log("[pc.ondatachannel] Opening data channel!");
+      };
+      channel.onmessage = (event) => {
+        console.log(event.data);
+      };
+    };
 
     pc.onnegotiationneeded = event => console.log('pc.onnegotiationneeded', event);
     pc.onicecandidate = event => trickle({ candidate: event.candidate });

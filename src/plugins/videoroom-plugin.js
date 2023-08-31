@@ -15,12 +15,15 @@ const REQUEST_JOIN = 'join';
 const REQUEST_CONFIGURE = 'configure';
 const REQUEST_JOIN_CONFIGURE = 'joinandconfigure';
 const REQUEST_LIST_PARTICIPANTS = 'listparticipants';
+const REQUEST_ENABLE_RECORDING = 'enable_recording';
 const REQUEST_KICK = 'kick';
 const REQUEST_START = 'start';
 const REQUEST_PAUSE = 'pause';
+const REQUEST_SWITCH = 'switch';
 const REQUEST_PUBLISH = 'publish';
 const REQUEST_UNPUBLISH = 'unpublish';
 const REQUEST_LEAVE = 'leave';
+const REQUEST_UPDATE = 'update';
 
 const REQUEST_EXISTS = 'exists';
 const REQUEST_LIST_ROOMS = 'list';
@@ -45,6 +48,7 @@ const PLUGIN_EVENT = {
   PUB_PEER_JOINED: 'videoroom_publisher_joined',
   STARTED: 'videoroom_started',
   PAUSED: 'videoroom_paused',
+  SWITCHED: 'videoroom_switched',
   CONFIGURED: 'videoroom_configured',
   SLOW_LINK: 'videoroom_slowlink',
   DISPLAY: 'videoroom_display',
@@ -52,7 +56,10 @@ const PLUGIN_EVENT = {
   LEAVING: 'videoroom_leaving',
   UPDATED: 'videoroom_updated',
   KICKED: 'videoroom_kicked',
+  RECORDING_ENABLED_STATE: 'videoroom_recording_enabled_state',
   TALKING: 'videoroom_talking',
+  SC_SUBSTREAM_LAYER: 'videoroom_sc_substream_layer',
+  SC_TEMPORAL_LAYERS: 'videoroom_sc_temporal_layers',
   ALLOWED: 'videoroom_allowed',
   EXISTS: 'videoroom_exists',
   ROOMS_LIST: 'videoroom_list',
@@ -125,6 +132,7 @@ class VideoRoomHandle extends Handle {
 
       /* Add JSEP data if available */
       if (jsep) janode_event.data.jsep = jsep;
+      if (jsep && typeof jsep.e2ee === 'boolean') janode_event.data.e2ee = jsep.e2ee;
       /* Add room information if available */
       if (room) janode_event.data.room = room;
 
@@ -157,6 +165,13 @@ class VideoRoomHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.ALLOWED;
             break;
           }
+          /* Global recording enabled or disabled */
+          if (typeof message_data.record !== 'undefined') {
+            janode_event.data.record = message_data.record;
+            janode_event.event = PLUGIN_EVENT.RECORDING_ENABLED_STATE;
+            break;
+          }
+
           /* Generic success event */
           janode_event.event = PLUGIN_EVENT.SUCCESS;
           break;
@@ -169,12 +184,18 @@ class VideoRoomHandle extends Handle {
 
           janode_event.data.feed = message_data.id;
           janode_event.data.description = message_data.description;
-          janode_event.data.publishers = message_data.publishers.map(({ id, display, talking }) => {
+          janode_event.data.private_id = message_data.private_id;
+          janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, audio_codec, video_codec, simulcast, streams }) => {
             const pub = {
               feed: id,
               display,
             };
             if (typeof talking !== 'undefined') pub.talking = talking;
+            if (typeof audio_codec !== 'undefined') pub.audiocodec = audio_codec;
+            if (typeof video_codec !== 'undefined') pub.videocodec = video_codec;
+            if (typeof simulcast !== 'undefined') pub.simulcast = simulcast;
+            // Multistream
+            if (typeof streams !== 'undefined') pub.streams = streams;
             return pub;
           });
           janode_event.event = PLUGIN_EVENT.PUB_JOINED;
@@ -308,7 +329,7 @@ class VideoRoomHandle extends Handle {
                   forwarder.video_rtcp_port = forw.remote_rtcp_port;
                   forwarder.video_stream = forw.stream_id;
                   if (typeof forw.substream !== 'undefined') {
-                    forwarder.substream = forw.substream;
+                    forwarder.sc_substream_layer = forw.substream;
                   }
                 }
                 if (forw.type === 'data') {
@@ -348,6 +369,12 @@ class VideoRoomHandle extends Handle {
           janode_event.event = PLUGIN_EVENT.UPDATED;
           break;
 
+        /* [multistream] updating event, sent when janus receives another "update" before getting a JSEP answer for the previous one */
+        case 'updating':
+          janode_event.data.streams = message_data.streams;
+          janode_event.event = PLUGIN_EVENT.UPDATED;
+          break;
+
         /* Generic events (error, notifications ...) */
         case 'event':
           /* VideoRoom Error */
@@ -369,12 +396,17 @@ class VideoRoomHandle extends Handle {
           /* Publisher list notification */
           if (message_data.publishers) {
             janode_event.event = PLUGIN_EVENT.PUB_LIST;
-            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking }) => {
+            janode_event.data.publishers = message_data.publishers.map(({ id, display, talking, audio_codec, video_codec, simulcast, streams }) => {
               const pub = {
                 feed: id,
                 display,
               };
               if (typeof talking !== 'undefined') pub.talking = talking;
+              if (typeof audio_codec !== 'undefined') pub.audiocodec = audio_codec;
+              if (typeof video_codec !== 'undefined') pub.videocodec = video_codec;
+              if (typeof simulcast !== 'undefined') pub.simulcast = simulcast;
+              // Multistream
+              if (typeof streams !== 'undefined') pub.streams = streams;
               return pub;
             });
             break;
@@ -387,7 +419,7 @@ class VideoRoomHandle extends Handle {
             break;
           }
           /* Display name changed event */
-          if (typeof message_data.display !== 'undefined') {
+          if (typeof message_data.display !== 'undefined' && typeof message_data.switched === 'undefined') {
             janode_event.event = PLUGIN_EVENT.DISPLAY;
             janode_event.data.feed = message_data.id;
             janode_event.data.display = message_data.display;
@@ -405,6 +437,18 @@ class VideoRoomHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.PAUSED;
             janode_event.data.feed = this.feed;
             janode_event.data.paused = message_data.paused;
+            break;
+          }
+          /* Subscribed feed switched */
+          if (typeof message_data.switched !== 'undefined') {
+            janode_event.event = PLUGIN_EVENT.SWITCHED;
+            janode_event.data.switched = message_data.switched;
+            if (message_data.switched === 'ok' && typeof message_data.id !== 'undefined') {
+              janode_event.data.from_feed = this.feed;
+              this.feed = message_data.id;
+              janode_event.data.to_feed = this.feed;
+              janode_event.data.display = message_data.display;
+            }
             break;
           }
           /* Unpublished own or other feed */
@@ -430,6 +474,20 @@ class VideoRoomHandle extends Handle {
           if (typeof message_data.left !== 'undefined') {
             janode_event.event = PLUGIN_EVENT.LEAVING;
             janode_event.data.feed = this.feed;
+            break;
+          }
+          /* Simulcast substream layer switch */
+          if (typeof message_data.substream !== 'undefined') {
+            janode_event.event = PLUGIN_EVENT.SC_SUBSTREAM_LAYER;
+            janode_event.data.feed = this.feed;
+            janode_event.data.sc_substream_layer = message_data.substream;
+            break;
+          }
+          /* Simulcast temporal layers switch */
+          if (typeof message_data.temporal !== 'undefined') {
+            janode_event.event = PLUGIN_EVENT.SC_TEMPORAL_LAYERS;
+            janode_event.data.feed = this.feed;
+            janode_event.data.sc_temporal_layers = message_data.temporal;
             break;
           }
       }
@@ -513,10 +571,11 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.pin] - The optional pin needed to join the room
    * @param {boolean} [params.record] - Enable the recording
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
+   * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_PUB_JOINED>}
    */
-  async joinConfigurePublisher({ room, feed, audio, video, data, bitrate, record, filename, display, token, pin, jsep }) {
+  async joinConfigurePublisher({ room, feed, audio, video, data, bitrate, record, filename, display, token, pin, e2ee, jsep }) {
     const body = {
       request: REQUEST_JOIN_CONFIGURE,
       ptype: PTYPE_PUBLISHER,
@@ -532,6 +591,7 @@ class VideoRoomHandle extends Handle {
     if (typeof filename === 'string') body.filename = filename;
     if (typeof token === 'string') body.token = token;
     if (typeof pin === 'string') body.pin = pin;
+    if (typeof e2ee === 'boolean' && jsep) jsep.e2ee = e2ee;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -582,10 +642,14 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording (publishers only)
    * @param {boolean} [params.restart] - Set to force a ICE restart
    * @param {boolean} [params.update] - Set to force a renegotiation
+   * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled (subscribers only)
+   * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below (subscribers only)
+   * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled (subscribers only)
+   * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer (publishers only)
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, jsep }) {
+  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, e2ee, jsep }) {
     const body = {
       request: REQUEST_CONFIGURE,
     };
@@ -598,6 +662,10 @@ class VideoRoomHandle extends Handle {
     if (typeof display === 'string') body.display = display;
     if (typeof restart === 'boolean') body.restart = restart;
     if (typeof update === 'boolean') body.update = update;
+    if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
+    if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
+    if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
+    if (typeof e2ee === 'boolean' && jsep) jsep.e2ee = e2ee;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -643,10 +711,11 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.bitrate] - Bitrate cap
    * @param {boolean} [params.record] - True to record the feed
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
+   * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} params.jsep - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async publish({ audio, video, data, bitrate, record, filename, display, jsep }) {
+  async publish({ audio, video, data, bitrate, record, filename, display, e2ee, jsep }) {
     if (typeof jsep === 'object' && jsep && jsep.type !== 'offer') {
       const error = new Error('jsep must be an offer');
       return Promise.reject(error);
@@ -661,6 +730,7 @@ class VideoRoomHandle extends Handle {
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
     if (typeof display === 'string') body.display = display;
+    if (typeof e2ee === 'boolean' && jsep) jsep.e2ee = e2ee;
 
     const response = await this.message(body, jsep).catch(e => {
       /* Cleanup the WebRTC status in Janus in case of errors when publishing */
@@ -719,10 +789,15 @@ class VideoRoomHandle extends Handle {
    * @param {boolean} [params.audio] - True to subscribe to the audio feed
    * @param {boolean} [params.video] - True to subscribe to the video feed
    * @param {boolean} [params.data] - True to subscribe to the datachannels of the feed
+   * @param {number} [params.private_id] - The private id to correlate with publisher
+   * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled
+   * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below
+   * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled
+   * @param {boolean} [params.autoupdate] - [multistream] Whether a new SDP offer is sent automatically when a subscribed publisher leaves
    * @param {string} [params.token] - The optional token needed
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
-  async joinSubscriber({ room, feed, audio, video, data, token }) {
+  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, autoupdate, token }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_LISTENER,
@@ -732,7 +807,13 @@ class VideoRoomHandle extends Handle {
     if (typeof audio === 'boolean') body.audio = audio;
     if (typeof video === 'boolean') body.video = video;
     if (typeof data === 'boolean') body.data = data;
+    if (typeof private_id === 'number') body.private_id = private_id;
     if (typeof token === 'string') body.token = token;
+    if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
+    if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
+    if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
+    // Multistream
+    if (typeof autoupdate === 'boolean') body.autoupdate = autoupdate;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -790,6 +871,34 @@ class VideoRoomHandle extends Handle {
   }
 
   /**
+   * Switch to another feed.
+   *
+   * @param {object} params
+   * @param {number|string} params.to_feed - The feed id of the new publisher to switch to
+   * @param {boolean} [params.audio] - True to subscribe to the audio feed
+   * @param {boolean} [params.video] - True to subscribe to the video feed
+   * @param {boolean} [params.data] - True to subscribe to the datachannels of the feed
+   * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SWITCHED>}
+   */
+  async switch({ to_feed, audio, video, data }) {
+    const body = {
+      request: REQUEST_SWITCH,
+      feed: to_feed,
+    };
+    if (typeof audio === 'boolean') body.audio = audio;
+    if (typeof video === 'boolean') body.video = video;
+    if (typeof data === 'boolean') body.data = data;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SWITCHED && evtdata.switched === 'ok') {
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
    * Leave a room.
    * Can be used by both publishers and subscribers.
    *
@@ -804,6 +913,27 @@ class VideoRoomHandle extends Handle {
     const { event, data: evtdata } = response._janode || {};
     if (event === PLUGIN_EVENT.LEAVING)
       return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * [multistream] Update a subscription.
+   *
+   * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED>}
+   */
+  async update({ subscribe, unsubscribe }) {
+    const body = {
+      request: REQUEST_UPDATE,
+    };
+    if (Array.isArray(subscribe)) body.subscribe = subscribe;
+    if (Array.isArray(unsubscribe)) body.unsubscribe = unsubscribe;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.UPDATED) {
+      return evtdata;
+    }
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
   }
@@ -833,6 +963,33 @@ class VideoRoomHandle extends Handle {
     const { event, data: evtdata } = response._janode || {};
     if (event === PLUGIN_EVENT.PARTICIPANTS_LIST)
       return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Enable or disable recording for all participants in a room while the conference is in progress.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The room where the change of recording state is being requested
+   * @param {string} params.secret - The optional secret for the operation
+   * @param {boolean} params.record - True starts recording for all participants in an already running conference, false stops the recording
+   * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_RECORDING_ENABLED_STATE>}
+   */
+  async enable_recording({ room, secret, record }) {
+    const body = {
+      request: REQUEST_ENABLE_RECORDING,
+      room,
+      record
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.RECORDING_ENABLED_STATE) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
   }
@@ -923,6 +1080,8 @@ class VideoRoomHandle extends Handle {
    * @param {boolean} [params.talking_events] - True to enable talking events
    * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
    * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
+   * @param {boolean} [params.require_pvtid] - Whether subscriptions are required to provide a valid private_id
+   * @param {boolean} [params.require_e2ee] - Whether all participants are required to publish and subscribe using e2e encryption
    * @param {boolean} [params.record] - Wheter to enable recording of any publisher
    * @param {string} [params.rec_dir] - Folder where recordings should be stored
    * @param {boolean} [params.videoorient] - Whether the video-orientation RTP extension must be negotiated
@@ -930,7 +1089,8 @@ class VideoRoomHandle extends Handle {
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CREATED>}
    */
   async create({ room, description, max_publishers, permanent, is_private, secret, pin, bitrate,
-    bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold, record, rec_dir, videoorient, h264_profile }) {
+    bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold,
+    require_pvtid, require_e2ee, record, rec_dir, videoorient, h264_profile }) {
     const body = {
       request: REQUEST_CREATE,
     };
@@ -949,6 +1109,8 @@ class VideoRoomHandle extends Handle {
     if (typeof talking_events === 'boolean') body.audiolevel_event = talking_events;
     if (typeof talking_level_threshold === 'number' && talking_level_threshold >= 0 && talking_level_threshold <= 127) body.audio_level_average = talking_level_threshold;
     if (typeof talking_packets_threshold === 'number' && talking_packets_threshold > 0) body.audio_active_packets = talking_packets_threshold;
+    if (typeof require_pvtid === 'boolean') body.require_pvtid = require_pvtid;
+    if (typeof require_e2ee === 'boolean') body.require_e2ee = require_e2ee;
     if (typeof record === 'boolean') body.record = record;
     if (typeof rec_dir === 'string') body.rec_dir = rec_dir;
     if (typeof videoorient === 'boolean') body.videoorient_ext = videoorient;
@@ -1125,9 +1287,15 @@ class VideoRoomHandle extends Handle {
  * @property {number|string} feed - The feed identifier
  * @property {string} [display] - The dsplay name, if available
  * @property {string} description - A description of the room, if available
+ * @property {number} private_id - The private id that can be used when subscribing
  * @property {object[]} publishers - The list of active publishers
  * @property {number|string} publishers[].feed - The feed of an active publisher
- * @property {string} publishers[].display - The display name of an active publisher
+ * @property {string} [publishers[].display] - The display name of an active publisher
+ * @property {boolean} [publishers[].talking] - Whether the publisher is talking or not
+ * @property {string} [publishers[].audiocodec] - The audio codec used by active publisher
+ * @property {string} [publishers[].videocodec] - The video codec used by active publisher
+ * @property {boolean} publishers[].simulcast - True if the publisher uses simulcast (VP8 and H.264 only)
+ * @property {object[]} [publishers[].streams] - [multistream] Streams description
  * @property {RTCSessionDescription} [jsep] - The JSEP answer
  */
 
@@ -1148,7 +1316,7 @@ class VideoRoomHandle extends Handle {
  * @property {number|string} feed - The current published feed
  * @property {object[]} participants - The list of current participants
  * @property {number|string} participants[].feed - Feed identifier of the participant
- * @property {string} [participants[].display] - The participant display name, if available
+ * @property {string} [participants[].display] - The participant's display name, if available
  * @property {boolean} participants[].publisher - Whether the user is an active publisher in the room
  * @property {boolean} [participants[].talking] - True if participant is talking
  */
@@ -1191,7 +1359,7 @@ class VideoRoomHandle extends Handle {
  * @property {number} [data_stream] - The datachannels forwarder identifier
  * @property {number} [ssrc] - SSRC this forwarder is using
  * @property {number} [pt] - payload type this forwarder is using
- * @property {number} [substream] - video substream this video forwarder is relaying
+ * @property {number} [sc_substream_layer] - video simulcast substream this video forwarder is relaying
  * @property {boolean} [srtp] - whether the RTP stream is encrypted
  */
 
@@ -1268,6 +1436,17 @@ class VideoRoomHandle extends Handle {
  */
 
 /**
+ * The response event for subscriber switch request.
+ *
+ * @typedef {object} VIDEOROOM_EVENT_SWITCHED
+ * @property {number|string} room - The involved room
+ * @property {number|string} from_feed - The feed that has been switched from
+ * @property {number|string} to_feed - The feed that has been switched to
+ * @property {string} switched - A string with the value returned by Janus
+ * @property {string} display - The display name of the new feed
+ */
+
+/**
  * The response event for publisher unpublish request.
  *
  * @typedef {object} VIDEOROOM_EVENT_UNPUBLISHED
@@ -1293,6 +1472,23 @@ class VideoRoomHandle extends Handle {
  */
 
 /**
+ * The response event for the recording enabled request.
+ *
+ * @typedef {object} VIDEOROOM_EVENT_RECORDING_ENABLED_STATE
+ * @property {number|string} room - The involved room
+ * @property {boolean} recording - Whether or not the room recording is now enabled
+ */
+
+/**
+ * [multistream] The response event for update subscriber request.
+ *
+ * @typedef {object} VIDEOROOM_EVENT_UPDATED
+ * @property {number|string} room - The involved room
+ * @property {RTCSessionDescription} [jsep] - The updated JSEP offer
+ * @property {object[]} streams - List of the updated streams in this subscription
+ */
+
+/**
  * The exported plugin descriptor.
  *
  * @type {object}
@@ -1306,6 +1502,7 @@ class VideoRoomHandle extends Handle {
  * @property {string} EVENT.VIDEOROOM_LEAVING {@link module:videoroom-plugin~VIDEOROOM_LEAVING}
  * @property {string} EVENT.VIDEOROOM_DISPLAY {@link module:videoroom-plugin~VIDEOROOM_DISPLAY}
  * @property {string} EVENT.VIDEOROOM_KICKED {@link module:videoroom-plugin~VIDEOROOM_KICKED}
+ * @property {string} EVENT.VIDEOROOM_RECORDING_ENABLED_STATE {@link module:videoroom-plugin~VIDEOROOM_RECORDING_ENABLED_STATE}
  * @property {string} EVENT.VIDEOROOM_TALKING {@link module:videoroom-plugin~VIDEOROOM_TALKING}
  * @property {string} EVENT.VIDEOROOM_ERROR {@link module:videoroom-plugin~VIDEOROOM_ERROR}
  */
@@ -1334,6 +1531,11 @@ export default {
      * @property {object[]} publishers - List of the new publishers
      * @property {number|string} publishers[].feed - Feed identifier of the new publisher
      * @property {string} publishers[].display - Display name of the new publisher
+     * @property {boolean} [publishers[].talking] - Whether the publisher is talking or not
+     * @property {string} [publishers[].audiocodec] - The audio codec used by active publisher
+     * @property {string} [publishers[].videocodec] - The video codec used by active publisher
+     * @property {boolean} publishers[].simulcast - True if the publisher uses simulcast (VP8 and H.264 only)
+     * @property {object[]} [publishers[].streams] - [multistream] Streams description
      */
     VIDEOROOM_PUB_LIST: PLUGIN_EVENT.PUB_LIST,
 
@@ -1373,6 +1575,14 @@ export default {
     VIDEOROOM_DISPLAY: PLUGIN_EVENT.DISPLAY,
 
     /**
+     * A handle received a configured event.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_CONFIGURED
+     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED}
+     */
+    VIDEOROOM_CONFIGURED: PLUGIN_EVENT.CONFIGURED,
+
+    /**
      * A handle received a slow link notification.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_DISPLAY
@@ -1404,13 +1614,40 @@ export default {
     VIDEOROOM_KICKED: PLUGIN_EVENT.KICKED,
 
     /**
+     * Conference recording has been enabled or disabled.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_RECORDING_ENABLED_STATE
+     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_RECORDING_ENABLED_STATE}
+     */
+    VIDEOROOM_RECORDING_ENABLED_STATE: PLUGIN_EVENT.RECORDING_ENABLED_STATE,
+
+    /**
+     * A switch to a different simulcast substream has been completed.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SC_SUBSTREAM_LAYER
+     * @type {object}
+     * @property {number|string} room - The involved room
+     * @property {number|string} feed - The feed of the peer this notification refers to
+     * @property {number} sc_substream_layer - The new simuclast substream layer relayed
+     */
+    VIDEOROOM_SC_SUBSTREAM_LAYER: PLUGIN_EVENT.SC_SUBSTREAM_LAYER,
+
+    /**
+     * A switch to a different number of simulcast temporal layers has been completed.
+     *
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SC_TEMPORAL_LAYERS
+     * @type {object}
+     * @property {number|string} room - The involved room
+     * @property {number|string} feed - The feed of the peer this switch notification refers to
+     * @property {number} sc_temporal_layers - The new number of simuclast teporal layers relayed
+     */
+    VIDEOROOM_SC_TEMPORAL_LAYERS: PLUGIN_EVENT.SC_TEMPORAL_LAYERS,
+
+    /**
      * A multistream subscription has been updated.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_UPDATED
-     * @type {object}
-     * @property {number|string} room - The involved room
-     * @param {RTCSessionDescription} [params.jsep] - The updated JSEP offer
-     * @param {object[]} streams - List of the streams in this subscription
+     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED}
      */
     VIDEOROOM_UPDATED: PLUGIN_EVENT.UPDATED,
 

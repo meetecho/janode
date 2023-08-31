@@ -21,12 +21,15 @@ const REQUEST_EXISTS = 'exists';
 const REQUEST_LIST_ROOMS = 'list';
 const REQUEST_CREATE = 'create';
 const REQUEST_DESTROY = 'destroy';
+const REQUEST_RECORDING = 'enable_recording';
 const REQUEST_ALLOW = 'allowed';
 const REQUEST_RTP_FWD_START = 'rtp_forward';
 const REQUEST_RTP_FWD_STOP = 'stop_rtp_forward';
 const REQUEST_RTP_FWD_LIST = 'listforwarders';
 const REQUEST_SUSPEND_PARTICIPANT = 'suspend';
 const REQUEST_RESUME_PARTICIPANT = 'resume';
+const REQUEST_MUTE_ROOM = 'mute_room';
+const REQUEST_UNMUTE_ROOM = 'unmute_room';
 
 /* These are the events/responses that the Janode plugin will manage */
 /* Some of them will be exported in the plugin descriptor */
@@ -49,9 +52,11 @@ const PLUGIN_EVENT = {
   ROOMS_LIST: 'audiobridge_list',
   CREATED: 'audiobridge_created',
   DESTROYED: 'audiobridge_destroyed',
+  RECORDING: 'audiobrige_recording',
   RTP_FWD: 'audiobridge_rtp_fwd',
   FWD_LIST: 'audiobridge_rtp_list',
   ALLOWED: 'audiobridge_allowed',
+  ROOM_MUTED: 'audiobridge_room_muted',
   SUCCESS: 'audiobridge_success',
   ERROR: 'audiobridge_error',
 };
@@ -142,6 +147,12 @@ class AudioBridgeHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.ROOMS_LIST;
             break;
           }
+          /* Enable recording API */
+          if (typeof message_data.record !== 'undefined') {
+            janode_event.data.record = message_data.record;
+            janode_event.event = PLUGIN_EVENT.RECORDING;
+            break;
+          }
 
           /* RTP forwarding started/stopped */
           if (typeof message_data.stream_id !== 'undefined') {
@@ -173,7 +184,12 @@ class AudioBridgeHandle extends Handle {
             this.feed = message_data.id;
             /* Set event data (feed, display name, setup, muted etc.) */
             janode_event.data.feed = message_data.id;
-            if (typeof message_data.rtp !== 'undefined') janode_event.data.rtp = message_data.rtp;
+            if (typeof message_data.rtp !== 'undefined') {
+              janode_event.data.rtp_participant = message_data.rtp;
+              /* This is left here just for backward compatibility */
+              /* It will be removed eventually */
+              janode_event.data.rtp = message_data.rtp;
+            }
             /* Add participants data */
             janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended }) => {
               const peer = {
@@ -296,6 +312,12 @@ class AudioBridgeHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.PEER_LEAVING;
             break;
           }
+          /* Room muted event */
+          if (typeof message_data.muted !== 'undefined') {
+            janode_event.data.muted = message_data.muted;
+            janode_event.event = PLUGIN_EVENT.ROOM_MUTED;
+            break;
+          }
           /* This handle or another participant kicked-out */
           if (typeof message_data.kicked !== 'undefined') {
             janode_event.data.feed = message_data.kicked;
@@ -358,11 +380,12 @@ class AudioBridgeHandle extends Handle {
    * @param {number} [params.volume] - The percent volume
    * @param {boolean} [params.record] - True to enable recording
    * @param {string} [params.filename] - The recording filename
-   * @param {module:audiobridge-plugin~RtpParticipant|boolean} [params.rtp_participant] - True if this feed is a plain RTP participant (use an object to pass a participant descriptor)
+   * @param {module:audiobridge-plugin~RtpParticipant} [params.rtp_participant] - Set a descriptor object if you need a RTP participant
    * @param {string} [params.group] - The group to assign to this participant
+   * @param {boolean} [params.generate_offer] - True to get Janus to send the SDP offer.
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
    */
-  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, rtp_participant, group }) {
+  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, rtp_participant, group, generate_offer }) {
     const body = {
       request: REQUEST_JOIN,
       room,
@@ -377,8 +400,8 @@ class AudioBridgeHandle extends Handle {
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
     if (typeof rtp_participant === 'object' && rtp_participant) body.rtp = rtp_participant;
-    else if (typeof rtp_participant === 'boolean' && rtp_participant) body.rtp = {};
     if (typeof group === 'string') body.group = group;
+    if (typeof generate_offer === 'boolean') body.generate_offer = generate_offer;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -589,6 +612,7 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.pin] - The ping needed for joining the room
    * @param {boolean} [params.record] - True to record the mixed audio
    * @param {string} [params.filename] - The recording filename
+   * @param {string} [params.rec_dir] - The optional recording folder
    * @param {boolean} [params.talking_events] - True to enable talking events
    * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
    * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
@@ -598,7 +622,7 @@ class AudioBridgeHandle extends Handle {
    * @param {string[]} [params.groups] - The available groups in the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_CREATED>}
    */
-  async create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, record, filename,
+  async create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, record, filename, rec_dir,
     talking_events, talking_level_threshold, talking_packets_threshold, expected_loss, prebuffer, allow_rtp, groups }) {
     const body = {
       request: REQUEST_CREATE,
@@ -613,6 +637,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof pin === 'string') body.pin = pin;
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.record_file = filename;
+    if (typeof rec_dir === 'string') body.record_dir = rec_dir;
     if (typeof talking_events === 'boolean') body.audiolevel_event = talking_events;
     if (typeof talking_level_threshold === 'number' && talking_level_threshold >= 0 && talking_level_threshold <= 127) body.audio_level_average = talking_level_threshold;
     if (typeof talking_packets_threshold === 'number' && talking_packets_threshold > 0) body.audio_active_packets = talking_packets_threshold;
@@ -655,6 +680,37 @@ class AudioBridgeHandle extends Handle {
   }
 
   /**
+   * Enable/disable mixed audio recording.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The room identifier
+   * @param {boolean} params.record - Enable/disable recording
+   * @param {string} [params.secret] - The secret to be used when managing the room
+   * @param {string} [params.filename] - The recording filename
+   * @param {string} [params.rec_dir] - The optional recording folder
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RECORDING>}
+   */
+  async enableRecording({ room, record, filename, rec_dir, secret }) {
+    const body = {
+      request: REQUEST_RECORDING,
+      room,
+      record,
+    };
+    if (typeof filename === 'string') body.record_file = filename;
+    if (typeof rec_dir === 'string') body.record_dir = rec_dir;
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.RECORDING) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
    * Edit an audiobridge token list.
    *
    * @param {object} params
@@ -689,11 +745,14 @@ class AudioBridgeHandle extends Handle {
    * @param {boolean} [params.always] - Whether silence should be forwarded when the room is empty
    * @param {string} params.host - The host to forward to
    * @param {number} params.audio_port - The port to forward to
+   * @param {number} [params.ssrc] - The SSRC to use to use when forwarding
+   * @param {number} [params.ptype] - The payload type to use to use when forwarding
+   * @param {string} [params.codec] - The codec to use in the forwarder
    * @param {string} [params.group] - The group to forward
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RTP_FWD>}
    */
-  async startForward({ room, always, host, audio_port, group, secret }) {
+  async startForward({ room, always, host, audio_port, ssrc, ptype, codec, group, secret }) {
     const body = {
       request: REQUEST_RTP_FWD_START,
       room,
@@ -701,6 +760,9 @@ class AudioBridgeHandle extends Handle {
     if (typeof always === 'boolean') body.always_on = always;
     if (typeof host === 'string') body.host = host;
     if (typeof audio_port === 'number') body.port = audio_port;
+    if (typeof ssrc === 'number') body.ssrc = ssrc;
+    if (typeof ptype === 'number') body.ptype = ptype;
+    if (typeof codec === 'string') body.codec = codec;
     if (typeof group === 'string') body.group = group;
     if (typeof secret === 'string') body.secret = secret;
 
@@ -756,6 +818,56 @@ class AudioBridgeHandle extends Handle {
     const { event, data: evtdata } = response._janode || {};
     if (event === PLUGIN_EVENT.FWD_LIST)
       return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Mute the given room for every participant.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_MUTE_ROOM_RESPONSE>}
+   */
+  async muteRoom({ room, secret }) {
+    const body = {
+      request: REQUEST_MUTE_ROOM,
+      room,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Unmute the given room for every participant.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE>}
+   */
+  async unmuteRoom({ room, secret }) {
+    const body = {
+      request: REQUEST_UNMUTE_ROOM,
+      room,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
   }
@@ -818,7 +930,7 @@ class AudioBridgeHandle extends Handle {
  * @typedef {object} AUDIOBRIDGE_EVENT_JOINED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed identifier
- * @property {module:audiobridge-plugin~RtpParticipant} [rtp] - The descriptor in case this is a plain RTP participant
+ * @property {module:audiobridge-plugin~RtpParticipant} [rtp_participant] - The descriptor in case this is a plain RTP participant
  * @property {object[]} participants - The list of participants
  * @property {number|string} participants[].feed - The participant feed identifier
  * @property {string} [participants[].display] - The participant display name
@@ -923,6 +1035,14 @@ class AudioBridgeHandle extends Handle {
  */
 
 /**
+ * The response event for audiobridge ACL token edit request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_RECORDING
+ * @property {number|string} room - The involved room
+ * @property {boolean} record - Wheter recording is active or not
+ */
+
+/**
  * The response event for audiobridge forwarders list request.
  *
  * @typedef {object} AUDIOBRIDGE_EVENT_FWD_LIST
@@ -933,6 +1053,20 @@ class AudioBridgeHandle extends Handle {
  * @property {number} forwarders[].audio_stream - The forwarder identifier
  * @property {boolean} forwarders[].always - Whether this forwarder works even when no participant is in or not
  * @property {string} [forwarders[].group] - The group that is being forwarded
+ */
+
+/**
+ * The response event for audiobridge mute request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_MUTE_ROOM_RESPONSE
+ * @property {number|string} room - The involved room
+ */
+
+/**
+ * The response event for audiobridge unmute request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE
+ * @property {number|string} room - The involved room
  */
 
 /**
@@ -958,6 +1092,7 @@ class AudioBridgeHandle extends Handle {
  * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_LEAVING}
  * @property {string} EVENT.AUDIOBRIDGE_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_TALKING}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_TALKING}
+ * @property {string} EVENT.AUDIOBRIDGE_ROOM_MUTED {@link module:audiobridge-plugin~AUDIOBRIDGE_ROOM_MUTED}
  * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
  */
 export default {
@@ -1054,6 +1189,16 @@ export default {
     AUDIOBRIDGE_PEER_SUSPENDED: PLUGIN_EVENT.PEER_SUSPENDED,
 
     AUDIOBRIDGE_PEER_RESUMED: PLUGIN_EVENT.PEER_RESUMED,
+
+    /**
+     * The room has been muted or not.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ROOM_MUTED
+     * @type {object}
+     * @property {number|string} room
+     * @property {boolean} muted
+     */
+    AUDIOBRIDGE_ROOM_MUTED: PLUGIN_EVENT.ROOM_MUTED,
 
     /**
      * Generic audiobridge error.

@@ -167,11 +167,13 @@ function initFrontEnd() {
           replyEvent(socket, 'peer-talking', evtdata);
         });
 
+        audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_ROOM_MUTED, evtdata => {
+          replyEvent(socket, 'room-muted-update', evtdata);
+        });
 
         audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_PEER_SUSPENDED, evtdata => {
           replyEvent(socket, 'peer-suspended', evtdata);
         });
-
 
         audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_PEER_RESUMED, evtdata => {
           replyEvent(socket, 'peer-resumed', evtdata);
@@ -365,6 +367,21 @@ function initFrontEnd() {
       }
     });
 
+    socket.on('enable-recording', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} enable-recording received`);
+      const { _id, data: recordingdata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        const response = await janodeManagerHandle.enableRecording(recordingdata);
+        replyEvent(socket, 'recording-status', response, _id);
+        Logger.info(`${LOG_NS} ${remote} recording-status sent`);
+      } catch ({ message }) {
+        replyError(socket, message, recordingdata, _id);
+      }
+    });
+
     socket.on('allow', async (evtdata = {}) => {
       Logger.info(`${LOG_NS} ${remote} allow received`);
       const { _id, data: allowdata = {} } = evtdata;
@@ -422,6 +439,36 @@ function initFrontEnd() {
         Logger.info(`${LOG_NS} ${remote} rtp-fwd-list sent`);
       } catch ({ message }) {
         replyError(socket, message, rtplistdata, _id);
+      }
+    });
+
+    socket.on('mute-room', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} mute-room received`);
+      const { _id, data: mutedata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        const response = await janodeManagerHandle.muteRoom(mutedata);
+        replyEvent(socket, 'room-muted', response, _id);
+        Logger.info(`${LOG_NS} ${remote} room-muted sent`);
+      } catch ({ message }) {
+        replyError(socket, message, mutedata, _id);
+      }
+    });
+
+    socket.on('unmute-room', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} unmute-room received`);
+      const { _id, data: unmutedata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        const response = await janodeManagerHandle.unmuteRoom(unmutedata);
+        replyEvent(socket, 'room-unmuted', response, _id);
+        Logger.info(`${LOG_NS} ${remote} room-unmuted sent`);
+      } catch ({ message }) {
+        replyError(socket, message, unmutedata, _id);
       }
     });
 

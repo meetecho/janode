@@ -61,11 +61,14 @@ function join({ room = myRoom, display = myName, token = null } = {}) {
   });
 }
 
-function subscribe({ feed, room = myRoom }) {
+function subscribe({ feed, room = myRoom, substream, temporal }) {
   const subscribeData = {
     room,
     feed,
   };
+
+  if (typeof substream !== 'undefined') subscribeData.sc_substream_layer = substream;
+  if (typeof temporal !== 'undefined') subscribeData.sc_temporal_layers = temporal;
 
   socket.emit('subscribe', {
     data: subscribeData,
@@ -90,13 +93,15 @@ function trickle({ feed, candidate }) {
   });
 }
 
-function configure({ feed, jsep, restart }) {
+function configure({ feed, jsep, restart, substream, temporal }) {
   const configureData = {
     feed,
     audio: true,
     video: true,
     data: true,
   };
+  if (typeof substream !== 'undefined') configureData.sc_substream_layer = substream;
+  if (typeof temporal !== 'undefined') configureData.sc_temporal_layers = temporal;
   if (jsep) configureData.jsep = jsep;
   if (typeof restart === 'boolean') configureData.restart = restart;
 
@@ -175,6 +180,22 @@ function _pause({ feed }) {
 
   socket.emit('start', {
     data: pauseData,
+    _id: getId(),
+  });
+}
+
+
+function _switch({ from_feed, to_feed, audio = true, video = true, data = false }) {
+  const switchData = {
+    from_feed,
+    to_feed,
+    audio,
+    video,
+    data,
+  };
+
+  socket.emit('switch', {
+    data: switchData,
     _id: getId(),
   });
 }
@@ -294,7 +315,7 @@ socket.on('videoroom-error', ({ error, _id }) => {
   }
   if (pendingOfferMap.has(_id)) {
     const { feed } = pendingOfferMap.get(_id);
-    removeVideoElement(feed);
+    removeVideoElementByFeed(feed);
     closePC(feed);
     pendingOfferMap.delete(_id);
     return;
@@ -334,7 +355,7 @@ socket.on('talking', ({ data }) => {
 socket.on('kicked', ({ data }) => {
   console.log('participant kicked', data);
   if (data.feed) {
-    removeVideoElement(data.feed);
+    removeVideoElementByFeed(data.feed);
     closePC(data.feed);
   }
 });
@@ -346,7 +367,7 @@ socket.on('allowed', ({ data }) => {
 socket.on('configured', async ({ data, _id }) => {
   console.log('feed configured', data);
   pendingOfferMap.delete(_id);
-  let pc = pcMap.get(data.feed);
+  const pc = pcMap.get(data.feed);
   if (pc && data.jsep) {
     try {
       await pc.setRemoteDescription(data.jsep);
@@ -363,10 +384,7 @@ socket.on('configured', async ({ data, _id }) => {
 
 socket.on('display', ({ data }) => {
   console.log('feed changed display name', data);
-  const div = document.getElementById('video_' + data.feed);
-  if (div) {
-    div.getElementsByTagName('span')[0].innerHTML = data.display;
-  }
+  setRemoteVideoElement(null, data.feed, data.display);
 });
 
 socket.on('started', ({ data }) => {
@@ -377,6 +395,12 @@ socket.on('paused', ({ data }) => {
   console.log('feed paused', data);
 });
 
+socket.on('switched', ({ data }) => {
+  console.log(`feed switched from ${data.from_feed} to ${data.to_feed} (${data.display})`);
+  /* !!! This will actually break the DOM management since IDs are feed based !!! */
+  setRemoteVideoElement(null, data.from_feed, data.display);
+});
+
 socket.on('feed-list', ({ data }) => {
   console.log('new feeds available!', data);
   subscribeTo(data.publishers, data.room);
@@ -385,7 +409,7 @@ socket.on('feed-list', ({ data }) => {
 socket.on('unpublished', ({ data }) => {
   console.log('feed unpublished', data);
   if (data.feed) {
-    removeVideoElement(data.feed);
+    removeVideoElementByFeed(data.feed);
     closePC(data.feed);
   }
 });
@@ -393,7 +417,7 @@ socket.on('unpublished', ({ data }) => {
 socket.on('leaving', ({ data }) => {
   console.log('feed leaving', data);
   if (data.feed) {
-    removeVideoElement(data.feed);
+    removeVideoElementByFeed(data.feed);
     closePC(data.feed);
   }
 });
@@ -450,7 +474,7 @@ async function doOffer(feed, display) {
     pc.onicecandidate = event => trickle({ feed, candidate: event.candidate });
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-        removeVideoElement(feed);
+        removeVideoElementByFeed(feed);
         closePC(feed);
       }
     };
@@ -468,7 +492,7 @@ async function doOffer(feed, display) {
       setLocalVideoElement(localStream, feed, display);
     } catch (e) {
       console.log('error while doing offer', e);
-      removeVideoElement(feed);
+      removeVideoElementByFeed(feed);
       closePC(feed);
       return;
     }
@@ -486,7 +510,7 @@ async function doOffer(feed, display) {
     return offer;
   } catch (e) {
     console.log('error while doing offer', e);
-    removeVideoElement(feed);
+    removeVideoElementByFeed(feed);
     closePC(feed);
     return;
   }
@@ -505,7 +529,7 @@ async function doAnswer(feed, display, offer) {
     pc.onicecandidate = event => trickle({ feed, candidate: event.candidate });
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-        removeVideoElement(feed);
+        removeVideoElementByFeed(feed);
         closePC(feed);
       }
     };
@@ -541,7 +565,7 @@ async function doAnswer(feed, display, offer) {
     return answer;
   } catch (e) {
     console.log('error creating subscriber answer', e);
-    removeVideoElement(feed);
+    removeVideoElementByFeed(feed);
     closePC(feed);
     throw e;
   }
@@ -599,7 +623,8 @@ function setRemoteVideoElement(remoteStream, feed, display) {
     remoteVideoStreamElem.height = 240;
     remoteVideoStreamElem.autoplay = true;
     remoteVideoStreamElem.style.cssText = '-moz-transform: scale(-1, 1); -webkit-transform: scale(-1, 1); -o-transform: scale(-1, 1); transform: scale(-1, 1); filter: FlipH;';
-    remoteVideoStreamElem.srcObject = remoteStream;
+    if (remoteStream)
+      remoteVideoStreamElem.srcObject = remoteStream;
 
     const remoteVideoContainer = document.createElement('div');
     remoteVideoContainer.id = 'video_' + feed;
@@ -614,53 +639,41 @@ function setRemoteVideoElement(remoteStream, feed, display) {
       const nameElem = remoteVideoContainer.getElementsByTagName('span')[0];
       nameElem.innerHTML = display + ' (' + feed + ')';
     }
-    const remoteVideoStreamElem = remoteVideoContainer.getElementsByTagName('video')[0];
-    remoteVideoStreamElem.srcObject = remoteStream;
+    if (remoteStream) {
+      const remoteVideoStreamElem = remoteVideoContainer.getElementsByTagName('video')[0];
+      remoteVideoStreamElem.srcObject = remoteStream;
+    }
   }
 }
 
-function removeVideoElement(feed) {
-  const videoContainer = document.getElementById('video_' + feed);
-  if (videoContainer) {
-    let videoStreamElem = videoContainer.getElementsByTagName('video').length > 0 ? videoContainer.getElementsByTagName('video')[0] : null;
-    if (videoStreamElem && videoStreamElem.srcObject) {
-      videoStreamElem.srcObject.getTracks().forEach(track => track.stop());
-      videoStreamElem.srcObject = null;
-    }
-    videoContainer.remove();
+function removeVideoElementByFeed(feed, stopTracks = true) {
+  const videoContainer = document.getElementById(`video_${feed}`);
+  if (videoContainer) removeVideoElement(videoContainer, stopTracks);
+}
+
+function removeVideoElement(container, stopTracks = true) {
+  let videoStreamElem = container.getElementsByTagName('video').length > 0 ? container.getElementsByTagName('video')[0] : null;
+  if (videoStreamElem && videoStreamElem.srcObject && stopTracks) {
+    videoStreamElem.srcObject.getTracks().forEach(track => track.stop());
+    videoStreamElem.srcObject = null;
   }
+  container.remove();
 }
 
 function removeAllVideoElements() {
   const locals = document.getElementById('locals');
-  let localVideoContainers = locals.getElementsByTagName('div');
-  for (let i = 0; i < localVideoContainers.length; i++) {
-    const videoContainer = localVideoContainers[i];
-    const videoStreamElem = videoContainer.getElementsByTagName('video')[0];
-    if (videoStreamElem && videoStreamElem.srcObject) {
-      videoStreamElem.srcObject.getTracks().forEach(track => track.stop());
-      videoStreamElem.srcObject = null;
-    }
-    videoContainer.remove();
-  }
-  while (locals.firstChild) {
+  const localVideoContainers = locals.getElementsByTagName('div');
+  for (let i = 0; localVideoContainers && i < localVideoContainers.length; i++)
+    removeVideoElement(localVideoContainers[i]);
+  while (locals.firstChild)
     locals.removeChild(locals.firstChild);
-  }
 
   var remotes = document.getElementById('remotes');
-  let remoteVideoContainers = remotes.getElementsByTagName('div');
-  for (let i = 0; i < remoteVideoContainers.length; i++) {
-    const videoContainer = remoteVideoContainers[i];
-    const videoStreamElem = videoContainer.getElementsByTagName('video')[0];
-    if (videoStreamElem && videoStreamElem.srcObject) {
-      videoStreamElem.srcObject.getTracks().forEach(track => track.stop());
-      videoStreamElem.srcObject = null;
-    }
-    videoContainer.remove();
-  }
-  while (remotes.firstChild) {
+  const remoteVideoContainers = remotes.getElementsByTagName('div');
+  for (let i = 0; remoteVideoContainers && i < remoteVideoContainers.length; i++)
+    removeVideoElement(remoteVideoContainers[i]);
+  while (remotes.firstChild)
     remotes.removeChild(remotes.firstChild);
-  }
   document.getElementById('videos').getElementsByTagName('span')[0].innerHTML = '   --- VIDEOROOM () ---  ';
 }
 

@@ -123,10 +123,13 @@ class TransportWs {
     Logger.info(`${LOG_NS} ${this.name} trying connection with ${this._connection._address_iterator.currElem().url}`);
 
     return new Promise((resolve, reject) => {
+      const wsOptions = this._connection._config.wsOptions() || { };
+      if (!wsOptions.handshakeTimeout) wsOptions.handshakeTimeout = 5000;
+
       const ws = new WebSocket(
         this._connection._address_iterator.currElem().url,
         [this._connection._config.isAdmin() ? ADMIN_WS : API_WS],
-        { handshakeTimeout: 5000 });
+        wsOptions);
 
       /* Register an "open" listener */
       ws.addEventListener('open', _ => {

@@ -51,7 +51,7 @@ const socket = io({
   reconnection: false,
 });
 
-function join({ room = myRoom, display = myName, muted = false, token = null, rtp_participant = false, group = null } = {}) {
+function join({ room = myRoom, display = myName, muted = false, token = null, rtp_participant = null, group = null } = {}) {
   const joinData = {
     room,
     display,
@@ -183,6 +183,20 @@ function _destroy({ room = myRoom, permanent = false, secret = 'adminpwd' } = {}
   });
 }
 
+function _enableRecording({ room = myRoom, record, filename = null, secret = 'adminpwd' }) {
+  const recData = {
+    room,
+    secret,
+    record,
+  };
+  if (filename) recData.filename = filename;
+
+  socket.emit('enable-recording', {
+    data: recData,
+    _id: getId(),
+  });
+}
+
 // add remove enable disable token mgmt
 function _allow({ room = myRoom, action, token = null, secret = 'adminpwd' }) {
   const allowData = {
@@ -234,6 +248,30 @@ function _listForward({ room = myRoom, secret = 'adminpwd' } = {}) {
 
   socket.emit('rtp-fwd-list', {
     data: listData,
+    _id: getId(),
+  });
+}
+
+function _muteRoom({ room = myRoom, secret = 'adminpwd' } = {}) {
+  let muteData = {
+    room,
+    secret,
+  };
+
+  socket.emit('mute-room', {
+    data: muteData,
+    _id: getId(),
+  });
+}
+
+function _unmuteRoom({ room = myRoom, secret = 'adminpwd' } = {}) {
+  let unmuteData = {
+    room,
+    secret,
+  };
+
+  socket.emit('unmute-room', {
+    data: unmuteData,
     _id: getId(),
   });
 }
@@ -401,6 +439,10 @@ socket.on('destroyed', ({ data }) => {
   closePC();
 });
 
+socket.on('recording-status', ({ data }) => {
+  console.log('recording status', data);
+});
+
 socket.on('allowed', ({ data }) => {
   console.log('token management', data);
 });
@@ -415,6 +457,18 @@ socket.on('rtp-fwd-stopped', ({ data }) => {
 
 socket.on('rtp-fwd-list', ({ data }) => {
   console.log('rtp forwarders list', data);
+});
+
+socket.on('room-muted', ({ data }) => {
+  console.log('room muted', data);
+});
+
+socket.on('room-unmuted', ({ data }) => {
+  console.log('room unmuted', data);
+});
+
+socket.on('room-muted-update', ({ data }) => {
+  console.log('room muted update', data);
 });
 
 async function _restartParticipant() {

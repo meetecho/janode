@@ -99,10 +99,14 @@ const closeAfterSecs = 120;
 
     task = setInterval(async () => {
       try {
-        const data = await admin.listSessions();
-        Logger.info(`${LOG_NS} ***** ADMIN LIST SESSIONS ***** ${JSON.stringify(data)}`);
+        const sList = await admin.listSessions();
+        Logger.info(`${LOG_NS} ***** ADMIN LIST SESSIONS ***** ${JSON.stringify(sList)}`);
+        if (Array.isArray(sList.sessions) && sList.sessions.length > 0) {
+          const hList = await admin.listHandles(sList.sessions[0]);
+          Logger.info(`${LOG_NS} ***** ADMIN LIST HANDLES ***** ${JSON.stringify(hList)}`);
+        }
       } catch (error) {
-        Logger.error(`${LOG_NS} ***** LIST SESSIONS ERROR ***** ${error.message}`);
+        Logger.error(`${LOG_NS} ***** LIST SESSIONS/HANDLES ERROR ***** ${error.message}`);
       }
     }, 5 * 1000);
 

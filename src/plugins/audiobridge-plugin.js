@@ -380,12 +380,13 @@ class AudioBridgeHandle extends Handle {
    * @param {number} [params.volume] - The percent volume
    * @param {boolean} [params.record] - True to enable recording
    * @param {string} [params.filename] - The recording filename
+   * @param {boolean} [params.suspended] - True to join in suspended status
    * @param {module:audiobridge-plugin~RtpParticipant} [params.rtp_participant] - Set a descriptor object if you need a RTP participant
    * @param {string} [params.group] - The group to assign to this participant
    * @param {boolean} [params.generate_offer] - True to get Janus to send the SDP offer.
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
    */
-  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, rtp_participant, group, generate_offer }) {
+  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, suspended, rtp_participant, group, generate_offer }) {
     const body = {
       request: REQUEST_JOIN,
       room,
@@ -399,6 +400,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof volume === 'number') body.volume = volume;
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
+    if (typeof suspended === 'boolean') body.suspended = suspended;
     if (typeof rtp_participant === 'object' && rtp_participant) body.rtp = rtp_participant;
     if (typeof group === 'string') body.group = group;
     if (typeof generate_offer === 'boolean') body.generate_offer = generate_offer;
@@ -872,6 +874,16 @@ class AudioBridgeHandle extends Handle {
     throw (error);
   }
 
+  /**
+   * Suspend an audiobridge participant.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {number|string} params.feed - The feed id to be suspended
+   * @param {boolean} [params.stop_record] - Whether the recording of this participant should be stopped too
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_SUSPEND_RESPONSE>}
+   */
   async suspend({ room, feed, stop_record, secret }) {
     const body = {
       request: REQUEST_SUSPEND_PARTICIPANT,
@@ -883,12 +895,25 @@ class AudioBridgeHandle extends Handle {
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
-    if (event === PLUGIN_EVENT.SUCCESS)
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      evtdata.feed = feed;
       return evtdata;
+    }
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
   }
 
+  /**
+   * Resume an audiobridge participant after a suspend.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {number|string} params.feed - The feed id to be resumed
+   * @param {boolean} [params.record] - Whether to start recording this resumed feed
+   * @param {string} [params.filename] - The recording filename
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RESUME_RESPONSE>}
+   */
   async resume({ room, feed, record, filename, secret }) {
     const body = {
       request: REQUEST_RESUME_PARTICIPANT,
@@ -901,8 +926,10 @@ class AudioBridgeHandle extends Handle {
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
-    if (event === PLUGIN_EVENT.SUCCESS)
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      evtdata.feed = feed;
       return evtdata;
+    }
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
   }
@@ -1070,6 +1097,22 @@ class AudioBridgeHandle extends Handle {
  */
 
 /**
+ * The response event for audiobridge suspend request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_SUSPEND_RESPONSE
+ * @property {number|string} room - The involved room
+ * @property {number|string} feed - The involved feed id
+ */
+
+/**
+ * The response event for audiobridge resume request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_RESUME_RESPONSE
+ * @property {number|string} room - The involved room
+ * @property {number|string} feed - The involved feed id
+ */
+
+/**
  * The response event for audiobridge ACL token edit request.
  *
  * @typedef {object} AUDIOBRIDGE_EVENT_ALLOWED
@@ -1092,6 +1135,8 @@ class AudioBridgeHandle extends Handle {
  * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_LEAVING}
  * @property {string} EVENT.AUDIOBRIDGE_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_TALKING}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_TALKING}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_SUSPENDED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_SUSPENDED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_RESUMED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_RESUMED}
  * @property {string} EVENT.AUDIOBRIDGE_ROOM_MUTED {@link module:audiobridge-plugin~AUDIOBRIDGE_ROOM_MUTED}
  * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
  */
@@ -1186,8 +1231,24 @@ export default {
      */
     AUDIOBRIDGE_PEER_TALKING: PLUGIN_EVENT.PEER_TALKING,
 
+    /**
+     * Notify if a participant has been suspended.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_SUSPENDED
+     * @type {object}
+     * @property {number|string} room
+     * @property {number|string} feed
+     */
     AUDIOBRIDGE_PEER_SUSPENDED: PLUGIN_EVENT.PEER_SUSPENDED,
 
+    /**
+     * Notify if a participant has been resumed.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_RESUMED
+     * @type {object}
+     * @property {number|string} room
+     * @property {number|string} feed
+     */
     AUDIOBRIDGE_PEER_RESUMED: PLUGIN_EVENT.PEER_RESUMED,
 
     /**

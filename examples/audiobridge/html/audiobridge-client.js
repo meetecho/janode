@@ -51,11 +51,12 @@ const socket = io({
   reconnection: false,
 });
 
-function join({ room = myRoom, display = myName, muted = false, token = null, rtp_participant = null, group = null } = {}) {
+function join({ room = myRoom, display = myName, muted = false, suspended = false, token = null, rtp_participant = null, group = null } = {}) {
   const joinData = {
     room,
     display,
     muted,
+    suspended,
     token,
     rtp_participant,
     group,

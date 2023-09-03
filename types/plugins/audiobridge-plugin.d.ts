@@ -1,24 +1,24 @@
-import Handle from  '../handle.js'
+import Handle from '../handle.js'
 /**
  * The payload of the plugin message (cfr. Janus docs).
  * {@link https://janus.conf.meetecho.com/docs/audiobridge.html}
  */
 
 export type AudioBridgeMsg = 'join'
-|'listparticipants'
-|'kick'
-|'configure'
-|'leave'
-|'hangup'
-|'exists'
-|'list'
-|'create'
-|'destroy'
-|'allowed'
-|'rtp_forward'
-|'stop_rtp_forward'
-|'listforwarders'
-|'enable_recording'
+    | 'listparticipants'
+    | 'kick'
+    | 'configure'
+    | 'leave'
+    | 'hangup'
+    | 'exists'
+    | 'list'
+    | 'create'
+    | 'destroy'
+    | 'allowed'
+    | 'rtp_forward'
+    | 'stop_rtp_forward'
+    | 'listforwarders'
+    | 'enable_recording'
 
 
 export type AudioBridgeData = object;
@@ -273,8 +273,8 @@ export type AUDIOBRIDGE_EVENT_ENABLE_RECORDING = {
     room: number | string;
     secret: string;
     record: boolean;
-    filename ?: string;
-    rec_dir ?: string;
+    filename?: string;
+    rec_dir?: string;
 }
 
 export class AudioBridgeHandle extends Handle {
@@ -505,10 +505,11 @@ export class AudioBridgeHandle extends Handle {
      * @param {string} [params.secret] - The optional secret needed to manage the room
      * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RTP_FWD>}
      */
-    startForward({ room, always, host, audio_port, group, ssrc, ptype, codec, secret }: {
+    startForward({ room, always, host, host_family, audio_port, group, ssrc, ptype, codec, secret }: {
         room: number | string;
         always?: boolean;
         host: string;
+        host_family: string;
         audio_port: number;
         ssrc?: number;
         ptype?: number;
@@ -543,24 +544,24 @@ export class AudioBridgeHandle extends Handle {
         secret?: string;
     }): Promise<AUDIOBRIDGE_EVENT_FWD_LIST>
 
-  /**
-   * Enable/disable mixed audio recording.
-   *
-   * @param {object} params
-   * @param {number|string} params.room - The room identifier
-   * @param {boolean} params.record - Enable/disable recording
-   * @param {string} [params.secret] - The secret to be used when managing the room
-   * @param {string} [params.filename] - The recording filename
-   * @param {string} [params.rec_dir] - The optional recording folder
-   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RECORDING>}
-   */
+    /**
+     * Enable/disable mixed audio recording.
+     *
+     * @param {object} params
+     * @param {number|string} params.room - The room identifier
+     * @param {boolean} params.record - Enable/disable recording
+     * @param {string} [params.secret] - The secret to be used when managing the room
+     * @param {string} [params.filename] - The recording filename
+     * @param {string} [params.rec_dir] - The optional recording folder
+     * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RECORDING>}
+     */
     enableRecording({ room, secret, record, filename, rec_dir }: {
         room: number | string;
         secret: string;
         record: boolean;
-        filename ?: string;
-        rec_dir ?: string;
-    }): Promise<{success: boolean}>
+        filename?: string;
+        rec_dir?: string;
+    }): Promise<{ success: boolean }>
 
 }
 
@@ -576,9 +577,9 @@ export type AudioBridgeEvent = {
     AUDIOBRIDGE_ERROR: string
 }
 declare var _default: {
-  id: string
-  Handle: AudioBridgeHandle
-  EVENT: AudioBridgeEvent
+    id: string
+    Handle: AudioBridgeHandle
+    EVENT: AudioBridgeEvent
 }
 export default _default
 

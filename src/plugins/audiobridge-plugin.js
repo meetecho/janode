@@ -732,13 +732,15 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RTP_FWD>}
    */
-  async startForward({ room, always, host, audio_port, ssrc, ptype, codec, group, secret }) {
+  async startForward({ room, always, host, host_family, audio_port, ssrc, ptype, codec, group, secret }) {
     const body = {
       request: REQUEST_RTP_FWD_START,
       room,
     };
     if (typeof always === 'boolean') body.always_on = always;
     if (typeof host === 'string') body.host = host;
+    if (typeof host_family === 'string' &&
+      (host_family.toLowerCase() === 'ipv4' || host_family.toLowerCase() === 'ipv6')) body.host_family = host_family.toLowerCase();
     if (typeof audio_port === 'number') body.port = audio_port;
     if (typeof ssrc === 'number') body.ssrc = ssrc;
     if (typeof ptype === 'number') body.ptype = ptype;

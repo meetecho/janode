@@ -341,9 +341,24 @@ class AudioBridgeHandle extends Handle {
           /* A participant has been resumed */
           if (typeof message_data.resumed != 'undefined') {
             janode_event.data.feed = message_data.resumed;
+            if (message_data.participants) {
+            /* Add participants data */
+            janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended }) => {
+              const peer = {
+                feed: id,
+                display,
+                muted,
+                setup,
+              };
+              if (typeof talking !== 'undefined') peer.talking = talking;
+              if (typeof suspended !== 'undefined') peer.suspended = suspended;
+              return peer;
+            });
+            }
             janode_event.event = PLUGIN_EVENT.PEER_RESUMED;
             break;
           }
+
       }
 
       /* The event has been handled */
@@ -381,12 +396,13 @@ class AudioBridgeHandle extends Handle {
    * @param {boolean} [params.record] - True to enable recording
    * @param {string} [params.filename] - The recording filename
    * @param {boolean} [params.suspended] - True to join in suspended status
+   * @param {boolean} [params.pause_events] - Wheter to pause notification events for suspended participants
    * @param {module:audiobridge-plugin~RtpParticipant} [params.rtp_participant] - Set a descriptor object if you need a RTP participant
    * @param {string} [params.group] - The group to assign to this participant
    * @param {boolean} [params.generate_offer] - True to get Janus to send the SDP offer.
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
    */
-  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, suspended, rtp_participant, group, generate_offer }) {
+  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, suspended, pause_events, rtp_participant, group, generate_offer }) {
     const body = {
       request: REQUEST_JOIN,
       room,
@@ -401,6 +417,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
     if (typeof suspended === 'boolean') body.suspended = suspended;
+    if (typeof pause_events === 'boolean') body.pause_events = pause_events;
     if (typeof rtp_participant === 'object' && rtp_participant) body.rtp = rtp_participant;
     if (typeof group === 'string') body.group = group;
     if (typeof generate_offer === 'boolean') body.generate_offer = generate_offer;
@@ -881,16 +898,18 @@ class AudioBridgeHandle extends Handle {
    * @param {number|string} params.room - The involved room
    * @param {number|string} params.feed - The feed id to be suspended
    * @param {boolean} [params.stop_record] - Whether the recording of this participant should be stopped too
+   * @param {boolean} [params.pause_events] - Wheter to pause notification events for suspended participants
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_SUSPEND_RESPONSE>}
    */
-  async suspend({ room, feed, stop_record, secret }) {
+  async suspend({ room, feed, stop_record, pause_events, secret }) {
     const body = {
       request: REQUEST_SUSPEND_PARTICIPANT,
       room,
       id: feed
     };
     if (typeof stop_record === 'boolean') body.stop_record = stop_record;
+    if (typeof pause_events === 'boolean') body.pause_events = pause_events;
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);

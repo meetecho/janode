@@ -342,18 +342,18 @@ class AudioBridgeHandle extends Handle {
           if (typeof message_data.resumed != 'undefined') {
             janode_event.data.feed = message_data.resumed;
             if (message_data.participants) {
-            /* Add participants data */
-            janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended }) => {
-              const peer = {
-                feed: id,
-                display,
-                muted,
-                setup,
-              };
-              if (typeof talking !== 'undefined') peer.talking = talking;
-              if (typeof suspended !== 'undefined') peer.suspended = suspended;
-              return peer;
-            });
+              /* Add participants data */
+              janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended }) => {
+                const peer = {
+                  feed: id,
+                  display,
+                  muted,
+                  setup,
+                };
+                if (typeof talking !== 'undefined') peer.talking = talking;
+                if (typeof suspended !== 'undefined') peer.suspended = suspended;
+                return peer;
+              });
             }
             janode_event.event = PLUGIN_EVENT.PEER_RESUMED;
             break;

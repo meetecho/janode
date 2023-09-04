@@ -724,7 +724,7 @@ class AudioBridgeHandle extends Handle {
    * @param {number|string} params.room - The involved room
    * @param {boolean} [params.always] - Whether silence should be forwarded when the room is empty
    * @param {string} params.host - The host to forward to
-   * @param {string} params.host_family - ipv4|ipv6; by default, first family returned by DNS request
+   * @param {string} [params.host_family] - ipv4|ipv6; by default, first family returned by DNS request
    * @param {number} params.audio_port - The port to forward to
    * @param {number} [params.ssrc] - The SSRC to use to use when forwarding
    * @param {number} [params.ptype] - The payload type to use to use when forwarding

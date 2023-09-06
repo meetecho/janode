@@ -1306,24 +1306,6 @@ export default {
      */
     AUDIOBRIDGE_PEER_RESUMED: PLUGIN_EVENT.PEER_RESUMED,
 
-
-    /**
-     * The current user has been resumed.
-     *
-     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_RESUMED
-     * @type {object}
-     * @property {number|string} room
-     * @property {number|string} feed
-     * @property {object[]} participants - The list of participants
-     * @property {number|string} participants[].feed - The participant feed identifier
-     * @property {string} [participants[].display] - The participant display name
-     * @property {boolean} [participants[].muted] - The muted status of the participant
-     * @property {boolean} [participants[].setup] - True if participant PeerConnection is up
-     * @property {boolean} [participants[].talking] - True if participant is talking
-     * @property {boolean} [participants[].suspended]  - True if participant is suspended
-     */
-    AUDIOBRIDGE_RESUMED: PLUGIN_EVENT.RESUMED,
-
     /**
      * The room has been muted or not.
      *

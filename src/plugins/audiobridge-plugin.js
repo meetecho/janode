@@ -46,7 +46,9 @@ const PLUGIN_EVENT = {
   PEER_KICKED: 'audiobridge_peer_kicked',
   TALKING: 'audiobridge_talking',
   PEER_TALKING: 'audiobridge_peer_talking',
+  SUSPENDED: 'audiobridge_suspended',
   PEER_SUSPENDED: 'audiobridge_peer_suspended',
+  RESUMED: 'audiobridge_resumed',
   PEER_RESUMED: 'audiobridge_peer_resumed',
   EXISTS: 'audiobridge_exists',
   ROOMS_LIST: 'audiobridge_list',
@@ -1165,6 +1167,7 @@ class AudioBridgeHandle extends Handle {
  * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_LEAVING}
  * @property {string} EVENT.AUDIOBRIDGE_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_TALKING}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_TALKING}
+ * @property {string} EVENT.AUDIOBRIDGE_SUSPENDED {@link module:audiobridge-plugin~AUDIOBRIDGE_SUSPENDED}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_SUSPENDED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_SUSPENDED}
  * @property {string} EVENT.AUDIOBRIDGE_RESUMED {@link module:audiobridge-plugin~AUDIOBRIDGE_RESUMED}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_RESUMED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_RESUMED}
@@ -1278,8 +1281,19 @@ export default {
      * @type {object}
      * @property {number|string} room
      * @property {number|string} feed
+     * @property {string} display
      */
     AUDIOBRIDGE_PEER_SUSPENDED: PLUGIN_EVENT.PEER_SUSPENDED,
+
+    /**
+     * The current user has been resumed.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_RESUMED
+     * @type {object}
+     * @property {number|string} room
+     * @property {number|string} feed
+     */
+    AUDIOBRIDGE_RESUMED: PLUGIN_EVENT.RESUMED,
 
     /**
      * Notify if a participant has been resumed.
@@ -1288,6 +1302,7 @@ export default {
      * @type {object}
      * @property {number|string} room
      * @property {number|string} feed
+     * @property {string} display
      */
     AUDIOBRIDGE_PEER_RESUMED: PLUGIN_EVENT.PEER_RESUMED,
 

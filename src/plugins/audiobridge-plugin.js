@@ -335,10 +335,15 @@ class AudioBridgeHandle extends Handle {
           /* A participant has been suspended */
           if (typeof message_data.suspended != 'undefined') {
             janode_event.data.feed = message_data.suspended;
-            janode_event.event = PLUGIN_EVENT.PEER_SUSPENDED;
+            if (this.feed === janode_event.data.feed) {
+              janode_event.event = PLUGIN_EVENT.SUSPENDED;
+            }
+            else {
+              janode_event.event = PLUGIN_EVENT.PEER_SUSPENDED;
+            }
             break;
           }
-          /* A participant has been resumed */
+          /* This handle or another participant has been resumed */
           if (typeof message_data.resumed != 'undefined') {
             janode_event.data.feed = message_data.resumed;
             if (message_data.participants) {
@@ -355,7 +360,12 @@ class AudioBridgeHandle extends Handle {
                 return peer;
               });
             }
-            janode_event.event = PLUGIN_EVENT.PEER_RESUMED;
+            if (this.feed === janode_event.data.feed) {
+              janode_event.event = PLUGIN_EVENT.RESUMED;
+            }
+            else {
+              janode_event.event = PLUGIN_EVENT.PEER_RESUMED;
+            }
             break;
           }
 
@@ -1028,6 +1038,7 @@ class AudioBridgeHandle extends Handle {
  * @property {boolean} [participants[].muted] - The muted status of the participant
  * @property {boolean} [participants[].setup] - True if participant PeerConnection is up
  * @property {boolean} [participants[].talking] - True if participant is talking
+ * @property {boolean} [participants[].suspended]  - True if participant is suspended
  */
 
 /**
@@ -1155,6 +1166,7 @@ class AudioBridgeHandle extends Handle {
  * @property {string} EVENT.AUDIOBRIDGE_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_TALKING}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_TALKING}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_SUSPENDED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_SUSPENDED}
+ * @property {string} EVENT.AUDIOBRIDGE_RESUMED {@link module:audiobridge-plugin~AUDIOBRIDGE_RESUMED}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_RESUMED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_RESUMED}
  * @property {string} EVENT.AUDIOBRIDGE_ROOM_MUTED {@link module:audiobridge-plugin~AUDIOBRIDGE_ROOM_MUTED}
  * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
@@ -1251,6 +1263,15 @@ export default {
     AUDIOBRIDGE_PEER_TALKING: PLUGIN_EVENT.PEER_TALKING,
 
     /**
+     * The current user has been suspended.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_SUSPENDED
+     * @type {object}
+     * @property {number|string} room
+     * @property {number|string} feed
+     */
+    AUDIOBRIDGE_SUSPENDED: PLUGIN_EVENT.SUSPENDED,
+    /**
      * Notify if a participant has been suspended.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_SUSPENDED
@@ -1269,6 +1290,24 @@ export default {
      * @property {number|string} feed
      */
     AUDIOBRIDGE_PEER_RESUMED: PLUGIN_EVENT.PEER_RESUMED,
+
+
+    /**
+     * The current user has been resumed.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_RESUMED
+     * @type {object}
+     * @property {number|string} room
+     * @property {number|string} feed
+     * @property {object[]} participants - The list of participants
+     * @property {number|string} participants[].feed - The participant feed identifier
+     * @property {string} [participants[].display] - The participant display name
+     * @property {boolean} [participants[].muted] - The muted status of the participant
+     * @property {boolean} [participants[].setup] - True if participant PeerConnection is up
+     * @property {boolean} [participants[].talking] - True if participant is talking
+     * @property {boolean} [participants[].suspended]  - True if participant is suspended
+     */
+    AUDIOBRIDGE_RESUMED: PLUGIN_EVENT.RESUMED,
 
     /**
      * The room has been muted or not.

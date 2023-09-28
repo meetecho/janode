@@ -22,6 +22,7 @@
     "url": "https://github.com/meetecho/janode/issues"
   },
   "license": "ISC",
+  "main": "./src/janode.js",
   "exports": {
     ".": "./src/janode.js",
     "./plugins/audiobridge": "./src/plugins/audiobridge-plugin.js",

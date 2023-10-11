@@ -57,6 +57,7 @@ export const JANUS = {
   EVENT: {
     EVENT: 'event',
     DETACHED: 'detached',
+    ICE_FAILED: 'ice-failed',
     HANGUP: 'hangup',
     MEDIA: 'media',
     TIMEOUT: 'timeout',
@@ -89,6 +90,7 @@ export const JANODE = {
     CONNECTION_CLOSED: 'connection_closed',
     SESSION_DESTROYED: 'session_destroyed',
     HANDLE_DETACHED: 'handle_detached',
+    HANDLE_ICE_FAILED: 'handle_ice_failed',
     HANDLE_HANGUP: 'handle_hangup',
     HANDLE_MEDIA: 'handle_media',
     HANDLE_WEBRTCUP: 'handle_webrtcup',

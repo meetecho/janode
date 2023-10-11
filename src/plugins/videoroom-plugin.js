@@ -194,7 +194,7 @@ class VideoRoomHandle extends Handle {
             if (typeof audio_codec !== 'undefined') pub.audiocodec = audio_codec;
             if (typeof video_codec !== 'undefined') pub.videocodec = video_codec;
             if (typeof simulcast !== 'undefined') pub.simulcast = simulcast;
-            // Multistream
+            /* [multistream] add streams info for this participant */
             if (typeof streams !== 'undefined') pub.streams = streams;
             return pub;
           });
@@ -209,6 +209,8 @@ class VideoRoomHandle extends Handle {
 
           janode_event.data.feed = message_data.id;
           janode_event.data.display = message_data.display;
+          /* [multistream] add streams info to the subscriber joined event */
+          if (typeof message_data.streams !== 'undefined') janode_event.data.streams = message_data.streams;
           janode_event.event = PLUGIN_EVENT.SUB_JOINED;
           break;
 
@@ -405,7 +407,7 @@ class VideoRoomHandle extends Handle {
               if (typeof audio_codec !== 'undefined') pub.audiocodec = audio_codec;
               if (typeof video_codec !== 'undefined') pub.videocodec = video_codec;
               if (typeof simulcast !== 'undefined') pub.simulcast = simulcast;
-              // Multistream
+              /* [multistream] add streams info for this participant */
               if (typeof streams !== 'undefined') pub.streams = streams;
               return pub;
             });
@@ -642,6 +644,8 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording (publishers only)
    * @param {boolean} [params.restart] - Set to force a ICE restart
    * @param {boolean} [params.update] - Set to force a renegotiation
+   * @param {object[]} [params.streams] - [multistream] The streams object, each stream includes mid, keyframe, send, min_delay, max_delay
+   * @param {object[]} [params.descriptions] - [multistream] The descriptions object, can define a description for the tracks separately e.g. track mid:0 'Video Camera', track mid:1 'Screen'
    * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled (subscribers only)
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below (subscribers only)
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled (subscribers only)
@@ -649,7 +653,7 @@ class VideoRoomHandle extends Handle {
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer (publishers only)
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, e2ee, jsep }) {
+  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, streams, descriptions, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, e2ee, jsep }) {
     const body = {
       request: REQUEST_CONFIGURE,
     };
@@ -662,6 +666,8 @@ class VideoRoomHandle extends Handle {
     if (typeof display === 'string') body.display = display;
     if (typeof restart === 'boolean') body.restart = restart;
     if (typeof update === 'boolean') body.update = update;
+    if (streams && Array.isArray(streams)) body.streams = streams;
+    if (descriptions && Array.isArray(descriptions)) body.descriptions = descriptions;
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
     if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
@@ -711,11 +717,13 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.bitrate] - Bitrate cap
    * @param {boolean} [params.record] - True to record the feed
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
+   * @param {object[]} [params.streams] - [multistream] The streams object, each stream includes type, mid, description, disabled, simulcast
+   * @param {object[]} [params.descriptions] - [multistream] The descriptions object, for each stream you can define description
    * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} params.jsep - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async publish({ audio, video, data, bitrate, record, filename, display, e2ee, jsep }) {
+  async publish({ audio, video, data, bitrate, record, filename, display, streams, descriptions, e2ee, jsep }) {
     if (typeof jsep === 'object' && jsep && jsep.type !== 'offer') {
       const error = new Error('jsep must be an offer');
       return Promise.reject(error);
@@ -730,6 +738,8 @@ class VideoRoomHandle extends Handle {
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.filename = filename;
     if (typeof display === 'string') body.display = display;
+    if (streams && Array.isArray(streams)) body.streams = streams;
+    if (descriptions && Array.isArray(descriptions)) body.descriptions = descriptions;
     if (typeof e2ee === 'boolean' && jsep) jsep.e2ee = e2ee;
 
     const response = await this.message(body, jsep).catch(e => {
@@ -812,7 +822,7 @@ class VideoRoomHandle extends Handle {
     if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
     if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
     if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;
-    // Multistream
+    /* [multistream] */
     if (typeof autoupdate === 'boolean') body.autoupdate = autoupdate;
 
     const response = await this.message(body);
@@ -919,6 +929,9 @@ class VideoRoomHandle extends Handle {
 
   /**
    * [multistream] Update a subscription.
+   *
+   * @param {object[]} subscribe - The array of streams to subscribe
+   * @param {object[]} unsubscribe - The array of streams to unsubscribe
    *
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED>}
    */
@@ -1295,7 +1308,7 @@ class VideoRoomHandle extends Handle {
  * @property {string} [publishers[].audiocodec] - The audio codec used by active publisher
  * @property {string} [publishers[].videocodec] - The video codec used by active publisher
  * @property {boolean} publishers[].simulcast - True if the publisher uses simulcast (VP8 and H.264 only)
- * @property {object[]} [publishers[].streams] - [multistream] Streams description
+ * @property {object[]} [publishers[].streams] - [multistream] Streams description as returned by Janus
  * @property {RTCSessionDescription} [jsep] - The JSEP answer
  */
 
@@ -1306,6 +1319,7 @@ class VideoRoomHandle extends Handle {
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The published feed identifier
  * @property {string} display - The published feed display name
+ * @property {object[]} [streams] - [multistream] Streams description as returned by Janus
  */
 
 /**
@@ -1535,7 +1549,7 @@ export default {
      * @property {string} [publishers[].audiocodec] - The audio codec used by active publisher
      * @property {string} [publishers[].videocodec] - The video codec used by active publisher
      * @property {boolean} publishers[].simulcast - True if the publisher uses simulcast (VP8 and H.264 only)
-     * @property {object[]} [publishers[].streams] - [multistream] Streams description
+     * @property {object[]} [publishers[].streams] - [multistream] Streams description as returned by Janus
      */
     VIDEOROOM_PUB_LIST: PLUGIN_EVENT.PUB_LIST,
 

@@ -249,10 +249,6 @@ class Handle extends EventEmitter {
           const error = new Error('unmanaged event');
           this.closeTransactionWithError(transaction, error);
         }
-        else {
-          /* If handleMessage has a truthy return close tx with success */
-          this.closeTransactionWithSuccess(transaction, janus_message);
-        }
         break;
       }
 

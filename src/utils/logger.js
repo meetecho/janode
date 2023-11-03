@@ -12,13 +12,15 @@
 
 import { getCliArgument } from './utils.js';
 
-const LEVELS_IDX = ['none', 'error', 'warn', 'info', 'verb', 'debug'].reduce((obj, lvl, idx) => {
+const LEVELS = ['none', 'error', 'warn', 'info', 'verb', 'debug'];
+const LEVELS_IDX = LEVELS.reduce((obj, lvl, idx) => {
   obj[lvl] = idx;
   return obj;
 }, {});
 
 const DEFAULT_LEVEL = 'info';
 let log_verbosity = getCliArgument('janode-log', 'string', DEFAULT_LEVEL);
+if (LEVELS.indexOf(log_verbosity) < 0) log_verbosity = DEFAULT_LEVEL;
 
 const printout = (msg_verbosity, console_fn, ...args) => {
   if (LEVELS_IDX[msg_verbosity] > LEVELS_IDX[log_verbosity]) return;

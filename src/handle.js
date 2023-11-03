@@ -401,7 +401,7 @@ class Handle extends EventEmitter {
    * Helper to close a transaction with error.
    *
    * @property {string} id - The transaction id
-   * @property {string} error - The error message
+   * @property {object} error - The error object
    * @returns {void}
    */
   closeTransactionWithError(id, error) {

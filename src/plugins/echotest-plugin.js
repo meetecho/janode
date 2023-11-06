@@ -117,12 +117,12 @@ class EchoTestHandle extends Handle {
    * Start/update an echotest session.
    *
    * @param {object} params
-   * @param {boolean} [audio] - True to request audio in this session
-   * @param {boolean} [video] - True to request video in this session
-   * @param {RTCSessionDescription} [jsep=null] - The JSEP offer
-   * @param {number} [bitrate=0] - The bitrate to force in the session
-   * @param {boolean} [record=false] - True to record the session
-   * @param {string} [filename=null]  - The filename of the recording
+   * @param {boolean} [params.audio] - True to request audio in this session
+   * @param {boolean} [params.video] - True to request video in this session
+   * @param {RTCSessionDescription} [params.jsep=null] - The JSEP offer
+   * @param {number} [params.bitrate=0] - The bitrate to force in the session
+   * @param {boolean} [params.record=false] - True to record the session
+   * @param {string} [params.filename=null]  - The filename of the recording
    * @returns {Promise<module:echotest-plugin~ECHOTEST_EVENT_RESULT>}
    */
   async start({ audio, video, jsep = null, bitrate = 0, record = false, filename = null }) {

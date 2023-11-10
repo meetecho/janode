@@ -127,17 +127,9 @@ function initFrontEnd() {
           Logger.info(`${LOG_NS} ${sipHandle.name} sip handle ringing`);
           replyEvent(socket, 'ringing', evtdata);
         });
-        sipHandle.on(SipPlugin.EVENT.SIP_HANGINGUP, evtdata => {
-          Logger.info(`${LOG_NS} ${sipHandle.name} sip handle hangingup`);
-          replyEvent(socket, 'hangingup', evtdata);
-        });
         sipHandle.on(SipPlugin.EVENT.SIP_HANGUP, evtdata => {
           Logger.info(`${LOG_NS} ${sipHandle.name} sip handle hangup`);
           replyEvent(socket, 'sip_hangup', evtdata);
-        });
-        sipHandle.on(SipPlugin.EVENT.SIP_ACCEPTED, evtdata => {
-          Logger.info(`${LOG_NS} ${sipHandle.name} sip handle accepted`);
-          replyEvent(socket, 'accepted', evtdata);
         });
 
         // generic sipHandle events

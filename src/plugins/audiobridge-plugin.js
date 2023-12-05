@@ -298,14 +298,40 @@ class AudioBridgeHandle extends Handle {
             }
             break;
           }
-          /* Configuration events for other participants */
-          if (typeof message_data.participants !== 'undefined' && message_data.participants.length == 1) {
-            janode_event.data.feed = message_data.participants[0].id;
-            if (typeof message_data.participants[0].display === 'string') janode_event.data.display = message_data.participants[0].display;
-            if (typeof message_data.participants[0].muted !== 'undefined') janode_event.data.muted = message_data.participants[0].muted;
-            if (typeof message_data.participants[0].setup !== 'undefined') janode_event.data.setup = message_data.participants[0].setup;
-            if (typeof message_data.participants[0].suspended !== 'undefined') janode_event.data.suspended = message_data.participants[0].suspended;
-            janode_event.event = PLUGIN_EVENT.PEER_CONFIGURED;
+          /* This handle or another participant has been resumed */
+          if (typeof message_data.resumed != 'undefined') {
+            janode_event.data.feed = message_data.resumed;
+            if (message_data.participants) {
+              /* Add participants data */
+              janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended }) => {
+                const peer = {
+                  feed: id,
+                  display,
+                  muted,
+                  setup,
+                };
+                if (typeof talking !== 'undefined') peer.talking = talking;
+                if (typeof suspended !== 'undefined') peer.suspended = suspended;
+                return peer;
+              });
+            }
+            if (this.feed === janode_event.data.feed) {
+              janode_event.event = PLUGIN_EVENT.RESUMED;
+            }
+            else {
+              janode_event.event = PLUGIN_EVENT.PEER_RESUMED;
+            }
+            break;
+          }
+          /* This handle or another participant has been suspended */
+          if (typeof message_data.suspended != 'undefined') {
+            janode_event.data.feed = message_data.suspended;
+            if (this.feed === janode_event.data.feed) {
+              janode_event.event = PLUGIN_EVENT.SUSPENDED;
+            }
+            else {
+              janode_event.event = PLUGIN_EVENT.PEER_SUSPENDED;
+            }
             break;
           }
           /* Peer leaving confirmation */
@@ -334,43 +360,16 @@ class AudioBridgeHandle extends Handle {
             }
             break;
           }
-          /* A participant has been suspended */
-          if (typeof message_data.suspended != 'undefined') {
-            janode_event.data.feed = message_data.suspended;
-            if (this.feed === janode_event.data.feed) {
-              janode_event.event = PLUGIN_EVENT.SUSPENDED;
-            }
-            else {
-              janode_event.event = PLUGIN_EVENT.PEER_SUSPENDED;
-            }
+          /* Configuration events for other participants */
+          if (typeof message_data.participants !== 'undefined' && message_data.participants.length == 1) {
+            janode_event.data.feed = message_data.participants[0].id;
+            if (typeof message_data.participants[0].display === 'string') janode_event.data.display = message_data.participants[0].display;
+            if (typeof message_data.participants[0].muted !== 'undefined') janode_event.data.muted = message_data.participants[0].muted;
+            if (typeof message_data.participants[0].setup !== 'undefined') janode_event.data.setup = message_data.participants[0].setup;
+            if (typeof message_data.participants[0].suspended !== 'undefined') janode_event.data.suspended = message_data.participants[0].suspended;
+            janode_event.event = PLUGIN_EVENT.PEER_CONFIGURED;
             break;
           }
-          /* This handle or another participant has been resumed */
-          if (typeof message_data.resumed != 'undefined') {
-            janode_event.data.feed = message_data.resumed;
-            if (message_data.participants) {
-              /* Add participants data */
-              janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended }) => {
-                const peer = {
-                  feed: id,
-                  display,
-                  muted,
-                  setup,
-                };
-                if (typeof talking !== 'undefined') peer.talking = talking;
-                if (typeof suspended !== 'undefined') peer.suspended = suspended;
-                return peer;
-              });
-            }
-            if (this.feed === janode_event.data.feed) {
-              janode_event.event = PLUGIN_EVENT.RESUMED;
-            }
-            else {
-              janode_event.event = PLUGIN_EVENT.PEER_RESUMED;
-            }
-            break;
-          }
-
       }
 
       /* The event has been handled */

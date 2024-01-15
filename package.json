@@ -1,7 +1,7 @@
 {
   "name": "janode",
   "description": "Meetecho adapter for the Janus WebRTC Server",
-  "version": "1.6.7",
+  "version": "1.6.9",
   "type": "module",
   "main": "src/janode.js",
   "types": "./types/janode.d",
@@ -24,6 +24,7 @@
     "url": "https://github.com/meetecho/janode/issues"
   },
   "license": "ISC",
+  "main": "./src/janode.js",
   "exports": {
     ".": {
       "import": {

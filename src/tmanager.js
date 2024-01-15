@@ -156,7 +156,7 @@ class TransactionManager {
    *
    * @param {string} id - The transaction identifier
    * @param {object} owner - A reference to the transaction owner
-   * @param {string} error - The error string
+   * @param {object} error - The error object
    * @returns {PendingTransaction|void} The closed transaction, or nothing if the id does not exist or the owner does not match
    */
   closeTransactionWithError(id, owner, error) {
@@ -175,7 +175,7 @@ class TransactionManager {
    * The closed transactions will be removed from the internal table.
    *
    * @param {object} [owner] - A reference to the transaction owner
-   * @param {string} error - The error string
+   * @param {object} error - The error object
    */
   closeAllTransactionsWithError(owner, error) {
     for (const [_, pendingTx] of this.transactions) {

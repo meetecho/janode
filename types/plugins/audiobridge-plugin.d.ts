@@ -18,6 +18,8 @@ export type AudioBridgeMsg = 'join'
     | 'rtp_forward'
     | 'stop_rtp_forward'
     | 'listforwarders'
+    | 'suspend'
+    | 'resume'
     | 'enable_recording'
 
 
@@ -276,6 +278,33 @@ export type AUDIOBRIDGE_EVENT_ENABLE_RECORDING = {
     filename?: string;
     rec_dir?: string;
 }
+/**
+ * The response event for audiobridge suspend request.
+ */
+export type AUDIOBRIDGE_EVENT_SUSPEND_RESPONSE = {
+    /**
+     * @property {number|string} room - The involved room
+     */
+    room: number | string;
+    /**
+     * @property {number|string} feed - The involved feed id
+     */
+    feed: string;
+}
+/**
+ * The response event for audiobridge resume request.
+ *
+ */
+export type AUDIOBRIDGE_EVENT_RESUME_RESPONSE = {
+    /**
+     * @property {number|string} room - The involved room
+     */
+    room: number | string;
+    /**
+     * @property {number|string} feed - The involved feed id
+     */
+    feed: string;
+}
 
 export class AudioBridgeHandle extends Handle {
     /**
@@ -301,9 +330,10 @@ export class AudioBridgeHandle extends Handle {
     /**
      * Join an audiobridge room.
      *
+     *
      * @param {object} params
      * @param {number|string} params.room - The room to join
-     * @param {number} [params.feed=0] - The feed identifier for the participant, picked by Janus if omitted
+     * @param {number|string} [params.feed] - The feed identifier for the participant, picked by Janus if omitted
      * @param {string} [params.display] - The display name to use
      * @param {boolean} [params.muted] - True to join in muted status
      * @param {string} [params.pin] - The pin needed to join
@@ -312,12 +342,14 @@ export class AudioBridgeHandle extends Handle {
      * @param {number} [params.volume] - The percent volume
      * @param {boolean} [params.record] - True to enable recording
      * @param {string} [params.filename] - The recording filename
-     * @param {string} [params.rec_dir] - The optional recording folder
-     * @param {module:audiobridge-plugin~RtpParticipant|boolean} [params.rtp_participant] - True if this feed is a plain RTP participant (use an object to pass a participant descriptor)
+     * @param {boolean} [params.suspended] - True to join in suspended status
+     * @param {boolean} [params.pause_events] - Wheter to pause notification events for suspended participants
+     * @param {module:audiobridge-plugin~RtpParticipant} [params.rtp_participant] - Set a descriptor object if you need a RTP participant
      * @param {string} [params.group] - The group to assign to this participant
+     * @param {boolean} [params.generate_offer] - True to get Janus to send the SDP offer.
      * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
      */
-    join({ room, feed, display, muted, pin, token, quality, volume, record, filename, rtp_participant, group }: {
+    join({ room, feed, display, muted, pin, token, quality, volume, record, filename, suspended, pause_events, rtp_participant, group, generate_offer }: {
         room: number | string;
         feed?: number;
         display?: string;
@@ -328,8 +360,11 @@ export class AudioBridgeHandle extends Handle {
         volume?: number;
         record?: boolean;
         filename?: string;
+        suspended?: boolean;
+        pause_events?: boolean;
         rtp_participant?: any;
         group?: string;
+        generate_offer?: boolean;
     }): Promise<AUDIOBRIDGE_EVENT_JOINED>
     /**
      * Configure an audiobridge handle.
@@ -562,7 +597,42 @@ export class AudioBridgeHandle extends Handle {
         filename?: string;
         rec_dir?: string;
     }): Promise<{ success: boolean }>
-
+    /**
+     * Suspend an audiobridge participant.
+     *
+     * @param {object} params
+     * @param {number|string} params.room - The involved room
+     * @param {number|string} params.feed - The feed id to be suspended
+     * @param {boolean} [params.stop_record] - Whether the recording of this participant should be stopped too
+     * @param {boolean} [params.pause_events] - Wheter to pause notification events for suspended participants
+     * @param {string} [params.secret] - The optional secret needed to manage the room
+     * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_SUSPEND_RESPONSE>}
+     */
+    suspend({ room, feed, stop_record, pause_events, secret }: {
+        room: number | string;
+        feed: string;
+        stop_record?: boolean;
+        pause_events?: boolean;
+        secret?: string;
+    }): Promise<AUDIOBRIDGE_EVENT_SUSPEND_RESPONSE>
+    /**
+     * Resume an audiobridge participant after a suspend.
+     *
+     * @param {object} params
+     * @param {number|string} params.room - The involved room
+     * @param {number|string} params.feed - The feed id to be resumed
+     * @param {boolean} [params.record] - Whether to start recording this resumed feed
+     * @param {string} [params.filename] - The recording filename
+     * @param {string} [params.secret] - The optional secret needed to manage the room
+     * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RESUME_RESPONSE>}
+     */
+    resume({ room, feed, record, filename, secret }: {
+        room: number | string;
+        feed: string;
+        record?: boolean;
+        filename?: string;
+        secret?: string;
+    }): Promise<AUDIOBRIDGE_EVENT_RESUME_RESPONSE>
 }
 
 export type AudioBridgeEvent = {
@@ -582,4 +652,3 @@ declare var _default: {
     EVENT: AudioBridgeEvent
 }
 export default _default
-

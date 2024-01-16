@@ -28,7 +28,9 @@ const REQUEST_RTP_FWD_STOP = 'stop_rtp_forward';
 const REQUEST_RTP_FWD_LIST = 'listforwarders';
 const REQUEST_SUSPEND_PARTICIPANT = 'suspend';
 const REQUEST_RESUME_PARTICIPANT = 'resume';
-const REQUEST_MUTE_ROOM = 'mute_room';
+const REQUEST_MUTE_PARTICIPANT = 'mute';
+const REQUEST_UNMUTE_PARTICIPANT = 'unmute';
+const REQUEST_MUTE_ROOM = 'unmute_room';
 const REQUEST_UNMUTE_ROOM = 'unmute_room';
 
 /* These are the events/responses that the Janode plugin will manage */
@@ -367,7 +369,8 @@ class AudioBridgeHandle extends Handle {
             if (typeof message_data.participants[0].muted !== 'undefined') janode_event.data.muted = message_data.participants[0].muted;
             if (typeof message_data.participants[0].setup !== 'undefined') janode_event.data.setup = message_data.participants[0].setup;
             if (typeof message_data.participants[0].suspended !== 'undefined') janode_event.data.suspended = message_data.participants[0].suspended;
-            janode_event.event = PLUGIN_EVENT.PEER_CONFIGURED;
+            /* when using "mute"/"unmute" management requests, janus will notify "configured" to all participants, including the involved one */
+            janode_event.event = janode_event.data.feed !== this.feed ? PLUGIN_EVENT.PEER_CONFIGURED : PLUGIN_EVENT.CONFIGURED;
             break;
           }
       }
@@ -855,6 +858,64 @@ class AudioBridgeHandle extends Handle {
   }
 
   /**
+   * Mute an user in the audiobridge.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {number|string} params.feed - The feed to mute
+   * @param {string} [params.secret] - The optional secret needed for managing the room
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_MUTE_PARTICIPANT_RESPONSE>}
+   */
+  async mute({ room, feed, secret }) {
+    const body = {
+      request: REQUEST_MUTE_PARTICIPANT,
+      room,
+      id: feed,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      /* Add data missing from Janus response */
+      evtdata.room = body.room;
+      evtdata.feed = body.id;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Unmute an user in the audiobridge.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {number|string} params.feed - The feed to unmute
+   * @param {string} [params.secret] - The optional secret needed for managing the room
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_UNMUTE_PARTICIPANT_RESPONSE>}
+   */
+  async unmute({ room, feed, secret }) {
+    const body = {
+      request: REQUEST_UNMUTE_PARTICIPANT,
+      room,
+      id: feed,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      /* Add data missing from Janus response */
+      evtdata.room = body.room;
+      evtdata.feed = body.id;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
    * Mute the given room for every participant.
    *
    * @param {object} params
@@ -1116,14 +1177,30 @@ class AudioBridgeHandle extends Handle {
  */
 
 /**
- * The response event for audiobridge mute request.
+ * The response event for audiobridge mute participant request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_MUTE_PARTICIPANT_RESPONSE
+ * @property {number|string} room - The involved room
+ * @property {number|string} feed - The involved feed id
+ */
+
+/**
+ * The response event for audiobridge unmute participant request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_UNMUTE_PARTICIPANT_RESPONSE
+ * @property {number|string} room - The involved room
+ * @property {number|string} feed - The involved feed id
+ */
+
+/**
+ * The response event for audiobridge mute room request.
  *
  * @typedef {object} AUDIOBRIDGE_EVENT_MUTE_ROOM_RESPONSE
  * @property {number|string} room - The involved room
  */
 
 /**
- * The response event for audiobridge unmute request.
+ * The response event for audiobridge unmute room request.
  *
  * @typedef {object} AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE
  * @property {number|string} room - The involved room
@@ -1161,6 +1238,7 @@ class AudioBridgeHandle extends Handle {
  * @property {module:audiobridge-plugin~AudioBridgeHandle} Handle - The custom class implementing the plugin
  * @property {object} EVENT - The events emitted by the plugin
  * @property {string} EVENT.AUDIOBRIDGE_DESTROYED {@link module:audiobridge-plugin~AUDIOBRIDGE_DESTROYED}
+ * @property {string} EVENT.AUDIOBRIDGE_CONFIGURED {@link module:audiobridge-plugin~AUDIOBRIDGE_CONFIGURED}
  * @property {string} EVENT.AUDIOBRIDGE_KICKED - {@link module:audiobridge-plugin~AUDIOBRIDGE_KICKED}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_JOINED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_JOINED}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_CONFIGURED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_CONFIGURED}
@@ -1187,6 +1265,19 @@ export default {
      * @type {module:audiobridge-plugin~AUDIOBRIDGE_EVENT_DESTROYED}
      */
     AUDIOBRIDGE_DESTROYED: PLUGIN_EVENT.DESTROYED,
+
+    /**
+     * The current user has been configured.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_CONFIGURED
+     * @type {object}
+     * @property {number|string} room
+     * @property {number|string} feed
+     * @property {string} [display]
+     * @property {boolean} [muted]
+     * @property {boolean} [setup]
+     */
+    AUDIOBRIDGE_CONFIGURED: PLUGIN_EVENT.CONFIGURED,
 
     /**
      * The current user has been kicked out.

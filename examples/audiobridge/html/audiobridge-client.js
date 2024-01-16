@@ -253,6 +253,32 @@ function _listForward({ room = myRoom, secret = 'adminpwd' } = {}) {
   });
 }
 
+function _mutePeer({ room = myRoom, feed = myFeed, secret = 'adminpwd' } = {}) {
+  let muteData = {
+    room,
+    feed,
+    secret,
+  };
+
+  socket.emit('mute-peer', {
+    data: muteData,
+    _id: getId(),
+  });
+}
+
+function _unmutePeer({ room = myRoom, feed = myFeed, secret = 'adminpwd' } = {}) {
+  let unmuteData = {
+    room,
+    feed,
+    secret,
+  };
+
+  socket.emit('unmute-peer', {
+    data: unmuteData,
+    _id: getId(),
+  });
+}
+
 function _muteRoom({ room = myRoom, secret = 'adminpwd' } = {}) {
   let muteData = {
     room,
@@ -458,6 +484,14 @@ socket.on('rtp-fwd-stopped', ({ data }) => {
 
 socket.on('rtp-fwd-list', ({ data }) => {
   console.log('rtp forwarders list', data);
+});
+
+socket.on('peer-muted', ({ data }) => {
+  console.log('peer muted', data);
+});
+
+socket.on('peer-unmuted', ({ data }) => {
+  console.log('peer unmuted', data);
 });
 
 socket.on('room-muted', ({ data }) => {

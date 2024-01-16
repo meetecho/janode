@@ -21,6 +21,8 @@ export type AudioBridgeMsg = 'join'
     | 'suspend'
     | 'resume'
     | 'enable_recording'
+    | 'mute'
+    | 'unmute'
 
 
 export type AudioBridgeData = object;
@@ -633,6 +635,35 @@ export class AudioBridgeHandle extends Handle {
         filename?: string;
         secret?: string;
     }): Promise<AUDIOBRIDGE_EVENT_RESUME_RESPONSE>
+    /**
+    * Mute an user in the audiobridge.
+    *
+    * @param {object} params
+    * @param {number|string} params.room - The involved room
+    * @param {number|string} params.feed - The feed to mute
+    * @param {string} [params.secret] - The optional secret needed for managing the room
+    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_MUTE_PARTICIPANT_RESPONSE>}
+    */
+    mute({ room, feed, secret }: {
+        room: number | string;
+        feed: string;
+        secret?: string;
+    }): Promise<AUDIOBRIDGE_EVENT_CONFIGURED>
+    /**
+   * Unmute an user in the audiobridge.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {number|string} params.feed - The feed to unmute
+   * @param {string} [params.secret] - The optional secret needed for managing the room
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_UNMUTE_PARTICIPANT_RESPONSE>}
+   */
+    unmute({ room, feed, secret }: {
+        room: number | string;
+        feed: string;
+        secret?: string;
+    }): Promise<AUDIOBRIDGE_EVENT_CONFIGURED>
+
 }
 
 export type AudioBridgeEvent = {

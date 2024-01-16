@@ -146,6 +146,10 @@ function initFrontEnd() {
           replyEvent(socket, 'peer-leaving', evtdata);
         });
 
+        audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_CONFIGURED, evtdata => {
+          replyEvent(socket, 'configured', evtdata);
+        });
+
         audioHandle.on(AudioBridgePlugin.EVENT.AUDIOBRIDGE_PEER_CONFIGURED, evtdata => {
           replyEvent(socket, 'peer-configured', evtdata);
         });
@@ -442,6 +446,66 @@ function initFrontEnd() {
       }
     });
 
+    socket.on('suspend-peer', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} suspend-peer received`);
+      const { _id, data: suspendpeerdata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        const response = await janodeManagerHandle.suspend(suspendpeerdata);
+        replyEvent(socket, 'peer-suspended', response, _id);
+        Logger.info(`${LOG_NS} ${remote} peer-suspended sent`);
+      } catch ({ message }) {
+        replyError(socket, message, suspendpeerdata, _id);
+      }
+    });
+
+    socket.on('resume-peer', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} resume-peer received`);
+      const { _id, data: resumepeerdata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        const response = await janodeManagerHandle.resume(resumepeerdata);
+        replyEvent(socket, 'peer-resumed', response, _id);
+        Logger.info(`${LOG_NS} ${remote} peer-resumed sent`);
+      } catch ({ message }) {
+        replyError(socket, message, resumepeerdata, _id);
+      }
+    });
+
+    socket.on('mute-peer', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} mute-peer received`);
+      const { _id, data: mutepeerdata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        const response = await janodeManagerHandle.mute(mutepeerdata);
+        replyEvent(socket, 'peer-muted', response, _id);
+        Logger.info(`${LOG_NS} ${remote} peer-muted sent`);
+      } catch ({ message }) {
+        replyError(socket, message, mutepeerdata, _id);
+      }
+    });
+
+    socket.on('unmute-peer', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} unmute-peer received`);
+      const { _id, data: unmutepeerdata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
+
+      try {
+        const response = await janodeManagerHandle.unmute(unmutepeerdata);
+        replyEvent(socket, 'peer-unmuted', response, _id);
+        Logger.info(`${LOG_NS} ${remote} peer-unmuted sent`);
+      } catch ({ message }) {
+        replyError(socket, message, unmutepeerdata, _id);
+      }
+    });
+
     socket.on('mute-room', async (evtdata = {}) => {
       Logger.info(`${LOG_NS} ${remote} mute-room received`);
       const { _id, data: mutedata = {} } = evtdata;
@@ -479,8 +543,8 @@ function initFrontEnd() {
       if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
 
       try {
-        await janodeManagerHandle.suspend(suspendpeerdata);
-        replyEvent(socket, 'peer-suspended', {}, _id);
+        const response = await janodeManagerHandle.suspend(suspendpeerdata);
+        replyEvent(socket, 'peer-suspended', response, _id);
         Logger.info(`${LOG_NS} ${remote} peer-suspended sent`);
       } catch ({ message }) {
         replyError(socket, message, suspendpeerdata, _id);
@@ -494,8 +558,8 @@ function initFrontEnd() {
       if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
 
       try {
-        await janodeManagerHandle.resume(resumepeerdata);
-        replyEvent(socket, 'peer-resumed', {}, _id);
+        const response = await janodeManagerHandle.resume(resumepeerdata);
+        replyEvent(socket, 'peer-resumed', response, _id);
         Logger.info(`${LOG_NS} ${remote} peer-resumed sent`);
       } catch ({ message }) {
         replyError(socket, message, resumepeerdata, _id);

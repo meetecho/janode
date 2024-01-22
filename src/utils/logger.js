@@ -24,7 +24,7 @@ let log_verbosity = getCliArgument('janode-log', 'string', DEFAULT_LEVEL);
 const printout = (msg_verbosity, console_fn, ...args) => {
   if (LEVELS_IDX[msg_verbosity] > LEVELS_IDX[log_verbosity]) return;
   const ts = (new Date()).toISOString();
-  const prefix = `${ts} - ${msg_verbosity.toUpperCase().padEnd(5, ' ')}:`;
+  const prefix = `${ts} - ${msg_verbosity.toUpperCase().padEnd(8, ' ')}:`;
   console_fn(prefix, ...args);
 };
 

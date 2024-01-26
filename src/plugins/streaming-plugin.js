@@ -248,9 +248,10 @@ class StreamingHandle extends Handle {
    *
    * @param {object} params
    * @property {RTCSessionDescription} params.jsep
+   * @property {boolean} [params.e2ee]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_STATUS>}
    */
-  async start({ jsep }) {
+  async start({ jsep, e2ee }) {
     if (typeof jsep === 'object' && jsep && jsep.type !== 'answer') {
       const error = new Error('jsep must be an answer');
       return Promise.reject(error);
@@ -259,6 +260,7 @@ class StreamingHandle extends Handle {
     const body = {
       request: REQUEST_START,
     };
+    jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
 
     const response = await this.message(body, jsep);
     const { event, data: evtdata } = response._janode || {};

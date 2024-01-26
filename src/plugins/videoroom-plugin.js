@@ -847,12 +847,14 @@ class VideoRoomHandle extends Handle {
    *
    * @param {object} params
    * @param {RTCSessionDescription} params.jsep - The JSEP answer
+   * @param {boolean} [e2ee] - True to hint an end-to-end encrypted negotiation
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_STARTED>}
    */
-  async start({ jsep }) {
+  async start({ jsep, e2ee }) {
     const body = {
       request: REQUEST_START,
     };
+    jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
 
     const response = await this.message(body, jsep);
     const { event, data: evtdata } = response._janode || {};

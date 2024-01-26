@@ -1309,6 +1309,7 @@ class VideoRoomHandle extends Handle {
  * @property {string} [publishers[].videocodec] - The video codec used by active publisher
  * @property {boolean} publishers[].simulcast - True if the publisher uses simulcast (VP8 and H.264 only)
  * @property {object[]} [publishers[].streams] - [multistream] Streams description as returned by Janus
+ * @property {boolean} [e2ee] - True if the stream is end-to-end encrypted
  * @property {RTCSessionDescription} [jsep] - The JSEP answer
  */
 
@@ -1428,6 +1429,7 @@ class VideoRoomHandle extends Handle {
  * @property {boolean} [restart] - True if the request had it true
  * @property {boolean} [update] - True if the request had it true
  * @property {string} configured - A string with the value returned by Janus
+ * @property {boolean} [e2ee] - True if the stream is end-to-end encrypted
  * @property {RTCSessionDescription} [jsep] - The JSEP answer
  */
 

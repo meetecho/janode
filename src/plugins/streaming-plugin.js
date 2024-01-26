@@ -94,6 +94,7 @@ class StreamingHandle extends Handle {
 
       /* Add JSEP data if available */
       if (jsep) janode_event.data.jsep = jsep;
+      if (jsep && typeof jsep.e2ee === 'boolean') janode_event.data.e2ee = jsep.e2ee;
 
       /* The plugin will emit an event only if the handle does not own the transaction */
       /* That means that a transaction has already been closed or this is an async event */
@@ -527,6 +528,7 @@ class StreamingHandle extends Handle {
    * @param {string} [params.pin] - The pin that'll be needed to connect to the new mountpoint
    * @param {boolean} [params.permanent=false] - True if Janus must persist the mp on a config file
    * @param {boolean} [params.is_private=false] - Flag the mp as private
+   * @param {boolean} [params.e2ee=false] - True to set a a mp as end to end encrypted
    * @param {object} [params.audio] - The audio descriptor for the mp
    * @param {number} [params.audio.port] - Port used for audio RTP
    * @param {number} [params.audio.rtcpport] - Port used for audio RTCP
@@ -550,13 +552,14 @@ class StreamingHandle extends Handle {
    * @param {object} [params.metadata] - An opaque metadata to add to the mp
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, permanent = false, is_private = false, audio, video, data, threads, metadata }) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata }) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',
       id,
       permanent,
       is_private,
+      e2ee,
       audio: false,
       video: false,
       data: false,
@@ -682,6 +685,7 @@ class StreamingHandle extends Handle {
  * @property {string} status - The current status of the stream
  * @property {number|string} [id] - The involved mountpoint identifier
  * @property {boolean} [restart] - True if the request had it true
+ * @property {boolean} [e2ee] - True if an offered stream is end to end encrypted
  * @property {RTCSessionDescription} [jsep] - Optional JSEP offer from Janus
  */
 

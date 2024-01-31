@@ -418,7 +418,7 @@ class VideoRoomHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.CONFIGURED;
             janode_event.data.feed = this.feed;
             /* [multistream] add streams info */
-            if (typeof streams !== 'undefined')  janode_event.data.streams = message_data.streams;
+            if (typeof streams !== 'undefined') janode_event.data.streams = message_data.streams;
             janode_event.data.configured = message_data.configured;
             break;
           }

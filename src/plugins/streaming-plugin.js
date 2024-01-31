@@ -132,6 +132,8 @@ class StreamingHandle extends Handle {
           janode_event.data.audio_port = (message_data.stream) ? message_data.stream.audio_port : null;
           janode_event.data.audio_rtcp_port = (message_data.stream) ? message_data.stream.audio_rtcp_port : null;
           janode_event.data.video_port = (message_data.stream) ? message_data.stream.video_port : null;
+          janode_event.data.video_port_2 = (message_data.stream) ? message_data.stream.video_port_2 : null;
+          janode_event.data.video_port_3 = (message_data.stream) ? message_data.stream.video_port_3 : null;
           janode_event.data.video_rtcp_port = (message_data.stream) ? message_data.stream.video_rtcp_port : null;
           janode_event.data.data_port = (message_data.stream) ? message_data.stream.data_port : null;
           break;
@@ -540,6 +542,8 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.audio.skew] - Set skew compensation
    * @param {object} [params.video] - The video descriptor for the mp
    * @param {number} [params.video.port] - Port used for video RTP
+   * @param {number} [params.video.port2] - Port used for video RTP (simulcast layer)
+   * @param {number} [params.video.port3] - Port used for video RTP (simulcast layer)
    * @param {number} [params.video.rtcpport] - Port used for video RTCP
    * @param {string} [params.video.mcast] - Multicast address to listen to
    * @param {number} [params.video.pt] - Payload type that will be used
@@ -573,28 +577,33 @@ class StreamingHandle extends Handle {
     if (typeof pin === 'string') body.pin = pin;
     if (typeof audio === 'object' && audio) {
       body.audio = true;
-      if (typeof audio.port === 'number') body.audioport = audio.port;
+      body.audioport = (typeof audio.port === 'number') ? audio.port : 0;
       if (typeof audio.rtcpport === 'number') body.audiortcpport = audio.rtcppport;
       if (typeof audio.mcast === 'string') body.audiomcast = audio.mcast;
       if (audio.pt) body.audiopt = audio.pt;
       if (audio.rtpmap) body.audiortpmap = audio.rtpmap;
-      if (audio.skew) body.audioskew = audio.skew || false;
+      if (typeof audio.skew === 'boolean') body.audioskew = audio.skew;
     }
     if (typeof video === 'object' && video) {
       body.video = true;
-      if (typeof video.port === 'number') body.videoport = video.port;
+      body.videoport = (typeof video.port === 'number') ? video.port : 0;
       if (typeof video.rtcpport === 'number') body.videortcpport = video.rtcpport;
       if (typeof video.mcast === 'string') body.videomcast = video.mcast;
       if (video.pt) body.videopt = video.pt;
       if (video.rtpmap) body.videortpmap = video.rtpmap;
       if (video.fmtp) body.videofmtp = video.fmtp;
-      if (video.buffer) body.videobufferkf = video.buffer || false;
-      if (video.skew) body.videoskew = video.skew || false;
+      if (typeof video.buffer === 'boolean') body.videobufferkf = video.buffer;
+      if (typeof video.skew === 'boolean') body.videoskew = video.skew;
+      if (typeof video.port2 === 'number' && typeof video.port3 === 'number') {
+        body.videosimulcast = true;
+        body.videoport2 = video.port2;
+        body.videoport3 = video.port3;
+      }
     }
     if (typeof data === 'object' && data) {
       body.data = true;
-      body.dataport = data.port || 0;
-      if (data.buffer) body.databuffermsg = data.buffer || false;
+      body.dataport = (typeof data.port === 'number') ? data.port : 0;
+      if (typeof data.buffer === 'boolean') body.databuffermsg = data.buffer;
     }
     if (typeof threads === 'number' && threads > 0) body.threads = threads;
     if (metadata) body.metadata = metadata;
@@ -669,6 +678,8 @@ class StreamingHandle extends Handle {
  * @property {number} [audio_port] - The port for RTP audio
  * @property {number} [audio_rtcp_port] - The port RTCP audio
  * @property {number} [video_port] - The port for RTP video
+ * @property {number} [video_port_2] - The port for RTP video (simulcast)
+ * @property {number} [video_port_3] - The port for RTP video (simulcast)
  * @property {number} [video_rtcp_port] - The port for RTCP video
  * @property {number} [data_port] - The port for datachannels
  */

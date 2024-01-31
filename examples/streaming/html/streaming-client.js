@@ -1,3 +1,4 @@
+/* eslint-disable multiline-comment-style */
 /* global io */
 
 'use strict';
@@ -86,12 +87,15 @@ function _stop() {
   });
 }
 
-function _configure({ audio, video, data }) {
+function _configure({ audio, video, data, substream, temporal, fallback }) {
   socket.emit('configure', {
     data: {
       audio,
       video,
       data,
+      substream,
+      temporal,
+      fallback,
     },
     _id: getId(),
   });
@@ -164,7 +168,7 @@ function _stopRec({ id = myStream, secret = 'adminpwd' } = {}) {
   });
 }
 
-function _createMp({ aport, vport, secret = null, pin = null }) {
+function _createMp({ audio, video, data, secret = null, pin = null } = {}) {
   const settings = {};
   settings.name = 'test_opus_vp8_' + Date.now();
   settings.description = 'this is ' + settings.name;
@@ -172,18 +176,26 @@ function _createMp({ aport, vport, secret = null, pin = null }) {
   settings.pin = pin || null;
   settings.permanent = false;
   settings.is_private = false;
-  settings.audio = {
-    port: aport,
-    pt: 111,
-    rtpmap: 'opus/48000/2',
-  };
-  settings.video = {
-    port: vport,
-    pt: 100,
-    rtpmap: 'VP8/90000',
-    buffer: true,
-  };
-  settings.data = {};
+  if (audio) {
+    settings.audio = typeof audio === 'object' ? audio : {};
+    settings.audio.port = settings.audio.port || 0;
+    settings.audio.pt = settings.audio.pt || 111;
+    settings.audio.rtpmap = settings.audio.rtpmap || 'opus/48000/2';
+  }
+  if (video) {
+    settings.video = typeof video === 'object' ? video : {};
+    settings.video.port = settings.video.port || 0;
+    //settings.video.port2 = settings.video.port2 || 0;
+    //settings.video.port3 = settings.video.port3 || 0;
+    //setting.video.rtcpport = setting.video.rtcpport || 0;
+    settings.video.pt = settings.video.pt || 100;
+    settings.video.rtpmap = settings.video.rtpmap || 'VP8/90000';
+    //settings.video.buffer = settings.video.buffer || false;
+  }
+  if (data) {
+    settings.data = typeof data === 'object' ? data : {};
+    //settings.data.buffer = settings.data.buffer || false;
+  }
   socket.emit('create', {
     data: settings,
     _id: getId(),

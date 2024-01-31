@@ -1433,6 +1433,7 @@ class VideoRoomHandle extends Handle {
  * @property {boolean} [restart] - True if the request had it true
  * @property {boolean} [update] - True if the request had it true
  * @property {string} configured - A string with the value returned by Janus
+ * @property {object[]} [streams] - [multistream] Streams description as returned by Janus
  * @property {boolean} [e2ee] - True if the stream is end-to-end encrypted
  * @property {RTCSessionDescription} [jsep] - The JSEP answer
  */

@@ -1444,6 +1444,7 @@ class VideoRoomHandle extends Handle {
  * @typedef {object} VIDEOROOM_EVENT_STARTED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed that started
+ * @property {boolean} [e2ee] - True if started stream is e2ee
  * @property {string} started - A string with the value returned by Janus
  */
 

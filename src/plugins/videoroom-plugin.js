@@ -261,6 +261,14 @@ class VideoRoomHandle extends Handle {
             janode_event.data.forwarder.video_port = message_data.rtp_stream.video;
             janode_event.data.forwarder.video_rtcp_port = message_data.rtp_stream.video_rtcp;
             janode_event.data.forwarder.video_stream = message_data.rtp_stream.video_stream_id;
+            if (message_data.rtp_stream.video_stream_id_2) {
+              janode_event.data.forwarder.video_port_2 = message_data.rtp_stream.video_2;
+              janode_event.data.forwarder.video_stream_2 = message_data.rtp_stream.video_stream_id_2;
+            }
+            if (message_data.rtp_stream.video_stream_id_3) {
+              janode_event.data.forwarder.video_port_3 = message_data.rtp_stream.video_3;
+              janode_event.data.forwarder.video_stream_3 = message_data.rtp_stream.video_stream_id_3;
+            }
           }
           if (message_data.rtp_stream.data) {
             janode_event.data.forwarder.data_port = message_data.rtp_stream.data;
@@ -278,7 +286,7 @@ class VideoRoomHandle extends Handle {
 
         /* RTP forwarders list */
         case 'forwarders':
-          if (janode_event.data.forwarders) {
+          if (message_data.rtp_forwarders) {
             janode_event.data.forwarders = message_data.rtp_forwarders.map(({ publisher_id, rtp_forwarder }) => {
               const pub = {
                 feed: publisher_id,
@@ -310,7 +318,7 @@ class VideoRoomHandle extends Handle {
               return pub;
             });
           }
-          else if (janode_event.data.publishers) {
+          else if (message_data.publishers) {
             janode_event.data.forwarders = message_data.publishers.map(({ publisher_id, forwarders }) => {
               const pub = {
                 feed: publisher_id,
@@ -1206,12 +1214,16 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.video_port] - The target video RTP port, if video is to be forwarded
    * @param {number} [params.video_rtcp_port] - The target video RTCP port, if video is to be forwarded
    * @param {number} [params.video_ssrc] - The SSRC that will be used for video RTP
+   * @param {number} [params.video_port_2] - The target video RTP port for simulcast substream
+   * @param {number} [params.video_ssrc_2] - The SSRC that will be used for video RTP substream
+   * @param {number} [params.video_port_3] - The target video RTP port for simulcast substream
+   * @param {number} [params.video_ssrc_3] - The SSRC that will be used for video RTP substream
    * @param {number} [params.data_port] - The target datachannels port, if datachannels are to be forwarded
    * @param {string} [params.secret] - The secret needed for managing the room
    * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_RTP_FWD_STARTED>}
    */
-  async startForward({ room, feed, host, audio_port, audio_rtcp_port, audio_ssrc, video_port, video_rtcp_port, video_ssrc, data_port, secret, admin_key }) {
+  async startForward({ room, feed, host, audio_port, audio_rtcp_port, audio_ssrc, video_port, video_rtcp_port, video_ssrc, video_port_2, video_ssrc_2, video_port_3, video_ssrc_3, data_port, secret, admin_key }) {
     const body = {
       request: REQUEST_RTP_FWD_START,
       room,
@@ -1224,6 +1236,10 @@ class VideoRoomHandle extends Handle {
     if (typeof video_port === 'number') body.video_port = video_port;
     if (typeof video_rtcp_port === 'number') body.video_rtcp_port = video_rtcp_port;
     if (typeof video_ssrc === 'number') body.video_ssrc = video_ssrc;
+    if (typeof video_port_2 === 'number') body.video_port_2 = video_port_2;
+    if (typeof video_ssrc_2 === 'number') body.video_ssrc_2 = video_ssrc_2;
+    if (typeof video_port_3 === 'number') body.video_port_3 = video_port_3;
+    if (typeof video_ssrc_3 === 'number') body.video_ssrc_3 = video_ssrc_3;
     if (typeof data_port === 'number') body.data_port = data_port;
     if (typeof secret === 'string') body.secret = secret;
     if (typeof admin_key === 'string') body.admin_key = admin_key;
@@ -1374,6 +1390,10 @@ class VideoRoomHandle extends Handle {
  * @property {number} [video_port] - The RTP video target port
  * @property {number} [video_rtcp_port] - The RTCP video target port
  * @property {number} [video_stream] - The video forwarder identifier
+ * @property {number} [video_port_2] - The RTP video target port (simulcast)
+ * @property {number} [video_stream_2] - The video forwarder identifier (simulcast)
+ * @property {number} [video_port_3] - The RTP video target port (simulcast)
+ * @property {number} [video_stream_3] - The video forwarder identifier (simulcast)
  * @property {number} [data_port] - The datachannels target port
  * @property {number} [data_stream] - The datachannels forwarder identifier
  * @property {number} [ssrc] - SSRC this forwarder is using

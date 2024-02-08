@@ -530,6 +530,7 @@ class StreamingHandle extends Handle {
    * @param {string} [params.description] - A description for the mp
    * @param {string} [params.secret] - The secret that'll be needed to edit this mountpoint
    * @param {string} [params.pin] - The pin that'll be needed to connect to the new mountpoint
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @param {boolean} [params.permanent=false] - True if Janus must persist the mp on a config file
    * @param {boolean} [params.is_private=false] - Flag the mp as private
    * @param {boolean} [params.e2ee=false] - True to set a a mp as end to end encrypted
@@ -558,7 +559,7 @@ class StreamingHandle extends Handle {
    * @param {object} [params.metadata] - An opaque metadata to add to the mp
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata }) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata }) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',
@@ -575,6 +576,7 @@ class StreamingHandle extends Handle {
     if (typeof description === 'string') body.description = description;
     if (typeof secret === 'string') body.secret = secret;
     if (typeof pin === 'string') body.pin = pin;
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
     if (typeof audio === 'object' && audio) {
       body.audio = true;
       body.audioport = (typeof audio.port === 'number') ? audio.port : 0;

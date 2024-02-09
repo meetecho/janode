@@ -376,12 +376,15 @@ class StreamingHandle extends Handle {
   /**
    * List all the available mountpoints.
    *
+   * @param {object} params
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_LIST>}
    */
-  async list() {
+  async list({ admin_key } = {}) {
     const body = {
       request: REQUEST_LIST,
     };
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};

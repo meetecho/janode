@@ -1071,12 +1071,15 @@ class VideoRoomHandle extends Handle {
   /**
    * List all the available rooms.
    *
+   * @param {object} params
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_LIST>}
    */
-  async list() {
+  async list({ admin_key } = {}) {
     const body = {
       request: REQUEST_LIST_ROOMS,
     };
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};

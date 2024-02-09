@@ -1265,9 +1265,10 @@ class VideoRoomHandle extends Handle {
    * @param {number|string} params.feed - The feed identifier for the forwarder to stop (must be published)
    * @param {number|string} params.stream - The forwarder identifier as returned by the start forward API
    * @param {string} [params.secret] - The secret needed for managing the room
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_RTP_FWD_STOPPED>}
    */
-  async stopForward({ room, feed, stream, secret }) {
+  async stopForward({ room, feed, stream, secret, admin_key }) {
     const body = {
       request: REQUEST_RTP_FWD_STOP,
       room,
@@ -1275,6 +1276,7 @@ class VideoRoomHandle extends Handle {
       stream_id: stream,
     };
     if (typeof secret === 'string') body.secret = secret;
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};

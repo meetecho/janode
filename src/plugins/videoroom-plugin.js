@@ -1100,6 +1100,7 @@ class VideoRoomHandle extends Handle {
    * @param {boolean} [params.is_private] - Make the room private (hidden from listing)
    * @param {string} [params.secret] - The secret that will be used to modify the room
    * @param {string} [params.pin] - The pin needed to access the room
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @param {number} [params.bitrate] - The bitrate cap that will be used for publishers
    * @param {boolean} [params.bitrate_cap] - Make the bitrate cap an insormountable limit
    * @param {number} [params.fir_freq] - The PLI interval in seconds
@@ -1116,7 +1117,7 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.h264_profile] - H264 specific profile to prefer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CREATED>}
    */
-  async create({ room, description, max_publishers, permanent, is_private, secret, pin, bitrate,
+  async create({ room, description, max_publishers, permanent, is_private, secret, pin, admin_key, bitrate,
     bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold,
     require_pvtid, require_e2ee, record, rec_dir, videoorient, h264_profile }) {
     const body = {
@@ -1129,6 +1130,7 @@ class VideoRoomHandle extends Handle {
     if (typeof is_private === 'boolean') body.is_private = is_private;
     if (typeof secret === 'string') body.secret = secret;
     if (typeof pin === 'string') body.pin = pin;
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
     if (typeof bitrate === 'number') body.bitrate = bitrate;
     if (typeof bitrate_cap === 'boolean') body.bitrate_cap = bitrate_cap;
     if (typeof fir_freq === 'number') body.fir_freq = fir_freq;

@@ -10,6 +10,7 @@ let pendingOfferMap = new Map();
 const myRoom = getURLParameter('room') ? parseInt(getURLParameter('room')) : (getURLParameter('room_str') || 1234);
 const randName = ('John_Doe_' + Math.floor(10000 * Math.random()));
 const myName = getURLParameter('name') || randName;
+let myFeed;
 const skipJoin = getURLParameter('skipjoin') || false;
 const skipOffer = getURLParameter('skipoffer') || false;
 
@@ -50,11 +51,12 @@ const socket = io({
   reconnection: false,
 });
 
-function join({ room = myRoom, display = myName, muted = false, token = null, rtp_participant = null, group = null } = {}) {
+function join({ room = myRoom, display = myName, muted = false, suspended = false, token = null, rtp_participant = null, group = null } = {}) {
   const joinData = {
     room,
     display,
     muted,
+    suspended,
     token,
     rtp_participant,
     group,
@@ -251,6 +253,32 @@ function _listForward({ room = myRoom, secret = 'adminpwd' } = {}) {
   });
 }
 
+function _mutePeer({ room = myRoom, feed = myFeed, secret = 'adminpwd' } = {}) {
+  let muteData = {
+    room,
+    feed,
+    secret,
+  };
+
+  socket.emit('mute-peer', {
+    data: muteData,
+    _id: getId(),
+  });
+}
+
+function _unmutePeer({ room = myRoom, feed = myFeed, secret = 'adminpwd' } = {}) {
+  let unmuteData = {
+    room,
+    feed,
+    secret,
+  };
+
+  socket.emit('unmute-peer', {
+    data: unmuteData,
+    _id: getId(),
+  });
+}
+
 function _muteRoom({ room = myRoom, secret = 'adminpwd' } = {}) {
   let muteData = {
     room,
@@ -271,6 +299,35 @@ function _unmuteRoom({ room = myRoom, secret = 'adminpwd' } = {}) {
 
   socket.emit('unmute-room', {
     data: unmuteData,
+    _id: getId(),
+  });
+}
+
+function _suspend({ room = myRoom, feed = myFeed, stop_record = false, secret = 'adminpwd' } = {}) {
+  let suspendData = {
+    room,
+    feed,
+    stop_record,
+    secret,
+  };
+
+  socket.emit('suspend-peer', {
+    data: suspendData,
+    _id: getId(),
+  });
+}
+
+function _resume({ room = myRoom, feed = myFeed, record = false, filename, secret = 'adminpwd' } = {}) {
+  let resumeData = {
+    room,
+    feed,
+    record,
+    secret,
+  };
+  if (filename) resumeData.filename = filename;
+
+  socket.emit('resume-peer', {
+    data: resumeData,
     _id: getId(),
   });
 }
@@ -305,6 +362,7 @@ socket.on('audiobridge-error', ({ error, _id }) => {
 
 socket.on('joined', async ({ data }) => {
   console.log('you have joined to room', data);
+  myFeed = data.feed;
   removeAllAudioElements();
   closePC();
   setAudioElement(null, data.feed, data.display, data.room);
@@ -381,6 +439,14 @@ socket.on('peer-talking', ({ data }) => {
   console.log('peer talking notify', data);
 });
 
+socket.on('peer-suspended', ({ data }) => {
+  console.log('peer suspended notify', data);
+});
+
+socket.on('peer-resumed', ({ data }) => {
+  console.log('peer resumed notify', data);
+});
+
 socket.on('exists', ({ data }) => {
   console.log('room exists', data);
 });
@@ -418,6 +484,14 @@ socket.on('rtp-fwd-stopped', ({ data }) => {
 
 socket.on('rtp-fwd-list', ({ data }) => {
   console.log('rtp forwarders list', data);
+});
+
+socket.on('peer-muted', ({ data }) => {
+  console.log('peer muted', data);
+});
+
+socket.on('peer-unmuted', ({ data }) => {
+  console.log('peer unmuted', data);
 });
 
 socket.on('room-muted', ({ data }) => {

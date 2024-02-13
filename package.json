@@ -1,7 +1,7 @@
 {
   "name": "janode",
   "description": "Meetecho adapter for the Janus WebRTC Server",
-  "version": "1.6.7",
+  "version": "1.6.10",
   "type": "module",
   "keywords": [
     "janus",
@@ -16,12 +16,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/meetecho/janode.git"
+    "url": "git+https://github.com/meetecho/janode.git"
   },
   "bugs": {
     "url": "https://github.com/meetecho/janode/issues"
   },
   "license": "ISC",
+  "main": "./src/janode.js",
   "exports": {
     ".": "./src/janode.js",
     "./plugins/audiobridge": "./src/plugins/audiobridge-plugin.js",
@@ -47,6 +48,6 @@
   },
   "scripts": {
     "build": "npm install --omit=dev",
-    "lint": "node_modules/.bin/eslint --ext .js --config .eslintrc.json src"
+    "lint": "eslint --ext .js --config .eslintrc.json src"
   }
 }

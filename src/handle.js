@@ -262,6 +262,18 @@ class Handle extends EventEmitter {
         break;
       }
 
+      /* ice-failed event: Janus ICE agent has detected a failure */
+      case JANUS.EVENT.ICE_FAILED: {
+        /**
+         * The handle has detected an ICE failure.
+         *
+         * @event module:handle~Handle#event:HANDLE_ICE_FAILED
+         * @type {object}
+         */
+        this.emit(JANODE.EVENT.HANDLE_ICE_FAILED, janode_event_data);
+        break;
+      }
+
       /* Hangup event: peer connection is down */
       /* In this case the janus message has a reason field */
       case JANUS.EVENT.HANGUP: {
@@ -389,7 +401,7 @@ class Handle extends EventEmitter {
    * Helper to close a transaction with error.
    *
    * @property {string} id - The transaction id
-   * @property {string} error - The error message
+   * @property {object} error - The error object
    * @returns {void}
    */
   closeTransactionWithError(id, error) {

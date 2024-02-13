@@ -12,7 +12,8 @@
 
 import { getCliArgument } from './utils.js';
 
-const LEVELS_IDX = ['none', 'error', 'warn', 'info', 'verb', 'debug'].reduce((obj, lvl, idx) => {
+const LEVELS = ['none', 'error', 'warning', 'info', 'verbose', 'debug'];
+const LEVELS_IDX = LEVELS.reduce((obj, lvl, idx) => {
   obj[lvl] = idx;
   return obj;
 }, {});
@@ -23,7 +24,7 @@ let log_verbosity = getCliArgument('janode-log', 'string', DEFAULT_LEVEL);
 const printout = (msg_verbosity, console_fn, ...args) => {
   if (LEVELS_IDX[msg_verbosity] > LEVELS_IDX[log_verbosity]) return;
   const ts = (new Date()).toISOString();
-  const prefix = `${ts} - ${msg_verbosity.toUpperCase().padEnd(5, ' ')}:`;
+  const prefix = `${ts} - ${msg_verbosity.toUpperCase().padEnd(8, ' ')}:`;
   console_fn(prefix, ...args);
 };
 
@@ -47,7 +48,7 @@ const Logger = {
    * @function
    * @param {...any} args
    */
-  verbose: (...args) => printout('verb', console.debug, ...args),
+  verbose: (...args) => printout('verbose', console.debug, ...args),
 
   /**
    * Info logging (default).
@@ -65,7 +66,7 @@ const Logger = {
    * @function
    * @param {...any} args
    */
-  warn: (...args) => printout('warn', console.warn, ...args),
+  warning: (...args) => printout('warning', console.warn, ...args),
 
   /**
    * Error logging.
@@ -85,11 +86,21 @@ const Logger = {
    */
   setLevel: (lvl = '') => {
     lvl = lvl.toLowerCase();
-    if (lvl === 'verbose') lvl = 'verb';
-    if (lvl === 'warning') lvl = 'warn';
-    if (typeof LEVELS_IDX[lvl] === 'number') log_verbosity = lvl;
+    if (lvl === 'verb') lvl = 'verbose';
+    if (lvl === 'warn') lvl = 'warning';
+    if (typeof LEVELS_IDX[lvl] === 'number') {
+      log_verbosity = lvl;
+    }
+    else {
+      log_verbosity = DEFAULT_LEVEL;
+    }
     return log_verbosity;
   }
 };
+/* set aliases */
+Logger.verb = Logger.verbose;
+Logger.warn = Logger.warning;
+
+Logger.setLevel(log_verbosity);
 
 export default Logger;

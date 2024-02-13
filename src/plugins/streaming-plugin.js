@@ -94,6 +94,7 @@ class StreamingHandle extends Handle {
 
       /* Add JSEP data if available */
       if (jsep) janode_event.data.jsep = jsep;
+      if (jsep && typeof jsep.e2ee === 'boolean') janode_event.data.e2ee = jsep.e2ee;
 
       /* The plugin will emit an event only if the handle does not own the transaction */
       /* That means that a transaction has already been closed or this is an async event */
@@ -131,6 +132,8 @@ class StreamingHandle extends Handle {
           janode_event.data.audio_port = (message_data.stream) ? message_data.stream.audio_port : null;
           janode_event.data.audio_rtcp_port = (message_data.stream) ? message_data.stream.audio_rtcp_port : null;
           janode_event.data.video_port = (message_data.stream) ? message_data.stream.video_port : null;
+          janode_event.data.video_port_2 = (message_data.stream) ? message_data.stream.video_port_2 : null;
+          janode_event.data.video_port_3 = (message_data.stream) ? message_data.stream.video_port_3 : null;
           janode_event.data.video_rtcp_port = (message_data.stream) ? message_data.stream.video_rtcp_port : null;
           janode_event.data.data_port = (message_data.stream) ? message_data.stream.data_port : null;
           break;
@@ -247,9 +250,10 @@ class StreamingHandle extends Handle {
    *
    * @param {object} params
    * @property {RTCSessionDescription} params.jsep
+   * @property {boolean} [params.e2ee]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_STATUS>}
    */
-  async start({ jsep }) {
+  async start({ jsep, e2ee }) {
     if (typeof jsep === 'object' && jsep && jsep.type !== 'answer') {
       const error = new Error('jsep must be an answer');
       return Promise.reject(error);
@@ -258,6 +262,7 @@ class StreamingHandle extends Handle {
     const body = {
       request: REQUEST_START,
     };
+    jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
 
     const response = await this.message(body, jsep);
     const { event, data: evtdata } = response._janode || {};
@@ -371,12 +376,15 @@ class StreamingHandle extends Handle {
   /**
    * List all the available mountpoints.
    *
+   * @param {object} params
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_LIST>}
    */
-  async list() {
+  async list({ admin_key } = {}) {
     const body = {
       request: REQUEST_LIST,
     };
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -525,8 +533,10 @@ class StreamingHandle extends Handle {
    * @param {string} [params.description] - A description for the mp
    * @param {string} [params.secret] - The secret that'll be needed to edit this mountpoint
    * @param {string} [params.pin] - The pin that'll be needed to connect to the new mountpoint
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @param {boolean} [params.permanent=false] - True if Janus must persist the mp on a config file
    * @param {boolean} [params.is_private=false] - Flag the mp as private
+   * @param {boolean} [params.e2ee=false] - True to set a a mp as end to end encrypted
    * @param {object} [params.audio] - The audio descriptor for the mp
    * @param {number} [params.audio.port] - Port used for audio RTP
    * @param {number} [params.audio.rtcpport] - Port used for audio RTCP
@@ -536,6 +546,8 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.audio.skew] - Set skew compensation
    * @param {object} [params.video] - The video descriptor for the mp
    * @param {number} [params.video.port] - Port used for video RTP
+   * @param {number} [params.video.port2] - Port used for video RTP (simulcast layer)
+   * @param {number} [params.video.port3] - Port used for video RTP (simulcast layer)
    * @param {number} [params.video.rtcpport] - Port used for video RTCP
    * @param {string} [params.video.mcast] - Multicast address to listen to
    * @param {number} [params.video.pt] - Payload type that will be used
@@ -550,13 +562,14 @@ class StreamingHandle extends Handle {
    * @param {object} [params.metadata] - An opaque metadata to add to the mp
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, permanent = false, is_private = false, audio, video, data, threads, metadata }) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata }) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',
       id,
       permanent,
       is_private,
+      e2ee,
       audio: false,
       video: false,
       data: false,
@@ -566,30 +579,36 @@ class StreamingHandle extends Handle {
     if (typeof description === 'string') body.description = description;
     if (typeof secret === 'string') body.secret = secret;
     if (typeof pin === 'string') body.pin = pin;
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
     if (typeof audio === 'object' && audio) {
       body.audio = true;
-      if (typeof audio.port === 'number') body.audioport = audio.port;
+      body.audioport = (typeof audio.port === 'number') ? audio.port : 0;
       if (typeof audio.rtcpport === 'number') body.audiortcpport = audio.rtcppport;
       if (typeof audio.mcast === 'string') body.audiomcast = audio.mcast;
       if (audio.pt) body.audiopt = audio.pt;
       if (audio.rtpmap) body.audiortpmap = audio.rtpmap;
-      if (audio.skew) body.audioskew = audio.skew || false;
+      if (typeof audio.skew === 'boolean') body.audioskew = audio.skew;
     }
     if (typeof video === 'object' && video) {
       body.video = true;
-      if (typeof video.port === 'number') body.videoport = video.port;
+      body.videoport = (typeof video.port === 'number') ? video.port : 0;
       if (typeof video.rtcpport === 'number') body.videortcpport = video.rtcpport;
       if (typeof video.mcast === 'string') body.videomcast = video.mcast;
       if (video.pt) body.videopt = video.pt;
       if (video.rtpmap) body.videortpmap = video.rtpmap;
       if (video.fmtp) body.videofmtp = video.fmtp;
-      if (video.buffer) body.videobufferkf = video.buffer || false;
-      if (video.skew) body.videoskew = video.skew || false;
+      if (typeof video.buffer === 'boolean') body.videobufferkf = video.buffer;
+      if (typeof video.skew === 'boolean') body.videoskew = video.skew;
+      if (typeof video.port2 === 'number' && typeof video.port3 === 'number') {
+        body.videosimulcast = true;
+        body.videoport2 = video.port2;
+        body.videoport3 = video.port3;
+      }
     }
     if (typeof data === 'object' && data) {
       body.data = true;
-      body.dataport = data.port || 0;
-      if (data.buffer) body.databuffermsg = data.buffer || false;
+      body.dataport = (typeof data.port === 'number') ? data.port : 0;
+      if (typeof data.buffer === 'boolean') body.databuffermsg = data.buffer;
     }
     if (typeof threads === 'number' && threads > 0) body.threads = threads;
     if (metadata) body.metadata = metadata;
@@ -664,6 +683,8 @@ class StreamingHandle extends Handle {
  * @property {number} [audio_port] - The port for RTP audio
  * @property {number} [audio_rtcp_port] - The port RTCP audio
  * @property {number} [video_port] - The port for RTP video
+ * @property {number} [video_port_2] - The port for RTP video (simulcast)
+ * @property {number} [video_port_3] - The port for RTP video (simulcast)
  * @property {number} [video_rtcp_port] - The port for RTCP video
  * @property {number} [data_port] - The port for datachannels
  */
@@ -682,6 +703,7 @@ class StreamingHandle extends Handle {
  * @property {string} status - The current status of the stream
  * @property {number|string} [id] - The involved mountpoint identifier
  * @property {boolean} [restart] - True if the request had it true
+ * @property {boolean} [e2ee] - True if an offered stream is end to end encrypted
  * @property {RTCSessionDescription} [jsep] - Optional JSEP offer from Janus
  */
 

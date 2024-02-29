@@ -9,6 +9,7 @@ bundle.js
 *.log
 *.pem
 *.crt
+*.sh
 
 !.eslintrc.json
 !package.json

@@ -10,7 +10,7 @@ const remoteVideo = document.getElementById('remoteVideo');
 const myStream = parseInt(getURLParameter('stream')) || 1;
 const myPin = getURLParameter('pin') || null;
 
-const decoder = new TextDecoder();
+let decoder;
 
 const button = document.getElementById('button');
 button.onclick = () => {
@@ -284,21 +284,24 @@ async function doAnswer(offer) {
       //'sdpSemantics': 'unified-plan',
     });
 
-    // DataChannel
-    pc.createDataChannel("channel");
-    pc.ondatachannel = (event) => {
-      const channel = event.channel;
+    // inspect the offer.sdp for m=application lines before creating the DataChannel
+    if (/m=application [1-9]\d*/.test(offer.sdp)) {
+      const channel = pc.createDataChannel("JanusDataChannel");
+      console.log(`New remote DataChannel: (${channel.label})`);
+      
       channel.onopen = (event) => {
-        console.log("[pc.ondatachannel] Opening data channel!");
+        console.log(`Datachannel ${channel.id} (${channel.label}) open`);
       };
+
       channel.onmessage = (event) => {
+        decoder = decoder || new TextDecoder(); // initialize the decoder
         let decodedData = event.data;
         if (event.data?.byteLength) { // is ArrayBuffer
           decodedData = decoder.decode(event.data);
         }
-        console.log(decodedData);
+        console.log(`Datachannel ${channel.id} (${channel.label}) received`, decodedData);
       };
-    };
+    }
 
     pc.onnegotiationneeded = event => console.log('pc.onnegotiationneeded', event);
     pc.onicecandidate = event => trickle({ candidate: event.candidate });

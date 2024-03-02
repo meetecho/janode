@@ -10,6 +10,8 @@ const remoteVideo = document.getElementById('remoteVideo');
 const myStream = parseInt(getURLParameter('stream')) || 1;
 const myPin = getURLParameter('pin') || null;
 
+let decoder;
+
 const button = document.getElementById('button');
 button.onclick = () => {
   if (socket.connected)
@@ -273,6 +275,31 @@ socket.on('created', ({ data }) => console.log('mountpoint created', data));
 
 socket.on('destroyed', ({ data }) => console.log('mountpoint destroyed', data));
 
+function _setupDataChannelCallbacks(channel, isLocal) {
+  const labelPrefix = isLocal ? 'Local' : 'Remote';
+
+  channel.onopen = (event) => {
+    console.log(`${labelPrefix} Datachannel ${channel.id} (${channel.label}) open`);
+  };
+
+  channel.onmessage = (event) => {
+    decoder = decoder || new TextDecoder(); // initialize the decoder
+    let decodedData = event.data;
+    if (event.data?.byteLength) { // is ArrayBuffer
+      decodedData = decoder.decode(event.data);
+    }
+    console.log(`${labelPrefix} Datachannel ${channel.id} (${channel.label}) received`, decodedData);
+  };
+
+  channel.onclose = () => {
+    console.log(`${labelPrefix} Datachannel ${channel.id} (${channel.label}) closed`);
+  };
+
+  channel.onerror = (error) => {
+    console.error(`${labelPrefix} Datachannel ${channel.id} (${channel.label}) error:`, error);
+  };
+}
+
 async function doAnswer(offer) {
   if (!streamingPeerConnection) {
     const pc = new RTCPeerConnection({
@@ -282,6 +309,16 @@ async function doAnswer(offer) {
       //'sdpSemantics': 'unified-plan',
     });
 
+    // inspect the offer.sdp for m=application lines before creating the DataChannel
+    if (/m=application [1-9]\d*/.test(offer.sdp)) {
+      const localChannel = pc.createDataChannel("JanusDataChannel");
+      _setupDataChannelCallbacks(localChannel, true);
+      
+      pc.ondatachannel = (event) => {
+        const remoteChannel = event.channel;
+        _setupDataChannelCallbacks(remoteChannel, false);
+      };
+    }
     pc.onnegotiationneeded = event => console.log('pc.onnegotiationneeded', event);
     pc.onicecandidate = event => trickle({ candidate: event.candidate });
     pc.oniceconnectionstatechange = () => {

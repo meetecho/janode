@@ -276,10 +276,10 @@ socket.on('created', ({ data }) => console.log('mountpoint created', data));
 socket.on('destroyed', ({ data }) => console.log('mountpoint destroyed', data));
 
 function _setupDataChannelCallbacks(channel, isLocal) {
-  const labelPrefix = isLocal ? 'Local' : 'Remote';
+  const dcLogPrefix = `${isLocal ? 'Local' : 'Remote'} Datachannel ${channel.id} (${channel.label})`;
 
-  channel.onopen = (event) => {
-    console.log(`${labelPrefix} Datachannel ${channel.id} (${channel.label}) open`);
+  channel.onopen = (_event) => {
+    console.log(`${dcLogPrefix} open`);
   };
 
   channel.onmessage = (event) => {
@@ -288,15 +288,15 @@ function _setupDataChannelCallbacks(channel, isLocal) {
     if (event.data?.byteLength) { // is ArrayBuffer
       decodedData = decoder.decode(event.data);
     }
-    console.log(`${labelPrefix} Datachannel ${channel.id} (${channel.label}) received`, decodedData);
+    console.log(`${dcLogPrefix} received`, decodedData);
   };
 
   channel.onclose = () => {
-    console.log(`${labelPrefix} Datachannel ${channel.id} (${channel.label}) closed`);
+    console.log(`${dcLogPrefix} closed`);
   };
 
   channel.onerror = (error) => {
-    console.error(`${labelPrefix} Datachannel ${channel.id} (${channel.label}) error:`, error);
+    console.error(`${dcLogPrefix} error`, error);
   };
 }
 
@@ -311,9 +311,9 @@ async function doAnswer(offer) {
 
     // inspect the offer.sdp for m=application lines before creating the DataChannel
     if (/m=application [1-9]\d*/.test(offer.sdp)) {
-      const localChannel = pc.createDataChannel("JanusDataChannel");
+      const localChannel = pc.createDataChannel('JanusDataChannel');
       _setupDataChannelCallbacks(localChannel, true);
-      
+
       pc.ondatachannel = (event) => {
         const remoteChannel = event.channel;
         _setupDataChannelCallbacks(remoteChannel, false);

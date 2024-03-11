@@ -1115,11 +1115,12 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.rec_dir] - Folder where recordings should be stored
    * @param {boolean} [params.videoorient] - Whether the video-orientation RTP extension must be negotiated
    * @param {string} [params.h264_profile] - H264 specific profile to prefer
+   * @param {string} [params.vp9_profile] - VP9 specific profile to prefer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CREATED>}
    */
   async create({ room, description, max_publishers, permanent, is_private, secret, pin, admin_key, bitrate,
     bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold,
-    require_pvtid, require_e2ee, record, rec_dir, videoorient, h264_profile }) {
+    require_pvtid, require_e2ee, record, rec_dir, videoorient, h264_profile, vp9_profile }) {
     const body = {
       request: REQUEST_CREATE,
     };
@@ -1145,6 +1146,7 @@ class VideoRoomHandle extends Handle {
     if (typeof rec_dir === 'string') body.rec_dir = rec_dir;
     if (typeof videoorient === 'boolean') body.videoorient_ext = videoorient;
     if (typeof h264_profile === 'string') body.h264_profile = h264_profile;
+    if (typeof vp9_profile === 'string') body.vp9_profile = vp9_profile;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};

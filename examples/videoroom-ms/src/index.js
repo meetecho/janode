@@ -259,8 +259,10 @@ function initFrontEnd() {
           subHandle.on(Janode.EVENT.HANDLE_TRICKLE, evtdata => Logger.info(`${LOG_NS} ${subHandle.name} trickle event ${JSON.stringify(evtdata)}`));
 
           // specific videoroom events
-          subHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_SC_SUBSTREAM_LAYER, evtdata => Logger.info(`${LOG_NS} ${subHandle.name} simulcast substream layer switched to ${evtdata.sc_substream_layer}`));
-          subHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_SC_TEMPORAL_LAYERS, evtdata => Logger.info(`${LOG_NS} ${subHandle.name} simulcast temporal layers switched to ${evtdata.sc_temporal_layers}`));
+          subHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_UPDATED, evtdata => {
+            Logger.info(`${LOG_NS} ${subHandle.name} updated event`);
+            replyEvent(socket, 'updated', evtdata);
+          });
           response = await subHandle.joinSubscriber(subscribedata);
         }
         else {

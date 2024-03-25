@@ -925,7 +925,8 @@ class VideoRoomHandle extends Handle {
     const body = {
       request: REQUEST_START,
     };
-    jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
+    if (jsep)
+      jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
 
     const response = await this.message(body, jsep);
     const { event, data: evtdata } = response._janode || {};

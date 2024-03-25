@@ -5,8 +5,9 @@
 
 const RTCPeerConnection = (window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection).bind(window);
 
-const pcMap = new Map();
-let pendingOfferMap = new Map();
+let pubPc, subPc;
+const subscriptions = new Map();
+const pendingOfferMap = new Map();
 const myRoom = getURLParameter('room') ? parseInt(getURLParameter('room')) : (getURLParameter('room_str') || 1234);
 const randName = ('John_Doe_' + Math.floor(10000 * Math.random()));
 const myName = getURLParameter('name') || randName;
@@ -75,24 +76,34 @@ function subscribe({ streams, room = myRoom }) {
 
 function subscribeTo(publishers, room = myRoom) {
   const newStreams = [];
-  publishers.forEach(({ id: feed, streams }) => {
-    streams.forEach(({ mid }) => {
-      newStreams.push({
-        feed,
-        mid,
-      });
+  publishers.forEach(({ feed, streams }) => {
+    streams.forEach(s => {
+      const mid = s.mid;
+      if (!subscriptions.has(feed)) {
+        subscriptions.set(feed, new Map());
+      }
+      const feedSubs = subscriptions.get(feed);
+      if (!feedSubs.has(mid)) {
+        feedSubs.set(mid, s);
+        newStreams.push({
+          feed,
+          mid,
+        });
+      }
     });
   });
 
-  subscribe({
-    streams: newStreams,
-    room,
-  });
+  if (newStreams.length > 0) {
+    subscribe({
+      streams: newStreams,
+      room,
+    });
+  }
 }
 
 function trickle({ feed, candidate }) {
   const trickleData = candidate ? { candidate } : {};
-  trickleData.feed = feed;
+  if (feed) trickleData.feed = feed;
   const trickleEvent = candidate ? 'trickle' : 'trickle-complete';
 
   socket.emit(trickleEvent, {
@@ -101,14 +112,12 @@ function trickle({ feed, candidate }) {
   });
 }
 
-function configure({ feed, jsep, restart }) {
-  const configureData = {
-    feed,
-    audio: true,
-    video: true,
-    data: true,
-  };
+function configure({ feed, display, jsep, restart, streams }) {
+  const configureData = {};
+  if (feed) configureData.feed = feed;
+  if (display) configureData.display = display;
   if (jsep) configureData.jsep = jsep;
+  if (streams) configureData.streams = streams;
   if (typeof restart === 'boolean') configureData.restart = restart;
 
   const configId = getId();
@@ -118,10 +127,11 @@ function configure({ feed, jsep, restart }) {
     _id: configId,
   });
 
-  if (jsep) pendingOfferMap.set(configId, { feed });
+  if (jsep)
+    pendingOfferMap.set(configId, { feed });
 }
 
-function _unpublish({ feed }) {
+function _unpublish({ feed = pubPc._feed }) {
   const unpublishData = {
     feed,
   };
@@ -132,7 +142,7 @@ function _unpublish({ feed }) {
   });
 }
 
-function _leave({ feed }) {
+function _leave({ feed = pubPc._feed }) {
   const leaveData = {
     feed,
   };
@@ -167,7 +177,7 @@ function _kick({ feed, room = myRoom, secret = 'adminpwd' }) {
   });
 }
 
-function start({ jsep = null }) {
+function start({ jsep = null } = {}) {
   const startData = {
     jsep,
   };
@@ -178,12 +188,10 @@ function start({ jsep = null }) {
   });
 }
 
-function _pause({ feed }) {
-  const pauseData = {
-    feed,
-  };
+function _pause() {
+  const pauseData = {};
 
-  socket.emit('start', {
+  socket.emit('pause', {
     data: pauseData,
     _id: getId(),
   });
@@ -304,7 +312,8 @@ socket.on('connect', () => {
 socket.on('disconnect', () => {
   console.log('socket disconnected');
   pendingOfferMap.clear();
-  removeAllVideoElements();
+  subscriptions.clear();
+  removeAllMediaElements();
   closeAllPCs();
 });
 
@@ -315,9 +324,8 @@ socket.on('videoroom-error', ({ error, _id }) => {
     return;
   }
   if (pendingOfferMap.has(_id)) {
-    const { feed } = pendingOfferMap.get(_id);
-    removeVideoElementByFeed(feed);
-    closePC(feed);
+    removeLocalMediaElements();
+    closePubPc();
     pendingOfferMap.delete(_id);
     return;
   }
@@ -325,7 +333,7 @@ socket.on('videoroom-error', ({ error, _id }) => {
 
 socket.on('joined', async ({ data }) => {
   console.log('joined to room', data);
-  setLocalVideoElement(null, null, null, data.room);
+  setLocalMediaElement(null, null, null, data.room);
 
   try {
     const offer = await doOffer(data.feed, data.display);
@@ -340,8 +348,21 @@ socket.on('subscribed', async ({ data }) => {
   console.log('subscribed to feed', data);
 
   try {
-    const answer = await doAnswer(null, data.streams, data.jsep);
-    start({ jsep: answer });
+    if (data.jsep) {
+      const answer = await doAnswer(data.streams, data.jsep);
+      start({ jsep: answer });
+    }
+  } catch (e) { console.log('error while doing answer', e); }
+});
+
+socket.on('updated', async ({ data }) => {
+  console.log('updated subscription', data);
+
+  try {
+    if (data.jsep) {
+      const answer = await doAnswer(data.streams, data.jsep);
+      start({ jsep: answer });
+    }
   } catch (e) { console.log('error while doing answer', e); }
 });
 
@@ -356,8 +377,12 @@ socket.on('talking', ({ data }) => {
 socket.on('kicked', ({ data }) => {
   console.log('participant kicked', data);
   if (data.feed) {
-    removeVideoElementByFeed(data.feed);
-    closePC(data.feed);
+    removeMediaElementsByFeed(data.feed, false);
+    subscriptions.delete(data.feed);
+    if (data.feed === pubPc?._feed) {
+      closePubPc();
+      subscriptions.clear();
+    }
   }
 });
 
@@ -368,28 +393,34 @@ socket.on('allowed', ({ data }) => {
 socket.on('configured', async ({ data, _id }) => {
   console.log('feed configured', data);
   pendingOfferMap.delete(_id);
-  const pc = pcMap.get(data.feed);
+  const pc = data.feed ? pubPc : subPc;
   if (pc && data.jsep) {
     try {
       await pc.setRemoteDescription(data.jsep);
       console.log('configure remote sdp OK');
       if (data.jsep.type === 'offer') {
-        const answer = await doAnswer(null, data.streams, data.jsep);
+        const answer = await doAnswer(data.streams, data.jsep);
         start({ jsep: answer });
       }
     } catch (e) {
       console.log('error setting remote sdp', e);
     }
+    return;
+  }
+  if (data.display) {
+    setLocalMediaElement(null, data.feed, data.display);
+    return;
   }
 });
 
 socket.on('display', ({ data }) => {
   console.log('feed changed display name', data);
-  setRemoteVideoElement(null, data.feed, data.display);
+  setRemoteVideoElement(null, data.feed, null, data.display);
+
 });
 
 socket.on('started', ({ data }) => {
-  console.log('subscribed feed started', data);
+  console.log('subscriber feed started', data);
 });
 
 socket.on('paused', ({ data }) => {
@@ -397,9 +428,8 @@ socket.on('paused', ({ data }) => {
 });
 
 socket.on('switched', ({ data }) => {
-  console.log(`feed switched from ${data.from_feed} to ${data.to_feed} (${data.display})`);
-  /* !!! This will actually break the DOM management since IDs are feed based !!! */
-  setRemoteVideoElement(null, data.from_feed, data.display);
+  console.log('feed switched', data);
+  //TODO
 });
 
 socket.on('feed-list', ({ data }) => {
@@ -410,16 +440,24 @@ socket.on('feed-list', ({ data }) => {
 socket.on('unpublished', ({ data }) => {
   console.log('feed unpublished', data);
   if (data.feed) {
-    removeVideoElementByFeed(data.feed);
-    closePC(data.feed);
+    removeMediaElementsByFeed(data.feed, false);
+    subscriptions.delete(data.feed);
+    if (data.feed === pubPc?._feed) {
+      closePubPc();
+      subscriptions.clear();
+    }
   }
 });
 
 socket.on('leaving', ({ data }) => {
   console.log('feed leaving', data);
   if (data.feed) {
-    removeVideoElementByFeed(data.feed);
-    closePC(data.feed);
+    removeMediaElementsByFeed(data.feed, false);
+    subscriptions.delete(data.feed);
+    if (data.feed === pubPc?._feed) {
+      closePubPc();
+      subscriptions.clear();
+    }
   }
 });
 
@@ -464,7 +502,7 @@ async function _restartSubscriber() {
 }
 
 async function doOffer(feed, display) {
-  if (!pcMap.has(feed)) {
+  if (!pubPc) {
     const pc = new RTCPeerConnection({
       'iceServers': [{
         urls: 'stun:stun.l.google.com:19302'
@@ -475,14 +513,14 @@ async function doOffer(feed, display) {
     pc.onicecandidate = event => trickle({ feed, candidate: event.candidate });
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-        removeVideoElementByFeed(feed);
-        closePC(feed);
+        removeLocalMediaElements();
+        closePubPc();
       }
     };
     /* This one below should not be fired, cause the PC is used just to send */
     pc.ontrack = event => console.log('pc.ontrack', event);
 
-    pcMap.set(feed, pc);
+    pubPc = pc;
 
     try {
       const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
@@ -490,48 +528,50 @@ async function doOffer(feed, display) {
         console.log('adding track', track);
         pc.addTrack(track, localStream);
       });
-      setLocalVideoElement(localStream, feed, display);
+      setLocalMediaElement(localStream, feed, display, null);
     } catch (e) {
       console.log('error while doing offer', e);
-      removeVideoElementByFeed(feed);
-      closePC(feed);
+      removeLocalMediaElements();
+      closePubPc();
       return;
     }
   }
   else {
     console.log('Performing ICE restart');
-    pcMap.get(feed).restartIce();
+    pubPc.restartIce();
   }
+  pubPc._feed = feed;
 
   try {
-    const pc = pcMap.get(feed);
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
+    const offer = await pubPc.createOffer();
+    await pubPc.setLocalDescription(offer);
     console.log('set local sdp OK');
     return offer;
   } catch (e) {
     console.log('error while doing offer', e);
-    removeVideoElementByFeed(feed);
-    closePC(feed);
+    removeLocalMediaElements();
+    closePubPc();
     return;
   }
 
 }
 
-async function doAnswer(feed, streams, offer) {
-  if (!pcMap.has(feed)) {
+async function doAnswer(streams, offer) {
+  if (!subPc) {
     const pc = new RTCPeerConnection({
       'iceServers': [{
         urls: 'stun:stun.l.google.com:19302'
       }],
     });
 
+    subPc = pc;
+
     pc.onnegotiationneeded = event => console.log('pc.onnegotiationneeded', event);
-    pc.onicecandidate = event => trickle({ feed, candidate: event.candidate });
+    pc.onicecandidate = event => trickle({ candidate: event.candidate });
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-        removeVideoElementByFeed(feed);
-        closePC(feed);
+        removeRemoteMediaElements();
+        closeSubPc();
       }
     };
     pc.ontrack = event => {
@@ -539,7 +579,6 @@ async function doAnswer(feed, streams, offer) {
 
       event.track.onunmute = evt => {
         console.log('track.onunmute', evt);
-        /* TODO set srcObject in this callback */
       };
       event.track.onmute = evt => {
         console.log('track.onmute', evt);
@@ -548,75 +587,98 @@ async function doAnswer(feed, streams, offer) {
         console.log('track.onended', evt);
       };
 
-      const remoteStream = event.streams[0];
-      setRemoteVideoElement(remoteStream, feed, display);
+      const submid = event.transceiver?.mid || event.receiver.mid;
+      const stream = subPc._streams.filter(({ mid }) => mid === submid)[0];
+      const feed = stream.feed_id;
+      const display = stream.feed_display;
+      const type = stream.type;
+      /* avoid latching tracks */
+      const remoteStream = event.streams[0].id === 'janus' ? (new MediaStream([event.track])) : event.streams[0];
+      if (type === 'video')
+        setRemoteVideoElement(remoteStream, feed, submid, display);
+      if (type === 'audio')
+        setRemoteAudioElement(remoteStream, feed, submid);
     };
-
-    pcMap.set(feed, pc);
   }
-
-  const pc = pcMap.get(feed);
+  subPc._streams = streams;
 
   try {
-    await pc.setRemoteDescription(offer);
+    await subPc.setRemoteDescription(offer);
     console.log('set remote sdp OK');
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
+    const answer = await subPc.createAnswer();
+    await subPc.setLocalDescription(answer);
     console.log('set local sdp OK');
     return answer;
   } catch (e) {
     console.log('error creating subscriber answer', e);
-    removeVideoElementByFeed(feed);
-    closePC(feed);
+    removeRemoteMediaElements();
+    closeSubPc();
     throw e;
   }
 }
 
-function setLocalVideoElement(localStream, feed, display, room) {
+function setLocalMediaElement(localStream, feed, display, room) {
   if (room) document.getElementById('videos').getElementsByTagName('span')[0].innerHTML = '   --- VIDEOROOM (' + room + ') ---  ';
   if (!feed) return;
 
-  if (!document.getElementById('video_' + feed)) {
+  const id = `video_${feed}_local`;
+  let localVideoContainer = document.getElementById(id);
+  if (!localVideoContainer) {
     const nameElem = document.createElement('span');
-    nameElem.innerHTML = display + ' (' + feed + ')';
     nameElem.style.display = 'table';
 
-    if (localStream) {
-      const localVideoStreamElem = document.createElement('video');
-      //localVideo.id = 'video_'+feed;
-      localVideoStreamElem.width = 320;
-      localVideoStreamElem.height = 240;
-      localVideoStreamElem.autoplay = true;
-      localVideoStreamElem.muted = 'muted';
-      localVideoStreamElem.style.cssText = '-moz-transform: scale(-1, 1); -webkit-transform: scale(-1, 1); -o-transform: scale(-1, 1); transform: scale(-1, 1); filter: FlipH;';
-      localVideoStreamElem.srcObject = localStream;
+    const localVideoStreamElem = document.createElement('video');
+    localVideoStreamElem.width = 320;
+    localVideoStreamElem.height = 240;
+    localVideoStreamElem.autoplay = true;
+    localVideoStreamElem.muted = true;
+    localVideoStreamElem.style.cssText = '-moz-transform: scale(-1, 1); -webkit-transform: scale(-1, 1); -o-transform: scale(-1, 1); transform: scale(-1, 1); filter: FlipH;';
 
-      const localVideoContainer = document.createElement('div');
-      localVideoContainer.id = 'video_' + feed;
-      localVideoContainer.appendChild(nameElem);
-      localVideoContainer.appendChild(localVideoStreamElem);
+    localVideoContainer = document.createElement('div');
+    localVideoContainer.id = id;
+    localVideoContainer.appendChild(nameElem);
+    localVideoContainer.appendChild(localVideoStreamElem);
 
-      document.getElementById('locals').appendChild(localVideoContainer);
-    }
+    document.getElementById('locals').appendChild(localVideoContainer);
   }
-  else {
-    const localVideoContainer = document.getElementById('video_' + feed);
-    if (display) {
-      const nameElem = localVideoContainer.getElementsByTagName('span')[0];
-      nameElem.innerHTML = display + ' (' + feed + ')';
-    }
+  if (display) {
+    const nameElem = localVideoContainer.getElementsByTagName('span')[0];
+    nameElem.innerHTML = `${display}|${feed}`;
+  }
+  if (localStream) {
     const localVideoStreamElem = localVideoContainer.getElementsByTagName('video')[0];
-    if (localStream)
-      localVideoStreamElem.srcObject = localStream;
+    localVideoStreamElem.srcObject = localStream;
   }
 }
 
-function setRemoteVideoElement(remoteStream, feed, display) {
+function setRemoteVideoElement(remoteStream, feed, mid, display) {
   if (!feed) return;
 
-  if (!document.getElementById('video_' + feed)) {
+  /* Target all streams related to feed */
+  if (!remoteStream && !mid && display) {
+    const videoIdStartsWith = `video_${feed}`;
+    const videoContainers = document.querySelectorAll(`[id^=${videoIdStartsWith}]`);
+    videoContainers.forEach(container => {
+      if (remoteStream) {
+        const remoteVideoStreamElem = container.getElementsByTagName('video')[0];
+        remoteVideoStreamElem.srcObject = remoteStream;
+      }
+      if (display) {
+        const nameElem = container.getElementsByTagName('span')[0];
+        mid = nameElem.innerHTML.split('|')[2];
+        nameElem.innerHTML = `${display}|${feed}|${mid}`;
+      }
+    });
+    return;
+  }
+
+  /* Target specific feed/mid */
+  const id = `video_${feed}_${mid}_remote`;
+  let remoteVideoContainer = document.getElementById(id);
+  if (!remoteVideoContainer) {
+    /* Non existing */
     const nameElem = document.createElement('span');
-    nameElem.innerHTML = display + ' (' + feed + ')';
+    nameElem.innerHTML = `${display}|${feed}|${mid}`;
     nameElem.style.display = 'table';
 
     const remoteVideoStreamElem = document.createElement('video');
@@ -624,58 +686,119 @@ function setRemoteVideoElement(remoteStream, feed, display) {
     remoteVideoStreamElem.height = 240;
     remoteVideoStreamElem.autoplay = true;
     remoteVideoStreamElem.style.cssText = '-moz-transform: scale(-1, 1); -webkit-transform: scale(-1, 1); -o-transform: scale(-1, 1); transform: scale(-1, 1); filter: FlipH;';
-    if (remoteStream)
-      remoteVideoStreamElem.srcObject = remoteStream;
 
-    const remoteVideoContainer = document.createElement('div');
-    remoteVideoContainer.id = 'video_' + feed;
+    remoteVideoContainer = document.createElement('div');
+    remoteVideoContainer.id = id;
     remoteVideoContainer.appendChild(nameElem);
     remoteVideoContainer.appendChild(remoteVideoStreamElem);
 
     document.getElementById('remotes').appendChild(remoteVideoContainer);
   }
-  else {
-    const remoteVideoContainer = document.getElementById('video_' + feed);
-    if (display) {
-      const nameElem = remoteVideoContainer.getElementsByTagName('span')[0];
-      nameElem.innerHTML = display + ' (' + feed + ')';
-    }
-    if (remoteStream) {
-      const remoteVideoStreamElem = remoteVideoContainer.getElementsByTagName('video')[0];
-      remoteVideoStreamElem.srcObject = remoteStream;
-    }
+  if (display) {
+    const nameElem = remoteVideoContainer.getElementsByTagName('span')[0];
+    nameElem.innerHTML = `${display}|${feed}|${mid}`;
+  }
+  if (remoteStream) {
+    const remoteVideoStreamElem = remoteVideoContainer.getElementsByTagName('video')[0];
+    remoteVideoStreamElem.srcObject = remoteStream;
   }
 }
 
-function removeVideoElementByFeed(feed, stopTracks = true) {
-  const videoContainer = document.getElementById(`video_${feed}`);
-  if (videoContainer) removeVideoElement(videoContainer, stopTracks);
+function setRemoteAudioElement(remoteStream, feed, mid) {
+  if (!feed) return;
+
+  /* Target all streams related to feed */
+  if (!remoteStream && !mid) {
+    const audioIdStartsWith = `audio_${feed}`;
+    const audioContainers = document.querySelectorAll(`[id^=${audioIdStartsWith}]`);
+    audioContainers.forEach(container => {
+      if (remoteStream) {
+        const remoteAudioStreamElem = container.getElementsByTagName('audio')[0];
+        remoteAudioStreamElem.srcObject = remoteStream;
+      }
+    });
+    return;
+  }
+
+  const id = `audio_${feed}_${mid}_remote`;
+  let remoteAudioContainer = document.getElementById(id);
+  if (!remoteAudioContainer) {
+    const remoteAudioStreamElem = document.createElement('audio');
+    remoteAudioStreamElem.autoplay = true;
+
+    remoteAudioContainer = document.createElement('div');
+    remoteAudioContainer.id = id;
+    remoteAudioContainer.appendChild(remoteAudioStreamElem);
+
+    document.getElementById('remotes').appendChild(remoteAudioContainer);
+  }
+  if (remoteStream) {
+    const remoteAudioStreamElem = remoteAudioContainer.getElementsByTagName('audio')[0];
+    remoteAudioStreamElem.srcObject = remoteStream;
+  }
 }
 
-function removeVideoElement(container, stopTracks = true) {
-  let videoStreamElem = container.getElementsByTagName('video').length > 0 ? container.getElementsByTagName('video')[0] : null;
-  if (videoStreamElem && videoStreamElem.srcObject && stopTracks) {
-    videoStreamElem.srcObject.getTracks().forEach(track => track.stop());
-    videoStreamElem.srcObject = null;
+function removeMediaElement(container, stopTracks = true) {
+  let streamElem = null;
+  if (container.getElementsByTagName('video').length > 0)
+    streamElem = container.getElementsByTagName('video')[0];
+  if (container.getElementsByTagName('audio').length > 0)
+    streamElem = container.getElementsByTagName('audio')[0];
+  if (streamElem && streamElem.srcObject && stopTracks) {
+    streamElem.srcObject.getTracks().forEach(track => track.stop());
+    streamElem.srcObject = null;
   }
   container.remove();
 }
 
-function removeAllVideoElements() {
+function removeMediaElementsByFeed(feed, stopTracks) {
+  const audioIdStartsWith = `audio_${feed}`;
+  const audioContainers = document.querySelectorAll(`[id^=${audioIdStartsWith}]`);
+  audioContainers.forEach(container => removeMediaElement(container, stopTracks));
+
+  const videoIdStartsWith = `video_${feed}`;
+  const videoContainers = document.querySelectorAll(`[id^=${videoIdStartsWith}]`);
+  videoContainers.forEach(container => removeMediaElement(container, stopTracks));
+}
+
+function removeLocalMediaElements() {
   const locals = document.getElementById('locals');
-  const localVideoContainers = locals.getElementsByTagName('div');
-  for (let i = 0; localVideoContainers && i < localVideoContainers.length; i++)
-    removeVideoElement(localVideoContainers[i]);
+  const localMediaContainers = locals.getElementsByTagName('div');
+  for (let i = 0; localMediaContainers && i < localMediaContainers.length; i++)
+    removeMediaElement(localMediaContainers[i]);
   while (locals.firstChild)
     locals.removeChild(locals.firstChild);
+}
 
+function removeRemoteMediaElements() {
   var remotes = document.getElementById('remotes');
-  const remoteVideoContainers = remotes.getElementsByTagName('div');
-  for (let i = 0; remoteVideoContainers && i < remoteVideoContainers.length; i++)
-    removeVideoElement(remoteVideoContainers[i]);
+  const remoteMediaContainers = remotes.getElementsByTagName('div');
+  for (let i = 0; remoteMediaContainers && i < remoteMediaContainers.length; i++)
+    removeMediaElement(remoteMediaContainers[i]);
   while (remotes.firstChild)
     remotes.removeChild(remotes.firstChild);
+}
+
+function removeAllMediaElements() {
+  removeLocalMediaElements();
+  removeRemoteMediaElements();
   document.getElementById('videos').getElementsByTagName('span')[0].innerHTML = '   --- VIDEOROOM () ---  ';
+}
+
+function closePubPc() {
+  if (pubPc) {
+    console.log('closing pc for publisher');
+    _closePC(pubPc);
+    pubPc = null;
+  }
+}
+
+function closeSubPc() {
+  if (subPc) {
+    console.log('closing pc for subscriber');
+    _closePC(subPc);
+    subPc = null;
+  }
 }
 
 function _closePC(pc) {
@@ -692,24 +815,13 @@ function _closePC(pc) {
   pc.onicecandidate = null;
   pc.oniceconnectionstatechange = null;
   pc.ontrack = null;
-  pc.close();
-}
-
-function closePC(feed) {
-  if (!feed) return;
-  let pc = pcMap.get(feed);
-  console.log('closing pc for feed', feed);
-  _closePC(pc);
-  pcMap.delete(feed);
+  try {
+    pc.close();
+  } catch (e) { }
 }
 
 function closeAllPCs() {
   console.log('closing all pcs');
-
-  pcMap.forEach((pc, feed) => {
-    console.log('closing pc for feed', feed);
-    _closePC(pc);
-  });
-
-  pcMap.clear();
+  closePubPc();
+  closeSubPc();
 }

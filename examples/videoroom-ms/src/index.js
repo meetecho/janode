@@ -206,9 +206,6 @@ function initFrontEnd() {
         });
 
         pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_KICKED, async evtdata => {
-          if (pubHandle.feed === evtdata.feed) {
-            await msHandles.detachPubHandle();
-          }
           replyEvent(socket, 'kicked', evtdata);
         });
 
@@ -274,8 +271,27 @@ function initFrontEnd() {
         replyEvent(socket, 'subscribed', response, _id);
         Logger.info(`${LOG_NS} ${remote} subscribed sent`);
       } catch ({ message }) {
-        if (subHandle) subHandle.detach().catch(() => { });
         replyError(socket, message, subscribedata, _id);
+      }
+    });
+
+    socket.on('unsubscribe', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} unsubscribe received`);
+      const { _id, data: unsubscribedata = {} } = evtdata;
+
+      let subHandle = msHandles.getSubHandle();
+      if (!checkSessions(janodeSession, subHandle, socket, evtdata)) return;
+      let response;
+
+      try {
+        response = await subHandle.update({
+          unsubscribe: unsubscribedata.streams,
+        });
+
+        replyEvent(socket, 'unsubscribed', response, _id);
+        Logger.info(`${LOG_NS} ${remote} unsubscribed sent`);
+      } catch ({ message }) {
+        replyError(socket, message, unsubscribedata, _id);
       }
     });
 

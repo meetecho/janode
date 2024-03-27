@@ -6,11 +6,12 @@
 const RTCPeerConnection = (window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection).bind(window);
 
 let pubPc, subPc;
-const subscriptions = new Map();
+let subscriptions = new Map();
 const pendingOfferMap = new Map();
 const myRoom = getURLParameter('room') ? parseInt(getURLParameter('room')) : (getURLParameter('room_str') || 1234);
 const randName = ('John_Doe_' + Math.floor(10000 * Math.random()));
 const myName = getURLParameter('name') || randName;
+let myFeed;
 
 const button = document.getElementById('button');
 button.onclick = () => {
@@ -78,16 +79,10 @@ function subscribeTo(publishers, room = myRoom) {
   const newStreams = [];
   publishers.forEach(({ feed, streams }) => {
     streams.forEach(s => {
-      const mid = s.mid;
-      if (!subscriptions.has(feed)) {
-        subscriptions.set(feed, new Map());
-      }
-      const feedSubs = subscriptions.get(feed);
-      if (!feedSubs.has(mid)) {
-        feedSubs.set(mid, s);
+      if (!hasFeedMidSubscription(feed, s.mid)) {
         newStreams.push({
           feed,
-          mid,
+          mid: s.mid,
         });
       }
     });
@@ -131,7 +126,16 @@ function configure({ feed, display, jsep, restart, streams }) {
     pendingOfferMap.set(configId, { feed });
 }
 
-function _unpublish({ feed = pubPc._feed }) {
+async function _publish({ feed = myFeed, display = myName } = {}) {
+  try {
+    const offer = await doOffer(feed, display);
+    configure({ feed, jsep: offer });
+  } catch (e) {
+    console.log('error while doing offer', e);
+  }
+}
+
+function _unpublish({ feed = myFeed } = {}) {
   const unpublishData = {
     feed,
   };
@@ -142,7 +146,7 @@ function _unpublish({ feed = pubPc._feed }) {
   });
 }
 
-function _leave({ feed = pubPc._feed }) {
+function _leave({ feed = myFeed } = {}) {
   const leaveData = {
     feed,
   };
@@ -197,6 +201,17 @@ function _pause() {
   });
 }
 
+function _unsubscribe({ streams, room = myRoom }) {
+  const unsubscribeData = {
+    room,
+    streams,
+  };
+
+  socket.emit('unsubscribe', {
+    data: unsubscribeData,
+    _id: getId(),
+  });
+}
 
 function _switch({ streams }) {
   const switchData = {
@@ -324,7 +339,7 @@ socket.on('videoroom-error', ({ error, _id }) => {
     return;
   }
   if (pendingOfferMap.has(_id)) {
-    removeLocalMediaElements();
+    removeAllLocalMediaElements();
     closePubPc();
     pendingOfferMap.delete(_id);
     return;
@@ -336,20 +351,86 @@ socket.on('joined', async ({ data }) => {
   setLocalMediaElement(null, null, null, data.room);
 
   try {
-    const offer = await doOffer(data.feed, data.display);
-    configure({ feed: data.feed, jsep: offer });
+    await _publish({ feed: data.feed, display: data.display});
     subscribeTo(data.publishers, data.room);
   } catch (e) {
-    console.log('error while doing offer', e);
+    console.log('error while publishing', e);
   }
 });
 
 socket.on('subscribed', async ({ data }) => {
   console.log('subscribed to feed', data);
+  /*
+   * data.streams
+   * [
+   *   {
+   *     "type": "audio",
+   *     "active": true,
+   *     "mindex": 0,
+   *     "mid": "0",
+   *     "ready": false,
+   *     "send": true,
+   *     "feed_id": 947374180882471,
+   *     "feed_display": "John_Doe_8186",
+   *     "feed_mid": "0",
+   *     "codec": "opus"
+   *   },
+   *   {
+   *     "type": "video",
+   *     "active": true,
+   *     "mindex": 1,
+   *     "mid": "1",
+   *     "ready": false,
+   *     "send": true,
+   *     "feed_id": 947374180882471,
+   *     "feed_display": "John_Doe_8186",
+   *     "feed_mid": "1",
+   *     "codec": "vp8"
+   *   }
+   * ]
+   */
+  updateSubscriptions(data.streams);
 
   try {
     if (data.jsep) {
-      const answer = await doAnswer(data.streams, data.jsep);
+      const answer = await doAnswer(data.jsep);
+      start({ jsep: answer });
+    }
+  } catch (e) { console.log('error while doing answer', e); }
+});
+
+socket.on('unsubscribed', async ({ data }) => {
+  console.log('unsubscribed to feed', data);
+  /*
+   * data.streams
+   * [
+   *   {
+   *     "type": "audio",
+   *     "active": true,
+   *     "mindex": 0,
+   *     "mid": "0",
+   *     "ready": true,
+   *     "send": true,
+   *     "feed_id": 5431908509285044,
+   *     "feed_display": "John_Doe_2332",
+   *     "feed_mid": "0",
+   *     "codec": "opus"
+   *   },
+   *   {
+   *     "type": "video",
+   *     "active": false,
+   *     "mindex": 1,
+   *     "mid": "1",
+   *     "ready": false,
+   *     "send": true
+   *   }
+   * ]
+   */
+  updateSubscriptions(data.streams);
+
+  try {
+    if (data.jsep) {
+      const answer = await doAnswer(data.jsep);
       start({ jsep: answer });
     }
   } catch (e) { console.log('error while doing answer', e); }
@@ -357,10 +438,32 @@ socket.on('subscribed', async ({ data }) => {
 
 socket.on('updated', async ({ data }) => {
   console.log('updated subscription', data);
+  /*
+   * data.streams
+   * [
+   *   {
+   *     "type": "audio",
+   *     "active": false,
+   *     "mindex": 0,
+   *     "mid": "0",
+   *     "ready": false,
+   *     "send": true
+   *   },
+   *   {
+   *     "type": "video",
+   *     "active": false,
+   *     "mindex": 1,
+   *     "mid": "1",
+   *     "ready": false,
+   *     "send": true
+   *   }
+   * ]
+   */
+  updateSubscriptions(data.streams);
 
   try {
     if (data.jsep) {
-      const answer = await doAnswer(data.streams, data.jsep);
+      const answer = await doAnswer(data.jsep);
       start({ jsep: answer });
     }
   } catch (e) { console.log('error while doing answer', e); }
@@ -377,12 +480,7 @@ socket.on('talking', ({ data }) => {
 socket.on('kicked', ({ data }) => {
   console.log('participant kicked', data);
   if (data.feed) {
-    removeMediaElementsByFeed(data.feed, false);
-    subscriptions.delete(data.feed);
-    if (data.feed === pubPc?._feed) {
-      closePubPc();
-      subscriptions.clear();
-    }
+    deleteSubscriptionByFeed(data.feed);
   }
 });
 
@@ -393,30 +491,33 @@ socket.on('allowed', ({ data }) => {
 socket.on('configured', async ({ data, _id }) => {
   console.log('feed configured', data);
   pendingOfferMap.delete(_id);
+
   const pc = data.feed ? pubPc : subPc;
-  if (pc && data.jsep) {
+  if (data.jsep) {
     try {
       await pc.setRemoteDescription(data.jsep);
-      console.log('configure remote sdp OK');
       if (data.jsep.type === 'offer') {
-        const answer = await doAnswer(data.streams, data.jsep);
+        const answer = await doAnswer(data.jsep);
         start({ jsep: answer });
       }
+      console.log('configure remote sdp OK');
     } catch (e) {
       console.log('error setting remote sdp', e);
     }
-    return;
   }
   if (data.display) {
     setLocalMediaElement(null, data.feed, data.display);
-    return;
   }
 });
 
 socket.on('display', ({ data }) => {
   console.log('feed changed display name', data);
-  setRemoteVideoElement(null, data.feed, null, data.display);
-
+  for (let [_, stream] of subscriptions) {
+    if (stream.feed === data.feed) {
+      stream.display = data.display;
+    }
+  }
+  refreshRemoteMediaElements();
 });
 
 socket.on('started', ({ data }) => {
@@ -429,7 +530,7 @@ socket.on('paused', ({ data }) => {
 
 socket.on('switched', ({ data }) => {
   console.log('feed switched', data);
-  //TODO
+  updateSubscriptions(data.streams);
 });
 
 socket.on('feed-list', ({ data }) => {
@@ -440,11 +541,9 @@ socket.on('feed-list', ({ data }) => {
 socket.on('unpublished', ({ data }) => {
   console.log('feed unpublished', data);
   if (data.feed) {
-    removeMediaElementsByFeed(data.feed, false);
-    subscriptions.delete(data.feed);
-    if (data.feed === pubPc?._feed) {
+    if (data.feed === myFeed) {
+      removeAllLocalMediaElements();
       closePubPc();
-      subscriptions.clear();
     }
   }
 });
@@ -452,11 +551,12 @@ socket.on('unpublished', ({ data }) => {
 socket.on('leaving', ({ data }) => {
   console.log('feed leaving', data);
   if (data.feed) {
-    removeMediaElementsByFeed(data.feed, false);
-    subscriptions.delete(data.feed);
-    if (data.feed === pubPc?._feed) {
+    if (data.feed === myFeed) {
+      removeAllLocalMediaElements();
       closePubPc();
-      subscriptions.clear();
+    }
+    else {
+      deleteSubscriptionByFeed(data.feed);
     }
   }
 });
@@ -513,7 +613,7 @@ async function doOffer(feed, display) {
     pc.onicecandidate = event => trickle({ feed, candidate: event.candidate });
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-        removeLocalMediaElements();
+        removeAllLocalMediaElements();
         closePubPc();
       }
     };
@@ -531,7 +631,7 @@ async function doOffer(feed, display) {
       setLocalMediaElement(localStream, feed, display, null);
     } catch (e) {
       console.log('error while doing offer', e);
-      removeLocalMediaElements();
+      removeAllLocalMediaElements();
       closePubPc();
       return;
     }
@@ -540,7 +640,7 @@ async function doOffer(feed, display) {
     console.log('Performing ICE restart');
     pubPc.restartIce();
   }
-  pubPc._feed = feed;
+  myFeed = feed;
 
   try {
     const offer = await pubPc.createOffer();
@@ -549,14 +649,66 @@ async function doOffer(feed, display) {
     return offer;
   } catch (e) {
     console.log('error while doing offer', e);
-    removeLocalMediaElements();
+    removeAllLocalMediaElements();
     closePubPc();
     return;
   }
-
 }
 
-async function doAnswer(streams, offer) {
+function hasFeedMidSubscription(feed, mid) {
+  for (let [_, s] of subscriptions) {
+    if (s.feed === feed && s.mid === mid) return true;
+  }
+  return false;
+}
+
+function deleteSubscriptionByFeed(feed) {
+  removeRemoteMediaElementsByFeedMid(feed, false);
+  for (let [sub_mid, s] of subscriptions) {
+    if (s.feed === feed) subscriptions.delete(sub_mid);
+  }
+}
+
+function updateSubscriptions(streams) {
+  if (!streams) return;
+  removeRemoteMediaElements(streams);
+  const newSubscriptions = new Map();
+  streams.forEach(({ feed_id: feed, feed_mid: mid, mid: sub_mid, feed_display: display, type, active }) => {
+    const newStream = {
+      feed,
+      mid,
+      sub_mid,
+      display,
+      type,
+      ms: subscriptions.get(sub_mid)?.ms,
+    };
+    if (active)
+      newSubscriptions.set(sub_mid, newStream);
+  });
+  subscriptions = newSubscriptions;
+  refreshRemoteMediaElements();
+}
+
+function removeRemoteMediaElements(new_streams) {
+  if (!new_streams) return;
+  const oldSubscriptions = subscriptions;
+  const oldSubMids = oldSubscriptions.keys().toArray();
+  const newSubMids = new_streams.values().toArray().map(s => s.mid && s.active);
+  const deletedSubMids = oldSubMids.filter(mid => !newSubMids.includes(mid));
+  deletedSubMids.forEach(mid => removeRemoteMediaElementsBySubMid(mid, false));
+}
+
+function refreshRemoteMediaElements() {
+  for (let [sub_mid, s] of subscriptions) {
+    const { display, type, feed, mid, ms } = s;
+    if (type === 'video')
+      setRemoteVideoElement(ms, feed, mid, sub_mid, display);
+    if (type === 'audio')
+      setRemoteAudioElement(ms, feed, mid, sub_mid);
+  }
+}
+
+async function doAnswer(offer) {
   if (!subPc) {
     const pc = new RTCPeerConnection({
       'iceServers': [{
@@ -570,7 +722,7 @@ async function doAnswer(streams, offer) {
     pc.onicecandidate = event => trickle({ candidate: event.candidate });
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
-        removeRemoteMediaElements();
+        removeAllRemoteMediaElements();
         closeSubPc();
       }
     };
@@ -587,20 +739,16 @@ async function doAnswer(streams, offer) {
         console.log('track.onended', evt);
       };
 
-      const submid = event.transceiver?.mid || event.receiver.mid;
-      const stream = subPc._streams.filter(({ mid }) => mid === submid)[0];
-      const feed = stream.feed_id;
-      const display = stream.feed_display;
-      const type = stream.type;
       /* avoid latching tracks */
+      const submid = event.transceiver?.mid || event.receiver.mid;
       const remoteStream = event.streams[0].id === 'janus' ? (new MediaStream([event.track])) : event.streams[0];
-      if (type === 'video')
-        setRemoteVideoElement(remoteStream, feed, submid, display);
-      if (type === 'audio')
-        setRemoteAudioElement(remoteStream, feed, submid);
+      if (subscriptions.has(submid)) {
+        const stream = subscriptions.get(submid);
+        stream.ms = remoteStream;
+        refreshRemoteMediaElements();
+      }
     };
   }
-  subPc._streams = streams;
 
   try {
     await subPc.setRemoteDescription(offer);
@@ -611,7 +759,7 @@ async function doAnswer(streams, offer) {
     return answer;
   } catch (e) {
     console.log('error creating subscriber answer', e);
-    removeRemoteMediaElements();
+    removeAllRemoteMediaElements();
     closeSubPc();
     throw e;
   }
@@ -643,7 +791,7 @@ function setLocalMediaElement(localStream, feed, display, room) {
   }
   if (display) {
     const nameElem = localVideoContainer.getElementsByTagName('span')[0];
-    nameElem.innerHTML = `${display}|${feed}`;
+    nameElem.innerHTML = [display, feed].join('|');
   }
   if (localStream) {
     const localVideoStreamElem = localVideoContainer.getElementsByTagName('video')[0];
@@ -651,34 +799,16 @@ function setLocalMediaElement(localStream, feed, display, room) {
   }
 }
 
-function setRemoteVideoElement(remoteStream, feed, mid, display) {
-  if (!feed) return;
+function setRemoteVideoElement(remoteStream, feed, feed_mid, sub_mid, display) {
+  if (!feed || !feed_mid || !sub_mid) return;
 
-  /* Target all streams related to feed */
-  if (!remoteStream && !mid && display) {
-    const videoIdStartsWith = `video_${feed}`;
-    const videoContainers = document.querySelectorAll(`[id^=${videoIdStartsWith}]`);
-    videoContainers.forEach(container => {
-      if (remoteStream) {
-        const remoteVideoStreamElem = container.getElementsByTagName('video')[0];
-        remoteVideoStreamElem.srcObject = remoteStream;
-      }
-      if (display) {
-        const nameElem = container.getElementsByTagName('span')[0];
-        mid = nameElem.innerHTML.split('|')[2];
-        nameElem.innerHTML = `${display}|${feed}|${mid}`;
-      }
-    });
-    return;
-  }
-
-  /* Target specific feed/mid */
-  const id = `video_${feed}_${mid}_remote`;
+  /* Target specific sub_mid/feed/mid */
+  const id = `video_${feed}_${feed_mid}_remote_${sub_mid}`;
   let remoteVideoContainer = document.getElementById(id);
   if (!remoteVideoContainer) {
     /* Non existing */
     const nameElem = document.createElement('span');
-    nameElem.innerHTML = `${display}|${feed}|${mid}`;
+    nameElem.innerHTML = [display, feed, feed_mid, sub_mid].join('|');
     nameElem.style.display = 'table';
 
     const remoteVideoStreamElem = document.createElement('video');
@@ -696,7 +826,7 @@ function setRemoteVideoElement(remoteStream, feed, mid, display) {
   }
   if (display) {
     const nameElem = remoteVideoContainer.getElementsByTagName('span')[0];
-    nameElem.innerHTML = `${display}|${feed}|${mid}`;
+    nameElem.innerHTML = [display, feed, feed_mid, sub_mid].join('|');
   }
   if (remoteStream) {
     const remoteVideoStreamElem = remoteVideoContainer.getElementsByTagName('video')[0];
@@ -704,23 +834,11 @@ function setRemoteVideoElement(remoteStream, feed, mid, display) {
   }
 }
 
-function setRemoteAudioElement(remoteStream, feed, mid) {
-  if (!feed) return;
+function setRemoteAudioElement(remoteStream, feed, feed_mid, sub_mid) {
+  if (!feed || !feed_mid || !sub_mid) return;
 
-  /* Target all streams related to feed */
-  if (!remoteStream && !mid) {
-    const audioIdStartsWith = `audio_${feed}`;
-    const audioContainers = document.querySelectorAll(`[id^=${audioIdStartsWith}]`);
-    audioContainers.forEach(container => {
-      if (remoteStream) {
-        const remoteAudioStreamElem = container.getElementsByTagName('audio')[0];
-        remoteAudioStreamElem.srcObject = remoteStream;
-      }
-    });
-    return;
-  }
-
-  const id = `audio_${feed}_${mid}_remote`;
+  /* Target specific sub_mid/feed/mid */
+  const id = `audio_${feed}_${feed_mid}_remote_${sub_mid}`;
   let remoteAudioContainer = document.getElementById(id);
   if (!remoteAudioContainer) {
     const remoteAudioStreamElem = document.createElement('audio');
@@ -751,17 +869,20 @@ function removeMediaElement(container, stopTracks = true) {
   container.remove();
 }
 
-function removeMediaElementsByFeed(feed, stopTracks) {
-  const audioIdStartsWith = `audio_${feed}`;
-  const audioContainers = document.querySelectorAll(`[id^=${audioIdStartsWith}]`);
-  audioContainers.forEach(container => removeMediaElement(container, stopTracks));
-
-  const videoIdStartsWith = `video_${feed}`;
-  const videoContainers = document.querySelectorAll(`[id^=${videoIdStartsWith}]`);
-  videoContainers.forEach(container => removeMediaElement(container, stopTracks));
+function removeRemoteMediaElementsBySubMid(sub_mid, stopTracks) {
+  const idEndsWith = `_remote_${sub_mid}`;
+  const containers = document.querySelectorAll(`[id$=${idEndsWith}]`);
+  containers.forEach(container => removeMediaElement(container, stopTracks));
 }
 
-function removeLocalMediaElements() {
+function removeRemoteMediaElementsByFeedMid(feed_mid, stopTracks) {
+  [`audio_${feed_mid}`, `video_${feed_mid}`].forEach(idStartsWith => {
+    const containers = document.querySelectorAll(`[id^=${idStartsWith}]`);
+    containers.forEach(container => removeMediaElement(container, stopTracks));
+  });
+}
+
+function removeAllLocalMediaElements() {
   const locals = document.getElementById('locals');
   const localMediaContainers = locals.getElementsByTagName('div');
   for (let i = 0; localMediaContainers && i < localMediaContainers.length; i++)
@@ -770,7 +891,7 @@ function removeLocalMediaElements() {
     locals.removeChild(locals.firstChild);
 }
 
-function removeRemoteMediaElements() {
+function removeAllRemoteMediaElements() {
   var remotes = document.getElementById('remotes');
   const remoteMediaContainers = remotes.getElementsByTagName('div');
   for (let i = 0; remoteMediaContainers && i < remoteMediaContainers.length; i++)
@@ -780,8 +901,8 @@ function removeRemoteMediaElements() {
 }
 
 function removeAllMediaElements() {
-  removeLocalMediaElements();
-  removeRemoteMediaElements();
+  removeAllLocalMediaElements();
+  removeAllRemoteMediaElements();
   document.getElementById('videos').getElementsByTagName('span')[0].innerHTML = '   --- VIDEOROOM () ---  ';
 }
 

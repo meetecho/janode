@@ -768,13 +768,12 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.bitrate] - Bitrate cap
    * @param {boolean} [params.record] - True to record the feed
    * @param {string} [params.filename] - If recording, the base path/file to use for the recording
-   * @param {object[]} [params.streams] - [multistream] The streams object, each stream includes type, mid, description, disabled, simulcast ...
    * @param {object[]} [params.descriptions] - [multistream] The descriptions object, for each stream you can define description
    * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} params.jsep - The JSEP offer
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async publish({ audio, video, data, bitrate, record, filename, display, streams, descriptions, e2ee, jsep }) {
+  async publish({ audio, video, data, bitrate, record, filename, display, descriptions, e2ee, jsep }) {
     if (typeof jsep === 'object' && jsep && jsep.type !== 'offer') {
       const error = new Error('jsep must be an offer');
       return Promise.reject(error);
@@ -783,15 +782,9 @@ class VideoRoomHandle extends Handle {
       request: REQUEST_PUBLISH,
     };
 
-    /* [multistream] */
-    if (streams && Array.isArray(streams)) {
-      body.streams = streams;
-    }
-    else {
-      if (typeof audio === 'boolean') body.audio = audio;
-      if (typeof video === 'boolean') body.video = video;
-      if (typeof data === 'boolean') body.data = data;
-    }
+    if (typeof audio === 'boolean') body.audio = audio;
+    if (typeof video === 'boolean') body.video = video;
+    if (typeof data === 'boolean') body.data = data;
 
     if (typeof bitrate === 'number') body.bitrate = bitrate;
     if (typeof record === 'boolean') body.record = record;
@@ -867,10 +860,11 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled
    * @param {object[]} [params.streams] - [multistream] The streams object, each stream includes feed, mid, send, ...
    * @param {boolean} [params.autoupdate] - [multistream] Whether a new SDP offer is sent automatically when a subscribed publisher leaves
+   * @param {boolean} [params.use_msid] - [multistream] Whether subscriptions should include an msid that references the publisher
    * @param {string} [params.token] - The optional token needed
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
-  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, streams, autoupdate, token }) {
+  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, streams, autoupdate, use_msid, token }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_LISTENER,
@@ -895,6 +889,7 @@ class VideoRoomHandle extends Handle {
 
     /* [multistream] */
     if (typeof autoupdate === 'boolean') body.autoupdate = autoupdate;
+    if (typeof use_msid === 'boolean') body.use_msid = use_msid;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};

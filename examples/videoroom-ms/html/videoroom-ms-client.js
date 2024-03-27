@@ -351,7 +351,7 @@ socket.on('joined', async ({ data }) => {
   setLocalMediaElement(null, null, null, data.room);
 
   try {
-    await _publish({ feed: data.feed, display: data.display});
+    await _publish({ feed: data.feed, display: data.display });
     subscribeTo(data.publishers, data.room);
   } catch (e) {
     console.log('error while publishing', e);
@@ -480,7 +480,20 @@ socket.on('talking', ({ data }) => {
 socket.on('kicked', ({ data }) => {
   console.log('participant kicked', data);
   if (data.feed) {
-    deleteSubscriptionByFeed(data.feed);
+    const streams = subscriptions.values().toArray().map(s => {
+      const stream = {};
+      for (const attr in s) {
+        stream[attr] = s[attr];
+      }
+      if (stream.feed_id == data.feed) {
+        stream.active = false;
+        stream.feed_id = null;
+        stream.feed_mid = null;
+        stream.feed_display = null;
+      }
+      return stream;
+    });
+    updateSubscriptions(streams);
   }
 });
 
@@ -512,12 +525,13 @@ socket.on('configured', async ({ data, _id }) => {
 
 socket.on('display', ({ data }) => {
   console.log('feed changed display name', data);
-  for (let [_, stream] of subscriptions) {
-    if (stream.feed === data.feed) {
-      stream.display = data.display;
+  const streams = subscriptions.values().toArray().map(s => {
+    if (s.feed_id === data.feed) {
+      s.feed_display = data.display;
     }
-  }
-  refreshRemoteMediaElements();
+    return s;
+  });
+  updateSubscriptions(streams);
 });
 
 socket.on('started', ({ data }) => {
@@ -556,7 +570,20 @@ socket.on('leaving', ({ data }) => {
       closePubPc();
     }
     else {
-      deleteSubscriptionByFeed(data.feed);
+      const streams = subscriptions.values().toArray().map(s => {
+        const stream = {};
+        for (const attr in s) {
+          stream[attr] = s[attr];
+        }
+        if (stream.feed_id == data.feed) {
+          stream.active = false;
+          stream.feed_id = null;
+          stream.feed_mid = null;
+          stream.feed_display = null;
+        }
+        return stream;
+      });
+      updateSubscriptions(streams);
     }
   }
 });
@@ -592,9 +619,8 @@ socket.on('rtp-fwd-list', ({ data }) => {
   console.log('rtp forwarders list', data);
 });
 
-async function _restartPublisher(feed) {
-  const offer = await doOffer(feed, null);
-  configure({ feed, jsep: offer });
+async function _restartPublisher({ feed = myFeed } = {}) {
+  return _publish({ feed });
 }
 
 async function _restartSubscriber() {
@@ -662,28 +688,13 @@ function hasFeedMidSubscription(feed, mid) {
   return false;
 }
 
-function deleteSubscriptionByFeed(feed) {
-  removeRemoteMediaElementsByFeedMid(feed, false);
-  for (let [sub_mid, s] of subscriptions) {
-    if (s.feed === feed) subscriptions.delete(sub_mid);
-  }
-}
-
 function updateSubscriptions(streams) {
   if (!streams) return;
   removeRemoteMediaElements(streams);
   const newSubscriptions = new Map();
-  streams.forEach(({ feed_id: feed, feed_mid: mid, mid: sub_mid, feed_display: display, type, active }) => {
-    const newStream = {
-      feed,
-      mid,
-      sub_mid,
-      display,
-      type,
-      ms: subscriptions.get(sub_mid)?.ms,
-    };
-    if (active)
-      newSubscriptions.set(sub_mid, newStream);
+  streams.forEach(s => {
+    s.ms = subscriptions.get(s.mid)?.ms;
+    newSubscriptions.set(s.mid, s);
   });
   subscriptions = newSubscriptions;
   refreshRemoteMediaElements();
@@ -692,19 +703,21 @@ function updateSubscriptions(streams) {
 function removeRemoteMediaElements(new_streams) {
   if (!new_streams) return;
   const oldSubscriptions = subscriptions;
-  const oldSubMids = oldSubscriptions.keys().toArray();
-  const newSubMids = new_streams.values().toArray().map(s => s.mid && s.active);
+  const oldSubMids = oldSubscriptions.values().toArray().map(s => s.active && s.mid).filter(mid => mid);
+  const newSubMids = new_streams.values().toArray().map(s => s.active && s.mid).filter(mid => mid);
   const deletedSubMids = oldSubMids.filter(mid => !newSubMids.includes(mid));
   deletedSubMids.forEach(mid => removeRemoteMediaElementsBySubMid(mid, false));
 }
 
 function refreshRemoteMediaElements() {
   for (let [sub_mid, s] of subscriptions) {
-    const { display, type, feed, mid, ms } = s;
-    if (type === 'video')
-      setRemoteVideoElement(ms, feed, mid, sub_mid, display);
-    if (type === 'audio')
-      setRemoteAudioElement(ms, feed, mid, sub_mid);
+    const { feed_display, type, feed_id, feed_mid, active, ms } = s;
+    if (active) {
+      if (type === 'video')
+        setRemoteVideoElement(ms, sub_mid, [feed_display, feed_id, feed_mid, sub_mid].join('|'));
+      if (type === 'audio')
+        setRemoteAudioElement(ms, sub_mid);
+    }
   }
 }
 
@@ -799,16 +812,16 @@ function setLocalMediaElement(localStream, feed, display, room) {
   }
 }
 
-function setRemoteVideoElement(remoteStream, feed, feed_mid, sub_mid, display) {
-  if (!feed || !feed_mid || !sub_mid) return;
+function setRemoteVideoElement(remoteStream, sub_mid, display) {
+  if (!sub_mid) return;
 
   /* Target specific sub_mid/feed/mid */
-  const id = `video_${feed}_${feed_mid}_remote_${sub_mid}`;
+  const id = `video_remote_${sub_mid}`;
   let remoteVideoContainer = document.getElementById(id);
   if (!remoteVideoContainer) {
     /* Non existing */
     const nameElem = document.createElement('span');
-    nameElem.innerHTML = [display, feed, feed_mid, sub_mid].join('|');
+    nameElem.innerHTML = display;
     nameElem.style.display = 'table';
 
     const remoteVideoStreamElem = document.createElement('video');
@@ -826,7 +839,7 @@ function setRemoteVideoElement(remoteStream, feed, feed_mid, sub_mid, display) {
   }
   if (display) {
     const nameElem = remoteVideoContainer.getElementsByTagName('span')[0];
-    nameElem.innerHTML = [display, feed, feed_mid, sub_mid].join('|');
+    nameElem.innerHTML = display;
   }
   if (remoteStream) {
     const remoteVideoStreamElem = remoteVideoContainer.getElementsByTagName('video')[0];
@@ -834,11 +847,11 @@ function setRemoteVideoElement(remoteStream, feed, feed_mid, sub_mid, display) {
   }
 }
 
-function setRemoteAudioElement(remoteStream, feed, feed_mid, sub_mid) {
-  if (!feed || !feed_mid || !sub_mid) return;
+function setRemoteAudioElement(remoteStream, sub_mid) {
+  if (!sub_mid) return;
 
   /* Target specific sub_mid/feed/mid */
-  const id = `audio_${feed}_${feed_mid}_remote_${sub_mid}`;
+  const id = `audio_remote_${sub_mid}`;
   let remoteAudioContainer = document.getElementById(id);
   if (!remoteAudioContainer) {
     const remoteAudioStreamElem = document.createElement('audio');
@@ -873,13 +886,6 @@ function removeRemoteMediaElementsBySubMid(sub_mid, stopTracks) {
   const idEndsWith = `_remote_${sub_mid}`;
   const containers = document.querySelectorAll(`[id$=${idEndsWith}]`);
   containers.forEach(container => removeMediaElement(container, stopTracks));
-}
-
-function removeRemoteMediaElementsByFeedMid(feed_mid, stopTracks) {
-  [`audio_${feed_mid}`, `video_${feed_mid}`].forEach(idStartsWith => {
-    const containers = document.querySelectorAll(`[id^=${idStartsWith}]`);
-    containers.forEach(container => removeMediaElement(container, stopTracks));
-  });
 }
 
 function removeAllLocalMediaElements() {

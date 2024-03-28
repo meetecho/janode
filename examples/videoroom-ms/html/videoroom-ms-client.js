@@ -284,15 +284,13 @@ function _allow({ room = myRoom, action, token, secret = 'adminpwd' }) {
   });
 }
 
-function _startForward({ feed, room = myRoom, host = 'localhost', audio_port, video_port, data_port = null, secret = 'adminpwd' }) {
+function _startForward({ feed = myFeed, host, room = myRoom, streams, secret = 'adminpwd' }) {
   socket.emit('rtp-fwd-start', {
     data: {
       room,
       feed,
       host,
-      audio_port,
-      video_port,
-      data_port,
+      streams,
       secret,
     },
     _id: getId(),
@@ -311,7 +309,7 @@ function _stopForward({ stream, feed, room = myRoom, secret = 'adminpwd' }) {
   });
 }
 
-function _listForward({ room = myRoom, secret = 'adminpwd' }) {
+function _listForward({ room = myRoom, secret = 'adminpwd' } = {}) {
   socket.emit('rtp-fwd-list', {
     data: { room, secret },
     _id: getId(),

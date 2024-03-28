@@ -263,31 +263,81 @@ class VideoRoomHandle extends Handle {
         /* RTP forwarding started */
         case 'rtp_forward':
           janode_event.data.feed = message_data.publisher_id;
-          janode_event.data.forwarder = {
-            host: message_data.rtp_stream.host,
-          };
-          if (message_data.rtp_stream.audio) {
-            janode_event.data.forwarder.audio_port = message_data.rtp_stream.audio;
-            janode_event.data.forwarder.audio_rtcp_port = message_data.rtp_stream.audio_rtcp;
-            janode_event.data.forwarder.audio_stream = message_data.rtp_stream.audio_stream_id;
-          }
-          if (message_data.rtp_stream.video) {
-            janode_event.data.forwarder.video_port = message_data.rtp_stream.video;
-            janode_event.data.forwarder.video_rtcp_port = message_data.rtp_stream.video_rtcp;
-            janode_event.data.forwarder.video_stream = message_data.rtp_stream.video_stream_id;
-            if (message_data.rtp_stream.video_stream_id_2) {
-              janode_event.data.forwarder.video_port_2 = message_data.rtp_stream.video_2;
-              janode_event.data.forwarder.video_stream_2 = message_data.rtp_stream.video_stream_id_2;
+          if (message_data.rtp_stream) {
+            const f = message_data.rtp_stream;
+            const fwd = {
+              host: f.host,
+            };
+            if (f.audio_stream_id) {
+              fwd.audio_stream = f.audio_stream_id;
+              fwd.audio_port = f.audio;
+              if (typeof f.audio_rtcp === 'number') {
+                fwd.audio_rtcp_port = f.audio_rtcp;
+              }
             }
-            if (message_data.rtp_stream.video_stream_id_3) {
-              janode_event.data.forwarder.video_port_3 = message_data.rtp_stream.video_3;
-              janode_event.data.forwarder.video_stream_3 = message_data.rtp_stream.video_stream_id_3;
+            if (f.video_stream_id) {
+              fwd.video_stream = f.video_stream_id;
+              fwd.video_port = f.video;
+              if (typeof f.video_rtcp === 'number') {
+                fwd.video_rtcp_port = f.video_rtcp;
+              }
+              if (f.video_stream_id_2) {
+                fwd.video_stream_2 = f.video_stream_id_2;
+                fwd.video_port_2 = f.video_2;
+              }
+              if (f.video_stream_id_3) {
+                fwd.video_stream_3 = f.video_stream_id_3;
+                fwd.video_port_3 = f.video_3;
+              }
             }
+            if (f.data_stream_id) {
+              fwd.data_stream = f.data_stream_id;
+              fwd.data_port = f.data;
+            }
+
+            janode_event.data.forwarder = fwd;
           }
-          if (message_data.rtp_stream.data) {
-            janode_event.data.forwarder.data_port = message_data.rtp_stream.data;
-            janode_event.data.forwarder.data_stream = message_data.rtp_stream.data_stream_id;
+          /* [multistream] */
+          else if (message_data.forwarders) {
+            janode_event.data.forwarders = message_data.forwarders.map(f => {
+              const fwd = {
+                host: f.host,
+              };
+              if (f.type === 'audio') {
+                fwd.audio_stream = f.stream_id;
+                fwd.audio_port = f.port;
+                if (typeof f.remote_rtcp_port === 'number') {
+                  fwd.audio_rtcp_port = f.remote_rtcp_port;
+                }
+              }
+              if (f.type === 'video') {
+                fwd.video_stream = f.stream_id;
+                fwd.video_port = f.port;
+                if (typeof f.remote_rtcp_port === 'number') {
+                  fwd.video_rtcp_port = f.remote_rtcp_port;
+                }
+                if (typeof f.substream === 'number') {
+                  fwd.sc_substream_layer = f.substream;
+                }
+              }
+              if (f.type === 'data') {
+                fwd.data_stream = f.stream_id;
+                fwd.data_port = f.port;
+              }
+              if (typeof f.ssrc === 'number') {
+                fwd.ssrc = f.ssrc;
+              }
+              if (typeof f.pt === 'number') {
+                fwd.pt = f.pt;
+              }
+              if (typeof f.srtp === 'boolean') {
+                fwd.srtp = f.srtp;
+              }
+
+              return fwd;
+            });
           }
+
           janode_event.event = PLUGIN_EVENT.RTP_FWD_STARTED;
           break;
 
@@ -306,69 +356,89 @@ class VideoRoomHandle extends Handle {
                 feed: publisher_id,
               };
 
-              pub.forwarders = rtp_forwarder.map(forw => {
-                const forwarder = {
-                  host: forw.ip,
+              pub.forwarders = rtp_forwarder.map(f => {
+                const fwd = {
+                  host: f.ip,
                 };
+                if (f.audio_stream_id) {
+                  fwd.audio_stream = f.audio_stream_id;
+                  fwd.audio_port = f.port;
+                  if (typeof f.remote_rtcp_port === 'number') {
+                    fwd.audio_rtcp_port = f.remote_rtcp_port;
+                  }
+                }
+                if (f.video_stream_id) {
+                  fwd.video_stream = f.video_stream_id;
+                  fwd.video_port = f.port;
+                  if (typeof f.remote_rtcp_port === 'number') {
+                    fwd.video_rtcp_port = f.remote_rtcp_port;
+                  }
+                  if (typeof f.substream === 'number') {
+                    fwd.sc_substream_layer = f.substream;
+                  }
+                }
+                if (f.data_stream_id) {
+                  fwd.data_stream = f.data_stream_id;
+                  fwd.data_port = f.port;
+                }
+                if (typeof f.ssrc === 'number') {
+                  fwd.ssrc = f.ssrc;
+                }
+                if (typeof f.pt === 'number') {
+                  fwd.pt = f.pt;
+                }
+                if (typeof f.srtp === 'boolean') {
+                  fwd.srtp = f.srtp;
+                }
 
-                if (forw.audio_stream_id) {
-                  forwarder.audio_port = forw.port;
-                  forwarder.audio_rtcp_port = forw.remote_rtcp_port;
-                  forwarder.audio_stream = forw.audio_stream_id;
-                }
-                if (forw.video_stream_id) {
-                  forwarder.video_port = forw.port;
-                  forwarder.video_rtcp_port = forw.remote_rtcp_port;
-                  forwarder.video_stream = forw.video_stream_id;
-                }
-                if (forw.data_stream_id) {
-                  forwarder.data_port = forw.port;
-                  forwarder.data_stream = forw.data_stream_id;
-                }
-
-                return forwarder;
+                return fwd;
               });
 
               return pub;
             });
           }
+          /* [multistream] */
           else if (message_data.publishers) {
             janode_event.data.forwarders = message_data.publishers.map(({ publisher_id, forwarders }) => {
               const pub = {
                 feed: publisher_id,
               };
 
-              pub.forwarders = forwarders.map(forw => {
-                const forwarder = {
-                  host: forw.host,
+              pub.forwarders = forwarders.map(f => {
+                const fwd = {
+                  host: f.host,
                 };
-
-                if (forw.type === 'audio') {
-                  forwarder.audio_port = forw.port;
-                  forwarder.audio_rtcp_port = forw.remote_rtcp_port;
-                  forwarder.audio_stream = forw.stream_id;
-                }
-                if (forw.type === 'video') {
-                  forwarder.video_port = forw.port;
-                  forwarder.video_rtcp_port = forw.remote_rtcp_port;
-                  forwarder.video_stream = forw.stream_id;
-                  if (typeof forw.substream !== 'undefined') {
-                    forwarder.sc_substream_layer = forw.substream;
+                if (f.type === 'audio') {
+                  fwd.audio_stream = f.stream_id;
+                  fwd.audio_port = f.port;
+                  if (typeof f.remote_rtcp_port === 'number') {
+                    fwd.audio_rtcp_port = f.remote_rtcp_port;
                   }
                 }
-                if (forw.type === 'data') {
-                  forwarder.data_port = forw.port;
-                  forwarder.data_stream = forw.stream_id;
+                if (f.type === 'video') {
+                  fwd.video_stream = f.stream_id;
+                  fwd.video_port = f.port;
+                  if (typeof f.remote_rtcp_port === 'number') {
+                    fwd.video_rtcp_port = f.remote_rtcp_port;
+                  }
+                  if (typeof f.substream === 'number') {
+                    fwd.sc_substream_layer = f.substream;
+                  }
                 }
-
-                if (typeof forw.ssrc !== 'undefined')
-                  forwarder.ssrc = forw.ssrc;
-                if (typeof forw.pt !== 'undefined')
-                  forwarder.pt = forw.pt;
-                if (typeof forw.srtp !== 'undefined')
-                  forwarder.srtp = forw.srtp;
-
-                return forwarder;
+                if (f.type === 'data') {
+                  fwd.data_stream = f.stream_id;
+                  fwd.data_port = f.port;
+                }
+                if (typeof f.ssrc === 'number') {
+                  fwd.ssrc = f.ssrc;
+                }
+                if (typeof f.pt === 'number') {
+                  fwd.pt = f.pt;
+                }
+                if (typeof f.srtp === 'boolean') {
+                  fwd.srtp = f.srtp;
+                }
+                return fwd;
               });
 
               return pub;
@@ -1282,6 +1352,7 @@ class VideoRoomHandle extends Handle {
    * @param {number|string} params.room - The room where to start a forwarder
    * @param {number|string} params.feed - The feed identifier to forward (must be published)
    * @param {string} params.host - The target host for the forwarder
+   * @param {object[]} [params.streams] - [multistream] The streams array containing mid, port, rtcp_port, port_2 ...
    * @param {number} [params.audio_port] - The target audio RTP port, if audio is to be forwarded
    * @param {number} [params.audio_rtcp_port] - The target audio RTCP port, if audio is to be forwarded
    * @param {number} [params.audio_ssrc] - The SSRC that will be used for audio RTP
@@ -1297,24 +1368,31 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_RTP_FWD_STARTED>}
    */
-  async startForward({ room, feed, host, audio_port, audio_rtcp_port, audio_ssrc, video_port, video_rtcp_port, video_ssrc, video_port_2, video_ssrc_2, video_port_3, video_ssrc_3, data_port, secret, admin_key }) {
+  async startForward({ room, feed, host, streams, audio_port, audio_rtcp_port, audio_ssrc, video_port, video_rtcp_port, video_ssrc, video_port_2, video_ssrc_2, video_port_3, video_ssrc_3, data_port, secret, admin_key }) {
     const body = {
       request: REQUEST_RTP_FWD_START,
       room,
       publisher_id: feed,
     };
     if (typeof host === 'string') body.host = host;
-    if (typeof audio_port === 'number') body.audio_port = audio_port;
-    if (typeof audio_rtcp_port === 'number') body.audio_rtcp_port = audio_rtcp_port;
-    if (typeof audio_ssrc === 'number') body.audio_ssrc = audio_ssrc;
-    if (typeof video_port === 'number') body.video_port = video_port;
-    if (typeof video_rtcp_port === 'number') body.video_rtcp_port = video_rtcp_port;
-    if (typeof video_ssrc === 'number') body.video_ssrc = video_ssrc;
-    if (typeof video_port_2 === 'number') body.video_port_2 = video_port_2;
-    if (typeof video_ssrc_2 === 'number') body.video_ssrc_2 = video_ssrc_2;
-    if (typeof video_port_3 === 'number') body.video_port_3 = video_port_3;
-    if (typeof video_ssrc_3 === 'number') body.video_ssrc_3 = video_ssrc_3;
-    if (typeof data_port === 'number') body.data_port = data_port;
+    /* [multistream] */
+    if (streams && Array.isArray(streams)) {
+      body.streams = streams;
+    }
+    else {
+      if (typeof audio_port === 'number') body.audio_port = audio_port;
+      if (typeof audio_rtcp_port === 'number') body.audio_rtcp_port = audio_rtcp_port;
+      if (typeof audio_ssrc === 'number') body.audio_ssrc = audio_ssrc;
+      if (typeof video_port === 'number') body.video_port = video_port;
+      if (typeof video_rtcp_port === 'number') body.video_rtcp_port = video_rtcp_port;
+      if (typeof video_ssrc === 'number') body.video_ssrc = video_ssrc;
+      if (typeof video_port_2 === 'number') body.video_port_2 = video_port_2;
+      if (typeof video_ssrc_2 === 'number') body.video_ssrc_2 = video_ssrc_2;
+      if (typeof video_port_3 === 'number') body.video_port_3 = video_port_3;
+      if (typeof video_ssrc_3 === 'number') body.video_ssrc_3 = video_ssrc_3;
+      if (typeof data_port === 'number') body.data_port = data_port;
+    }
+
     if (typeof secret === 'string') body.secret = secret;
     if (typeof admin_key === 'string') body.admin_key = admin_key;
 
@@ -1483,7 +1561,8 @@ class VideoRoomHandle extends Handle {
  *
  * @typedef {object} VIDEOROOM_EVENT_RTP_FWD_STARTED
  * @property {number|string} room - The involved room
- * @property {RtpForwarder} forwarder - The forwarder object
+ * @property {RtpForwarder} [forwarder] - The forwarder object
+ * @property {RtpForwarder[]} [forwarders] - [multistream] The array of forwarders
  */
 
 /**

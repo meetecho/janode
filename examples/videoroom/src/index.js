@@ -171,17 +171,19 @@ function initFrontEnd() {
           replyEvent(socket, 'feed-joined', evtdata);
         });
 
-        pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_UNPUBLISHED, evtdata => {
+        pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_UNPUBLISHED, async evtdata => {
           const handle = clientHandles.getHandleByFeed(evtdata.feed);
-          clientHandles.removeHandleByFeed(evtdata.feed);
-          if (handle) handle.detach().catch(() => { });
+          if (handle.feed !== pubHandle.feed) {
+            clientHandles.removeHandleByFeed(evtdata.feed);
+            await handle.detach().catch(() => { });
+          }
           replyEvent(socket, 'unpublished', evtdata);
         });
 
-        pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_LEAVING, evtdata => {
+        pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_LEAVING, async evtdata => {
           const handle = clientHandles.getHandleByFeed(evtdata.feed);
           clientHandles.removeHandleByFeed(evtdata.feed);
-          if (handle) handle.detach().catch(() => { });
+          if (handle) await handle.detach().catch(() => { });
           replyEvent(socket, 'leaving', evtdata);
         });
 
@@ -193,10 +195,10 @@ function initFrontEnd() {
           replyEvent(socket, 'talking', evtdata);
         });
 
-        pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_KICKED, evtdata => {
+        pubHandle.on(VideoRoomPlugin.EVENT.VIDEOROOM_KICKED, async evtdata => {
           const handle = clientHandles.getHandleByFeed(evtdata.feed);
           clientHandles.removeHandleByFeed(evtdata.feed);
-          if (handle) handle.detach().catch(() => { });
+          if (handle) await handle.detach().catch(() => { });
           replyEvent(socket, 'kicked', evtdata);
         });
 
@@ -217,7 +219,7 @@ function initFrontEnd() {
 
         Logger.info(`${LOG_NS} ${remote} joined sent`);
       } catch ({ message }) {
-        if (pubHandle) pubHandle.detach().catch(() => { });
+        if (pubHandle) await pubHandle.detach().catch(() => { });
         replyError(socket, message, joindata, _id);
       }
     });
@@ -255,7 +257,7 @@ function initFrontEnd() {
         replyEvent(socket, 'subscribed', response, _id);
         Logger.info(`${LOG_NS} ${remote} subscribed sent`);
       } catch ({ message }) {
-        if (subHandle) subHandle.detach().catch(() => { });
+        if (subHandle) await subHandle.detach().catch(() => { });
         replyError(socket, message, joindata, _id);
       }
     });
@@ -320,7 +322,7 @@ function initFrontEnd() {
         const response = await handle.leave();
         replyEvent(socket, 'leaving', response, _id);
         Logger.info(`${LOG_NS} ${remote} leaving sent`);
-        handle.detach().catch(() => { });
+        await handle.detach().catch(() => { });
       } catch ({ message }) {
         replyError(socket, message, leavedata, _id);
       }

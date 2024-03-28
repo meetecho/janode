@@ -10,6 +10,7 @@ let pendingOfferMap = new Map();
 const myRoom = getURLParameter('room') ? parseInt(getURLParameter('room')) : (getURLParameter('room_str') || 1234);
 const randName = ('John_Doe_' + Math.floor(10000 * Math.random()));
 const myName = getURLParameter('name') || randName;
+let myFeed;
 
 const button = document.getElementById('button');
 button.onclick = () => {
@@ -47,6 +48,11 @@ const socket = io({
   autoConnect: false,
   reconnection: false,
 });
+
+async function _publish(feed = myFeed, display) {
+  const offer = await doOffer(feed, display);
+  configure({ feed: feed, jsep: offer });
+}
 
 function join({ room = myRoom, display = myName, token = null } = {}) {
   const joinData = {
@@ -115,7 +121,7 @@ function configure({ feed, jsep, restart, substream, temporal }) {
   if (jsep) pendingOfferMap.set(configId, { feed });
 }
 
-function _unpublish({ feed }) {
+function _unpublish({ feed = myFeed } = {}) {
   const unpublishData = {
     feed,
   };
@@ -126,7 +132,7 @@ function _unpublish({ feed }) {
   });
 }
 
-function _leave({ feed }) {
+function _leave({ feed = myFeed } = {}) {
   const leaveData = {
     feed,
   };
@@ -260,7 +266,7 @@ function _allow({ room = myRoom, action, token, secret = 'adminpwd' }) {
   });
 }
 
-function _startForward({ feed, room = myRoom, host = 'localhost', audio_port, video_port, data_port = null, secret = 'adminpwd' }) {
+function _startForward({ feed = myFeed, room = myRoom, host = 'localhost', audio_port, video_port, data_port = null, secret = 'adminpwd' }) {
   socket.emit('rtp-fwd-start', {
     data: {
       room,
@@ -275,7 +281,7 @@ function _startForward({ feed, room = myRoom, host = 'localhost', audio_port, vi
   });
 }
 
-function _stopForward({ stream, feed, room = myRoom, secret = 'adminpwd' }) {
+function _stopForward({ stream, feed = myFeed, room = myRoom, secret = 'adminpwd' }) {
   socket.emit('rtp-fwd-stop', {
     data: {
       room,
@@ -287,7 +293,7 @@ function _stopForward({ stream, feed, room = myRoom, secret = 'adminpwd' }) {
   });
 }
 
-function _listForward({ room = myRoom, secret = 'adminpwd' }) {
+function _listForward({ room = myRoom, secret = 'adminpwd' } = {}) {
   socket.emit('rtp-fwd-list', {
     data: { room, secret },
     _id: getId(),
@@ -327,8 +333,7 @@ socket.on('joined', async ({ data }) => {
   setLocalVideoElement(null, null, null, data.room);
 
   try {
-    const offer = await doOffer(data.feed, data.display, false);
-    configure({ feed: data.feed, jsep: offer });
+    await _publish(data.feed, data.display);
     subscribeTo(data.publishers, data.room);
   } catch (e) {
     console.log('error while doing offer', e);
@@ -454,8 +459,7 @@ socket.on('rtp-fwd-list', ({ data }) => {
 });
 
 async function _restartPublisher(feed) {
-  const offer = await doOffer(feed, null);
-  configure({ feed, jsep: offer });
+  return await _publish(feed, null);
 }
 
 async function _restartSubscriber(feed) {
@@ -501,6 +505,7 @@ async function doOffer(feed, display) {
     console.log('Performing ICE restart');
     pcMap.get(feed).restartIce();
   }
+  myFeed = feed;
 
   try {
     const pc = pcMap.get(feed);

@@ -383,6 +383,8 @@ class VideoRoomHandle extends Handle {
         case 'stopped-talking':
           janode_event.data.feed = message_data.id;
           janode_event.data.talking = (videoroom === 'talking');
+          /* [multistream] */
+          if (typeof message_data.mid !== 'undefined') janode_event.data.mid = message_data.mid;
           janode_event.data.audio_level = message_data['audio-level-dBov-avg'];
           janode_event.event = PLUGIN_EVENT.TALKING;
           break;

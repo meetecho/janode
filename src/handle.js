@@ -294,6 +294,9 @@ class Handle extends EventEmitter {
       case JANUS.EVENT.MEDIA: {
         if (typeof janus_message.type !== 'undefined') janode_event_data.type = janus_message.type;
         if (typeof janus_message.receiving !== 'undefined') janode_event_data.receiving = janus_message.receiving;
+        if (typeof janus_message.mid !== 'undefined') janode_event_data.mid = janus_message.mid;
+        if (typeof janus_message.substream !== 'undefined') janode_event_data.substream = janus_message.substream;
+        if (typeof janus_message.seconds !== 'undefined') janode_event_data.substream = janus_message.seconds;
         /**
          * The handle received a media notification.
          *
@@ -301,6 +304,9 @@ class Handle extends EventEmitter {
          * @type {object}
          * @property {string} type - The kind of media (audio/video)
          * @property {boolean} receiving - True if Janus is receiving media
+         * @property {string} [mid] - The involved mid
+         * @property {number} [substream] - The involved simulcast substream
+         * @property {number} [seconds] - Time, in seconds, with no media
          */
         this.emit(JANODE.EVENT.HANDLE_MEDIA, janode_event_data);
         break;
@@ -321,14 +327,18 @@ class Handle extends EventEmitter {
       /* In this case the janus message has "uplink" and "nacks" fields */
       case JANUS.EVENT.SLOWLINK: {
         if (typeof janus_message.uplink !== 'undefined') janode_event_data.uplink = janus_message.uplink;
-        if (typeof janus_message.nacks !== 'undefined') janode_event_data.nacks = janus_message.nacks;
+        if (typeof janus_message.mid !== 'undefined') janode_event_data.mid = janus_message.mid;
+        if (typeof janus_message.media !== 'undefined') janode_event_data.media = janus_message.media;
+        if (typeof janus_message.lost !== 'undefined') janode_event_data.lost = janus_message.lost;
         /**
          * The handle has received a slowlink notification.
          *
          * @event module:handle~Handle#event:HANDLE_SLOWLINK
          * @type {object}
          * @property {boolean} uplink - The direction of the slow link
-         * @property {number} nacks - Number of nacks in the last time slot
+         * @property {string} media - The media kind (audio/video)
+         * @property {string} [mid] - The involved stream mid
+         * @property {number} lost - Number of missing packets in the last time slot
          */
         this.emit(JANODE.EVENT.HANDLE_SLOWLINK, janode_event_data);
         break;

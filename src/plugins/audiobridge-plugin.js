@@ -643,6 +643,7 @@ class AudioBridgeHandle extends Handle {
    * @param {boolean} [params.is_private] - Set room as private (hidden in list)
    * @param {string} [params.secret] - The secret to be used when managing the room
    * @param {string} [params.pin] - The ping needed for joining the room
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @param {boolean} [params.record] - True to record the mixed audio
    * @param {string} [params.filename] - The recording filename
    * @param {string} [params.rec_dir] - The optional recording folder
@@ -655,7 +656,7 @@ class AudioBridgeHandle extends Handle {
    * @param {string[]} [params.groups] - The available groups in the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_CREATED>}
    */
-  async create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, record, filename, rec_dir,
+  async create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, admin_key, record, filename, rec_dir,
     talking_events, talking_level_threshold, talking_packets_threshold, expected_loss, prebuffer, allow_rtp, groups }) {
     const body = {
       request: REQUEST_CREATE,
@@ -668,6 +669,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof is_private === 'boolean') body.is_private = is_private;
     if (typeof secret === 'string') body.secret = secret;
     if (typeof pin === 'string') body.pin = pin;
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
     if (typeof record === 'boolean') body.record = record;
     if (typeof filename === 'string') body.record_file = filename;
     if (typeof rec_dir === 'string') body.record_dir = rec_dir;
@@ -784,9 +786,10 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.codec] - The codec to use in the forwarder
    * @param {string} [params.group] - The group to forward
    * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RTP_FWD>}
    */
-  async startForward({ room, always, host, host_family, audio_port, ssrc, ptype, codec, group, secret }) {
+  async startForward({ room, always, host, host_family, audio_port, ssrc, ptype, codec, group, secret, admin_key }) {
     const body = {
       request: REQUEST_RTP_FWD_START,
       room,
@@ -800,6 +803,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof codec === 'string') body.codec = codec;
     if (typeof group === 'string') body.group = group;
     if (typeof secret === 'string') body.secret = secret;
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -816,15 +820,17 @@ class AudioBridgeHandle extends Handle {
    * @param {number|string} params.room - The involved room
    * @param {number} params.stream - The forwarder identifier to stop
    * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_RTP_FWD>}
    */
-  async stopForward({ room, stream, secret }) {
+  async stopForward({ room, stream, secret, admin_key }) {
     const body = {
       request: REQUEST_RTP_FWD_STOP,
       room,
       stream_id: stream,
     };
     if (typeof secret === 'string') body.secret = secret;
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -840,14 +846,16 @@ class AudioBridgeHandle extends Handle {
    * @param {object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_FWD_LIST>}
    */
-  async listForward({ room, secret }) {
+  async listForward({ room, secret, admin_key }) {
     const body = {
       request: REQUEST_RTP_FWD_LIST,
       room,
     };
     if (typeof secret === 'string') body.secret = secret;
+    if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};

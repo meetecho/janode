@@ -1,3 +1,4 @@
+/* eslint-disable multiline-comment-style */
 /* global io */
 
 'use strict';
@@ -8,6 +9,8 @@ let streamingPeerConnection;
 const remoteVideo = document.getElementById('remoteVideo');
 const myStream = parseInt(getURLParameter('stream')) || 1;
 const myPin = getURLParameter('pin') || null;
+
+let decoder;
 
 const button = document.getElementById('button');
 button.onclick = () => {
@@ -86,12 +89,15 @@ function _stop() {
   });
 }
 
-function _configure({ audio, video, data }) {
+function _configure({ audio, video, data, substream, temporal, fallback }) {
   socket.emit('configure', {
     data: {
       audio,
       video,
       data,
+      substream,
+      temporal,
+      fallback,
     },
     _id: getId(),
   });
@@ -164,7 +170,7 @@ function _stopRec({ id = myStream, secret = 'adminpwd' } = {}) {
   });
 }
 
-function _createMp({ aport, vport, secret = null, pin = null }) {
+function _createMp({ audio, video, data, secret = null, pin = null } = {}) {
   const settings = {};
   settings.name = 'test_opus_vp8_' + Date.now();
   settings.description = 'this is ' + settings.name;
@@ -172,18 +178,26 @@ function _createMp({ aport, vport, secret = null, pin = null }) {
   settings.pin = pin || null;
   settings.permanent = false;
   settings.is_private = false;
-  settings.audio = {
-    port: aport,
-    pt: 111,
-    rtpmap: 'opus/48000/2',
-  };
-  settings.video = {
-    port: vport,
-    pt: 100,
-    rtpmap: 'VP8/90000',
-    buffer: true,
-  };
-  settings.data = {};
+  if (audio) {
+    settings.audio = typeof audio === 'object' ? audio : {};
+    settings.audio.port = settings.audio.port || 0;
+    settings.audio.pt = settings.audio.pt || 111;
+    settings.audio.rtpmap = settings.audio.rtpmap || 'opus/48000/2';
+  }
+  if (video) {
+    settings.video = typeof video === 'object' ? video : {};
+    settings.video.port = settings.video.port || 0;
+    //settings.video.port2 = settings.video.port2 || 0;
+    //settings.video.port3 = settings.video.port3 || 0;
+    //setting.video.rtcpport = setting.video.rtcpport || 0;
+    settings.video.pt = settings.video.pt || 100;
+    settings.video.rtpmap = settings.video.rtpmap || 'VP8/90000';
+    //settings.video.buffer = settings.video.buffer || false;
+  }
+  if (data) {
+    settings.data = typeof data === 'object' ? data : {};
+    //settings.data.buffer = settings.data.buffer || false;
+  }
   socket.emit('create', {
     data: settings,
     _id: getId(),
@@ -261,6 +275,31 @@ socket.on('created', ({ data }) => console.log('mountpoint created', data));
 
 socket.on('destroyed', ({ data }) => console.log('mountpoint destroyed', data));
 
+function _setupDataChannelCallbacks(channel, isLocal) {
+  const dcLogPrefix = `${isLocal ? 'Local' : 'Remote'} Datachannel ${channel.id} (${channel.label})`;
+
+  channel.onopen = (_event) => {
+    console.log(`${dcLogPrefix} open`);
+  };
+
+  channel.onmessage = (event) => {
+    decoder = decoder || new TextDecoder(); // initialize the decoder
+    let decodedData = event.data;
+    if (event.data?.byteLength) { // is ArrayBuffer
+      decodedData = decoder.decode(event.data);
+    }
+    console.log(`${dcLogPrefix} received`, decodedData);
+  };
+
+  channel.onclose = () => {
+    console.log(`${dcLogPrefix} closed`);
+  };
+
+  channel.onerror = (error) => {
+    console.error(`${dcLogPrefix} error`, error);
+  };
+}
+
 async function doAnswer(offer) {
   if (!streamingPeerConnection) {
     const pc = new RTCPeerConnection({
@@ -270,6 +309,16 @@ async function doAnswer(offer) {
       //'sdpSemantics': 'unified-plan',
     });
 
+    // inspect the offer.sdp for m=application lines before creating the DataChannel
+    if (/m=application [1-9]\d*/.test(offer.sdp)) {
+      const localChannel = pc.createDataChannel('JanusDataChannel');
+      _setupDataChannelCallbacks(localChannel, true);
+
+      pc.ondatachannel = (event) => {
+        const remoteChannel = event.channel;
+        _setupDataChannelCallbacks(remoteChannel, false);
+      };
+    }
     pc.onnegotiationneeded = event => console.log('pc.onnegotiationneeded', event);
     pc.onicecandidate = event => trickle({ candidate: event.candidate });
     pc.oniceconnectionstatechange = () => {

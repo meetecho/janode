@@ -23,6 +23,7 @@ export default {
 EOF
 
 cat <<EOF > config.js
+import replace from '@rollup/plugin-replace';
 import nodePolyfills from 'rollup-plugin-polyfill-node';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -35,6 +36,11 @@ export default {
     name: '$EXPORTED_OBJECT'
   },
   plugins: [
+      replace({
+        preventAssignment: false,
+        "import UnixTransport from './transport-unix.js'" : "function UnixTransport() { this.open = _ => Logger.error('unix-dgram unsupported on browsers')}",
+        delimiters: ['', '']
+      }),
       nodePolyfills(),
       nodeResolve({ browser: true }),
       commonjs()
@@ -42,7 +48,7 @@ export default {
 };
 EOF
 
-npm install --no-save rollup-plugin-polyfill-node @rollup/plugin-node-resolve @rollup/plugin-commonjs
+npm install --no-save @rollup/plugin-replace rollup-plugin-polyfill-node @rollup/plugin-node-resolve @rollup/plugin-commonjs
 rollup --config config.js
 
 cp ./app/*.* $DEPLOY_DIR

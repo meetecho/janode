@@ -369,10 +369,6 @@ function initFrontEnd() {
 
       if (!checkSessions(janodeSession, janodeManagerHandle, socket, evtdata)) return;
 
-      mpdata.audio = (typeof mpdata.audio === 'object' && mpdata.audio) ? mpdata.audio : null;
-      mpdata.video = (typeof mpdata.video === 'object' && mpdata.video) ? mpdata.video : null;
-      mpdata.data = (typeof mpdata.data === 'object' && mpdata.data) ? mpdata.data : null;
-
       try {
         const created = await janodeManagerHandle.createRtpMountpoint(mpdata);
         replyEvent(socket, 'created', created, _id);

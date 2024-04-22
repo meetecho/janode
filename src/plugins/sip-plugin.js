@@ -23,6 +23,7 @@ const PLUGIN_EVENT = {
   REGISTERING: 'sip_registering',
   CALLING: 'sip_calling',
   RINGING: 'sip_ringing',
+  PROCEEDING: 'sip_proceeding',
   HANGUP: 'sip_hangup',
   HANGINGUP: 'sip_hangingup',
   ACCEPTED: 'sip_accepted',
@@ -153,6 +154,15 @@ class SipHandle extends Handle {
           janode_event.event = PLUGIN_EVENT.RINGING;
           if (this._pendingCalls[call_id]) {
             this._pendingCalls[call_id].ringing = true;
+          }
+          closeTx = CLOSE_TX_NO;
+          emit = true;
+          break;
+
+        case 'proceeding':
+          janode_event.event = PLUGIN_EVENT.PROCEEDING;
+          if (this._pendingCalls[call_id]) {
+            this._pendingCalls[call_id].proceeding = true;
           }
           closeTx = CLOSE_TX_NO;
           emit = true;
@@ -367,6 +377,7 @@ export default {
     SIP_REGISTERING: PLUGIN_EVENT.REGISTERING,
     SIP_CALLING: PLUGIN_EVENT.CALLING,
     SIP_RINGING: PLUGIN_EVENT.RINGING,
+    SIP_PROCEEDING: PLUGIN_EVENT.PROCEEDING,
     SIP_HANGUP: PLUGIN_EVENT.HANGUP,
   },
 };

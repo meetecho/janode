@@ -1,4 +1,3 @@
-/* eslint-disable no-sparse-arrays */
 /* global io */
 
 'use strict';
@@ -25,6 +24,7 @@ function getId() {
 }
 
 function getURLParameter(name) {
+  // eslint-disable-next-line no-sparse-arrays
   return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) || [, ''])[1].replace(/\+/g, '%20')) || null;
 }
 

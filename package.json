@@ -37,17 +37,19 @@
   ],
   "dependencies": {
     "isomorphic-ws": "^4.0.1",
-    "ws": "^8.0.0",
-    "unix-dgram": "^2.0.4"
+    "unix-dgram": "^2.0.4",
+    "ws": "^8.0.0"
   },
   "devDependencies": {
-    "eslint": "^8.25.0"
+    "@eslint/js": "^9.4.0",
+    "eslint": "^9.4.0",
+    "globals": "^15.4.0"
   },
   "engines": {
-    "node": " >=14.13.1 || >=16.0.0"
+    "node": " >=18.18.0"
   },
   "scripts": {
     "build": "npm install --omit=dev",
-    "lint": "eslint --ext .js --config .eslintrc.json src"
+    "lint": "npx eslint --debug"
   }
 }

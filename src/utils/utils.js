@@ -89,7 +89,7 @@ export const checkUrl = (url_string, admitted) => {
     /* 'slice(0, -1)' removes the colon at the last position */
     const protocol = (new URL(url_string)).protocol.slice(0, -1);
     return admitted.includes(protocol);
-  } catch (e) { }
+  } catch (_error) { }
   return false;
 };
 

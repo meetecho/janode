@@ -654,10 +654,11 @@ class AudioBridgeHandle extends Handle {
    * @param {number} [params.prebuffer] - The prebuffer to use for every participant
    * @param {boolean} [params.allow_rtp] - Allow plain RTP participants
    * @param {string[]} [params.groups] - The available groups in the room
+   * @param {boolean} [params.denoise] - Enable denoising with rnnoise for all participants
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_CREATED>}
    */
   async create({ room, description, permanent, sampling_rate, bitrate, is_private, secret, pin, admin_key, record, filename, rec_dir,
-    talking_events, talking_level_threshold, talking_packets_threshold, expected_loss, prebuffer, allow_rtp, groups }) {
+    talking_events, talking_level_threshold, talking_packets_threshold, expected_loss, prebuffer, allow_rtp, groups, denoise }) {
     const body = {
       request: REQUEST_CREATE,
       room,
@@ -680,6 +681,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof prebuffer === 'number') body.default_prebuffering = prebuffer;
     if (typeof allow_rtp === 'boolean') body.allow_rtp_participants = allow_rtp;
     if (Array.isArray(groups)) body.groups = groups;
+    if (typeof denoise === 'boolean') body.denoise = denoise;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};

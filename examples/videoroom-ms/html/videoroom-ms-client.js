@@ -942,7 +942,7 @@ function _closePC(pc) {
   pc.ontrack = null;
   try {
     pc.close();
-  } catch (e) { }
+  } catch (_e) { }
 }
 
 function closeAllPCs() {

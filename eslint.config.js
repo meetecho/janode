@@ -4,11 +4,11 @@ import js from '@eslint/js';
 export default [
   {
     files: [
-      '.src/**/*.js',
-      '.examples/**/*.js'
+      'src/**/*.js',
+      'examples/**/*.js'
     ],
     ignores: [
-      '.examples/browser/*'
+      'examples/browser/**/*'
     ],
     languageOptions: {
       ecmaVersion: 'latest',

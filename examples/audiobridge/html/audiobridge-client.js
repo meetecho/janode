@@ -1,4 +1,3 @@
-/* eslint-disable no-sparse-arrays */
 /* global io */
 
 'use strict';

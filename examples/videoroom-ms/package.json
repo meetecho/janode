@@ -1,0 +1,30 @@
+{
+  "name": "janode-videoroom-ms",
+  "description": "Janode videoroom multistream app",
+  "type": "module",
+  "keywords": [
+    "janus",
+    "webrtc",
+    "meetecho"
+  ],
+  "author": {
+    "name": "Alessandro Toppi",
+    "email": "atoppi@meetecho.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meetecho/janode.git"
+  },
+  "license": "ISC",
+  "private": true,
+  "main": "src/index.js",
+  "dependencies": {
+    "express": "^4.13.4",
+    "socket.io": "^4.2.0"
+  },
+  "scripts": {
+    "build": "npm install --omit=dev",
+    "build-config": "node -e \"var fs = require('fs');fs.createReadStream('src/config.template.js').pipe(fs.createWriteStream('src/config.js'));\"",
+    "start": "node src/index.js"
+  }
+}

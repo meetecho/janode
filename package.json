@@ -50,6 +50,6 @@
   },
   "scripts": {
     "build": "npm install --omit=dev",
-    "lint": "npx eslint"
+    "lint": "npx eslint --debug"
   }
 }

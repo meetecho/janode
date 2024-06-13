@@ -296,7 +296,7 @@ class Handle extends EventEmitter {
         if (typeof janus_message.receiving !== 'undefined') janode_event_data.receiving = janus_message.receiving;
         if (typeof janus_message.mid !== 'undefined') janode_event_data.mid = janus_message.mid;
         if (typeof janus_message.substream !== 'undefined') janode_event_data.substream = janus_message.substream;
-        if (typeof janus_message.seconds !== 'undefined') janode_event_data.substream = janus_message.seconds;
+        if (typeof janus_message.seconds !== 'undefined') janode_event_data.seconds = janus_message.seconds;
         /**
          * The handle received a media notification.
          *

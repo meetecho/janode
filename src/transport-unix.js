@@ -161,7 +161,7 @@ class TransportUnix {
 
       this._socket = socket;
 
-      try { unlinkSync(this._local_bind); } catch (error) { }
+      try { unlinkSync(this._local_bind); } catch (_error) { }
       socket.bind(this._local_bind);
     });
   }

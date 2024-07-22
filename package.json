@@ -1,7 +1,7 @@
 {
   "name": "janode",
   "description": "Meetecho adapter for the Janus WebRTC Server",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "type": "module",
   "keywords": [
     "janus",

@@ -631,11 +631,12 @@ class StreamingHandle extends Handle {
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_DESTROYED>}
    */
-  async destroyMountpoint({ id, secret }) {
+  async destroyMountpoint({ id, permanent, secret }) {
     const body = {
       request: REQUEST_DESTROY,
       id,
     };
+    if (typeof permanent === 'boolean') body.permanent = permanent;
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);

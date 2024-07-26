@@ -628,6 +628,7 @@ class StreamingHandle extends Handle {
    *
    * @param {object} params
    * @param {number|string} params.id
+   * @param {boolean} params.permanent
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_DESTROYED>}
    */

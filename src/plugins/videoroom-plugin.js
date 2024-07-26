@@ -765,9 +765,10 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled (subscribers only)
    * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer (publishers only)
+   * @param {boolean} [params.keyframe] - True to request a keyframe (publishers only) 
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
-  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, streams, descriptions, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, e2ee, jsep }) {
+  async configure({ audio, video, data, bitrate, record, filename, display, restart, update, streams, descriptions, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, e2ee, jsep, keyframe }) {
     const body = {
       request: REQUEST_CONFIGURE,
     };
@@ -792,6 +793,7 @@ class VideoRoomHandle extends Handle {
     if (typeof restart === 'boolean') body.restart = restart;
     if (typeof update === 'boolean') body.update = update;
     if (typeof e2ee === 'boolean' && jsep) jsep.e2ee = e2ee;
+    if (typeof keyframe === 'boolean') body.keyframe = keyframe;
 
     /* [multistream] */
     if (descriptions && Array.isArray(descriptions)) body.descriptions = descriptions;

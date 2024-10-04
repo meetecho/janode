@@ -113,6 +113,7 @@ function configure({ feed, display, jsep, restart, streams }) {
   if (display) configureData.display = display;
   if (jsep) configureData.jsep = jsep;
   if (streams) configureData.streams = streams;
+  if (myRoom) configureData.room = myRoom;
   if (typeof restart === 'boolean') configureData.restart = restart;
 
   const configId = getId();

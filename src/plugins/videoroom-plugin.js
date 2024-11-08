@@ -936,9 +936,10 @@ class VideoRoomHandle extends Handle {
    * @param {boolean} [params.autoupdate] - [multistream] Whether a new SDP offer is sent automatically when a subscribed publisher leaves
    * @param {boolean} [params.use_msid] - [multistream] Whether subscriptions should include an msid that references the publisher
    * @param {string} [params.token] - The optional token needed
+   * @param {string} [params.pin] - The optional password required to join the room
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
-  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, streams, autoupdate, use_msid, token }) {
+  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, streams, autoupdate, use_msid, token, pin }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_LISTENER,
@@ -960,6 +961,7 @@ class VideoRoomHandle extends Handle {
     }
     if (typeof private_id === 'number') body.private_id = private_id;
     if (typeof token === 'string') body.token = token;
+    if (typeof pin === 'string') body.pin = pin;
 
     /* [multistream] */
     if (typeof autoupdate === 'boolean') body.autoupdate = autoupdate;

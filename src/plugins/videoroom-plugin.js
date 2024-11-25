@@ -925,9 +925,12 @@ class VideoRoomHandle extends Handle {
    * @param {object} params
    * @param {number|string} params.room - The room to join
    * @param {number|string} [params.feed=0] - The feed the user wants to subscribe to
-   * @param {boolean} [params.audio] - True to subscribe to the audio feed
-   * @param {boolean} [params.video] - True to subscribe to the video feed
-   * @param {boolean} [params.data] - True to subscribe to the datachannels of the feed
+   * @param {boolean} [params.audio] - Whether or not audio should be relayed
+   * @param {boolean} [params.video] - Whether or not video should be relayed
+   * @param {boolean} [params.data] - Whether or not data should be relayed
+   * @param {boolean} [params.offer_audio] - Whether or not audio should be negotiated
+   * @param {boolean} [params.offer_video] - Whether or not video should be negotiated
+   * @param {boolean} [params.offer_data] - Whether or not data should be negotiated
    * @param {number} [params.private_id] - The private id to correlate with publisher
    * @param {number} [params.sc_substream_layer] - Substream layer to receive (0-2), in case simulcasting is enabled
    * @param {number} [params.sc_substream_fallback_ms] - How much time in ms without receiving packets will make janus drop to the substream below
@@ -939,7 +942,7 @@ class VideoRoomHandle extends Handle {
    * @param {string} [params.pin] - The optional password required to join the room
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_SUB_JOINED>}
    */
-  async joinSubscriber({ room, feed, audio, video, data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, streams, autoupdate, use_msid, token, pin }) {
+  async joinSubscriber({ room, feed, audio, video, data, offer_audio, offer_video, offer_data, private_id, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, streams, autoupdate, use_msid, token, pin }) {
     const body = {
       request: REQUEST_JOIN,
       ptype: PTYPE_LISTENER,
@@ -955,6 +958,9 @@ class VideoRoomHandle extends Handle {
       if (typeof audio === 'boolean') body.audio = audio;
       if (typeof video === 'boolean') body.video = video;
       if (typeof data === 'boolean') body.data = data;
+      if (typeof offer_audio === 'boolean') body.offer_audio = offer_audio;
+      if (typeof offer_video === 'boolean') body.offer_video = offer_video;
+      if (typeof offer_data === 'boolean') body.offer_data = offer_data;
       if (typeof sc_substream_layer === 'number') body.substream = sc_substream_layer;
       if (typeof sc_substream_fallback_ms === 'number') body.fallback = 1000 * sc_substream_fallback_ms;
       if (typeof sc_temporal_layers === 'number') body.temporal = sc_temporal_layers;

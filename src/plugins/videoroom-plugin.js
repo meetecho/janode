@@ -516,13 +516,6 @@ class VideoRoomHandle extends Handle {
             janode_event.data.configured = message_data.configured;
             break;
           }
-          /* Display name changed event */
-          if (typeof message_data.display !== 'undefined' && typeof message_data.switched === 'undefined') {
-            janode_event.event = PLUGIN_EVENT.DISPLAY;
-            janode_event.data.feed = message_data.id;
-            janode_event.data.display = message_data.display;
-            break;
-          }
           /* Subscribed feed started */
           if (typeof message_data.started !== 'undefined') {
             janode_event.event = PLUGIN_EVENT.STARTED;
@@ -559,6 +552,7 @@ class VideoRoomHandle extends Handle {
           if (typeof message_data.unpublished !== 'undefined') {
             janode_event.event = PLUGIN_EVENT.UNPUBLISHED;
             janode_event.data.feed = (message_data.unpublished === 'ok') ? this.feed : message_data.unpublished;
+            if (message_data.display) janode_event.data.display = message_data.display;
             break;
           }
           /* Leaving confirmation */
@@ -566,6 +560,14 @@ class VideoRoomHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.LEAVING;
             janode_event.data.feed = (message_data.leaving === 'ok') ? this.feed : message_data.leaving;
             if (message_data.reason) janode_event.data.reason = message_data.reason;
+            if (message_data.display) janode_event.data.display = message_data.display;
+            break;
+          }
+          /* Display name changed event */
+          if (typeof message_data.display !== 'undefined' && typeof message_data.switched === 'undefined') {
+            janode_event.event = PLUGIN_EVENT.DISPLAY;
+            janode_event.data.feed = message_data.id;
+            janode_event.data.display = message_data.display;
             break;
           }
           /* Participant kicked out */

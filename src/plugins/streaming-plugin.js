@@ -560,9 +560,10 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.data.buffer] - Enable buffering of the datachannels
    * @param {number} [params.threads] - The number of helper threads used in this mp
    * @param {object} [params.metadata] - An opaque metadata to add to the mp
+   * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata }) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata, collision }) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',
@@ -612,6 +613,7 @@ class StreamingHandle extends Handle {
     }
     if (typeof threads === 'number' && threads > 0) body.threads = threads;
     if (metadata) body.metadata = metadata;
+    if (typeof collision === 'number') body.collision = collision;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};
@@ -626,14 +628,16 @@ class StreamingHandle extends Handle {
    *
    * @param {object} params
    * @param {number|string} params.id
+   * @param {boolean} [params.permanent]
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_DESTROYED>}
    */
-  async destroyMountpoint({ id, secret }) {
+  async destroyMountpoint({ id, permanent, secret }) {
     const body = {
       request: REQUEST_DESTROY,
       id,
     };
+    if (typeof permanent === 'boolean') body.permanent = permanent;
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);

@@ -414,9 +414,10 @@ class AudioBridgeHandle extends Handle {
    * @param {module:audiobridge-plugin~RtpParticipant} [params.rtp_participant] - Set a descriptor object if you need a RTP participant
    * @param {string} [params.group] - The group to assign to this participant
    * @param {boolean} [params.generate_offer] - True to get Janus to send the SDP offer.
+   * @param {string} [params.codec] - The codec to be used among opus, pcma or  pcmu (Janus will default to opus)
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_JOINED>}
    */
-  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, suspended, pause_events, rtp_participant, group, generate_offer }) {
+  async join({ room, feed, display, muted, pin, token, quality, volume, record, filename, suspended, pause_events, rtp_participant, group, generate_offer, codec }) {
     const body = {
       request: REQUEST_JOIN,
       room,
@@ -435,6 +436,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof rtp_participant === 'object' && rtp_participant) body.rtp = rtp_participant;
     if (typeof group === 'string') body.group = group;
     if (typeof generate_offer === 'boolean') body.generate_offer = generate_offer;
+    if (typeof codec === 'string') body.codec = codec;
 
     const response = await this.message(body);
     const { event, data: evtdata } = response._janode || {};

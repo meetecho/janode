@@ -146,9 +146,9 @@ class TransportWs {
         /* Start cleanup */
         /* Cancel the KA task */
         this._unsetPingTask();
+        this._closed = true;
         this._connection._signalClose(this._closing);
         this._closing = false;
-        this._closed = true;
         /* removeAllListeners is only supported on the node ws module */
         if (typeof this._ws.removeAllListeners === 'function') this._ws.removeAllListeners();
       }, { once: true });

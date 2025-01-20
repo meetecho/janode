@@ -25,7 +25,12 @@ const printout = (msg_verbosity, console_fn, ...args) => {
   if (LEVELS_IDX[msg_verbosity] > LEVELS_IDX[log_verbosity]) return;
   const ts = (new Date()).toISOString();
   const prefix = `${ts} - ${msg_verbosity.toUpperCase().padEnd(8, ' ')}:`;
-  console_fn(prefix, ...args);
+  if (args.length === 1 && typeof args[0] === 'function') {
+    const msg = (args[0])();
+    console_fn(prefix, msg);
+  }
+  else
+    console_fn(prefix, ...args);
 };
 
 /**
@@ -100,6 +105,7 @@ const Logger = {
 /* set aliases */
 Logger.verb = Logger.verbose;
 Logger.warn = Logger.warning;
+Logger.setLogLevel = Logger.setLevel;
 
 Logger.setLevel(log_verbosity);
 

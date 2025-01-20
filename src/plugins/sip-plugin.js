@@ -14,7 +14,9 @@ const PLUGIN_ID = 'janus.plugin.sip';
 /* These are the requests defined for the Janus SIP plugin API */
 const REQUEST_REGISTER = 'register';
 const REQUEST_CALL = 'call';
+const REQUEST_ACCEPT = 'accept';
 const REQUEST_HANGUP = 'hangup';
+const REQUEST_DECLINE = 'decline';
 
 /* These are the events/responses that the Janode plugin will manage */
 /* Some of them will be exported in the plugin descriptor */
@@ -24,8 +26,10 @@ const PLUGIN_EVENT = {
   CALLING: 'sip_calling',
   RINGING: 'sip_ringing',
   PROCEEDING: 'sip_proceeding',
+  INCOMING: 'sip_incoming',
   HANGUP: 'sip_hangup',
   HANGINGUP: 'sip_hangingup',
+  DECLINING: 'declining',
   ACCEPTED: 'sip_accepted',
   ERROR: 'sip_error',
   ERROR_EVENT: 'sip_error_event',
@@ -93,7 +97,10 @@ class SipHandle extends Handle {
       /* Add JSEP data if available */
       if (jsep) janode_event.data.jsep = jsep;
       /* Add call id information if available */
-      if (call_id) janode_event.data.call_id = call_id;
+      if (call_id) {
+        janode_event.data.call_id = call_id;
+        this._pendingCalls[call_id] = this._pendingCalls[call_id] || {};
+      }
 
       /* Use the "janode" property to store the output event */
       janus_message._janode = janode_event;
@@ -145,32 +152,34 @@ class SipHandle extends Handle {
 
         case 'calling':
           janode_event.event = PLUGIN_EVENT.CALLING;
-          this._pendingCalls[call_id] = { calling: true };
           closeTx = CLOSE_TX_NO;
           emit = true;
           break;
 
         case 'ringing':
           janode_event.event = PLUGIN_EVENT.RINGING;
-          if (this._pendingCalls[call_id]) {
-            this._pendingCalls[call_id].ringing = true;
-          }
           closeTx = CLOSE_TX_NO;
           emit = true;
           break;
 
         case 'proceeding':
           janode_event.event = PLUGIN_EVENT.PROCEEDING;
-          if (this._pendingCalls[call_id]) {
-            this._pendingCalls[call_id].proceeding = true;
-          }
+          closeTx = CLOSE_TX_NO;
+          emit = true;
+          break;
+
+        case 'incomingcall':
+          janode_event.event = PLUGIN_EVENT.INCOMING;
+          this._pendingCalls[call_id].incoming = result.username;
+          janode_event.data.username = result.username;
+          janode_event.data.callee = result.callee;
           closeTx = CLOSE_TX_NO;
           emit = true;
           break;
 
         case 'hangup':
           /* There is a pending call without a reply */
-          if (this._pendingCalls[call_id] && !this._pendingCalls[call_id].accepted) {
+          if (!this._pendingCalls[call_id].accepted && !this._pendingCalls[call_id].declined && !this._pendingCalls[call_id].incoming) {
             janode_event.event = PLUGIN_EVENT.ERROR_EVENT;
             janode_event.data = new Error(`${result.code} ${result.reason}`);
             closeTx = CLOSE_TX_ERROR;
@@ -180,7 +189,6 @@ class SipHandle extends Handle {
             janode_event.event = PLUGIN_EVENT.HANGUP;
             closeTx = CLOSE_TX_NO;
             emit = true;
-
           }
           delete this._pendingCalls[call_id];
           break;
@@ -191,9 +199,16 @@ class SipHandle extends Handle {
           emit = false;
           break;
 
+        case 'declining':
+          janode_event.event = PLUGIN_EVENT.DECLINING;
+          this._pendingCalls[call_id].declined = true;
+          closeTx = CLOSE_TX_SUCCESS;
+          emit = false;
+          break;
+
         case 'accepted':
           janode_event.event = PLUGIN_EVENT.ACCEPTED;
-          janode_event.data.uri = result.username;
+          janode_event.data.username = result.username || this._pendingCalls[call_id].incoming;
           this._pendingCalls[call_id].accepted = true;
           closeTx = CLOSE_TX_SUCCESS;
           emit = false;
@@ -226,7 +241,7 @@ class SipHandle extends Handle {
    * @param {boolean} [params.force_tcp] - True to force TCP for the SIP messaging
    * @param {boolean} [params.sips] - True to configure a SIPS URI too when registering
    * @param {boolean} [params.rfc2543_cancel] - True to configure sip client to CANCEL pending INVITEs without having received a provisional response
-   * @param {string} params.uri - The SIP URI to register
+   * @param {string} params.username - The SIP URI to register
    * @param {string} [params.secret] - The password to use, if any
    * @param {string} [params.ha1_secret] - The prehashed password to use, if any
    * @param {string} [params.display_name] - The display name to use when sending SIP REGISTER
@@ -236,10 +251,10 @@ class SipHandle extends Handle {
    * 
    * @returns {Promise<module:sip-plugin~SIP_EVENT_REGISTERED>}
    */
-  async register({ type, send_register, force_udp, force_tcp, sips, rfc2543_cancel, uri, secret, ha1_secret, display_name, proxy, outbound_proxy, register_ttl }) {
+  async register({ type, send_register, force_udp, force_tcp, sips, rfc2543_cancel, username, secret, ha1_secret, display_name, proxy, outbound_proxy, register_ttl }) {
     const body = {
       request: REQUEST_REGISTER,
-      username: uri,
+      username,
     };
 
     if (typeof type === 'string') body.type = type;
@@ -265,7 +280,7 @@ class SipHandle extends Handle {
     const response = await this.sendRequest(request, 10000);
     const { event, data: evtdata } = response._janode || {};
     if (event === PLUGIN_EVENT.REGISTERED) {
-      evtdata.uri = uri;
+      evtdata.username = username;
       return evtdata;
     }
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -315,6 +330,37 @@ class SipHandle extends Handle {
     throw (error);
   }
 
+  /**
+   * Accept an incoming SIP call.
+   * 
+   * @param {object} params
+   * @param {RTCSessionDescription} params.jsep - JSEP answer
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
+   */
+  async accept({ jsep }) {
+    if (typeof jsep === 'object' && jsep && jsep.type !== 'answer') {
+      const error = new Error('jsep must be an answer');
+      return Promise.reject(error);
+    }
+    const body = {
+      request: REQUEST_ACCEPT,
+    };
+
+    const request = {
+      janus: 'message',
+      body,
+      jsep,
+    };
+    this.decorateRequest(request);
+
+    const response = await this.sendRequest(request, 10000);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.ACCEPTED)
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
   async sip_hangup() {
     const body = {
       request: REQUEST_HANGUP,
@@ -329,6 +375,25 @@ class SipHandle extends Handle {
     const response = await this.sendRequest(request, 10000);
     const { event, data: evtdata } = response._janode || {};
     if (event === PLUGIN_EVENT.HANGINGUP)
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  async decline() {
+    const body = {
+      request: REQUEST_DECLINE,
+    };
+
+    const request = {
+      janus: 'message',
+      body,
+    };
+    this.decorateRequest(request);
+
+    const response = await this.sendRequest(request, 10000);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.DECLINING)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
@@ -353,7 +418,7 @@ class SipHandle extends Handle {
  * The success event for a REGISTER request
  * 
  * @typedef {object} SIP_EVENT_REGISTERED
- * @property {string} uri
+ * @property {string} username
  * @property {boolean} register_sent
  */
 
@@ -378,6 +443,7 @@ export default {
     SIP_CALLING: PLUGIN_EVENT.CALLING,
     SIP_RINGING: PLUGIN_EVENT.RINGING,
     SIP_PROCEEDING: PLUGIN_EVENT.PROCEEDING,
+    SIP_INCOMING: PLUGIN_EVENT.INCOMING,
     SIP_HANGUP: PLUGIN_EVENT.HANGUP,
   },
 };

@@ -131,9 +131,13 @@ function initFrontEnd() {
           Logger.info(`${LOG_NS} ${sipHandle.name} sip handle proceeding`);
           replyEvent(socket, 'proceeding', evtdata);
         });
+        sipHandle.on(SipPlugin.EVENT.SIP_INCOMING, evtdata => {
+          Logger.info(`${LOG_NS} ${sipHandle.name} sip handle incoming call`);
+          replyEvent(socket, 'incoming', evtdata);
+        });
         sipHandle.on(SipPlugin.EVENT.SIP_HANGUP, evtdata => {
           Logger.info(`${LOG_NS} ${sipHandle.name} sip handle hangup`);
-          replyEvent(socket, 'sip_hangup', evtdata);
+          replyEvent(socket, 'hangup', evtdata);
         });
 
         // generic sipHandle events
@@ -176,6 +180,26 @@ function initFrontEnd() {
       }
     });
 
+    // answer call
+    socket.on('accept', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} accept received`);
+      const { _id, data: acceptdata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, sipHandle, socket, evtdata)) return;
+
+      try {
+        const { jsep: answer } = acceptdata;
+        const response = await sipHandle.accept({
+          jsep: answer,
+        });
+        replyEvent(socket, 'accepted', response, _id);
+        Logger.info(`${LOG_NS} ${remote} accepted sent`);
+      } catch ({ message }) {
+        Logger.error(`${LOG_NS} ${remote} error accepting (${message})`);
+        replyError(socket, message, acceptdata, _id);
+      }
+    });
+
     socket.on('hangup', async (evtdata = {}) => {
       Logger.info(`${LOG_NS} ${remote} hangup received`);
       const { _id, data: hangupdata = {} } = evtdata;
@@ -189,6 +213,22 @@ function initFrontEnd() {
       } catch ({ message }) {
         Logger.error(`${LOG_NS} ${remote} error hanging up (${message})`);
         replyError(socket, message, hangupdata, _id);
+      }
+    });
+
+    socket.on('decline', async (evtdata = {}) => {
+      Logger.info(`${LOG_NS} ${remote} decline received`);
+      const { _id, data: declinedata = {} } = evtdata;
+
+      if (!checkSessions(janodeSession, sipHandle, socket, evtdata)) return;
+
+      try {
+        await sipHandle.decline();
+        replyEvent(socket, 'declined', {}, _id);
+        Logger.info(`${LOG_NS} ${remote} declined sent`);
+      } catch ({ message }) {
+        Logger.error(`${LOG_NS} ${remote} error declining (${message})`);
+        replyError(socket, message, declinedata, _id);
       }
     });
 

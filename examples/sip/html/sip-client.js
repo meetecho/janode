@@ -8,7 +8,6 @@ let sipPeerConnection;
 const localAudio = document.getElementById('localAudio');
 const remoteAudio = document.getElementById('remoteAudio');
 
-
 const connButton = document.getElementById('connect');
 connButton.onclick = () => {
   if (socket.connected)
@@ -36,6 +35,30 @@ const hangupButton = document.getElementById('hangup');
 hangupButton.onclick = async () => {
   if (!socket.connected) return;
   hangup();
+};
+
+const declineButton = document.getElementById('decline');
+declineButton.onclick = async () => {
+  if (!socket.connected) return;
+  decline();
+};
+
+let incoming = null;
+const acceptButton = document.getElementById('accept');
+acceptButton.onclick = async () => {
+  if (!socket.connected || !incoming) return;
+  const { offer, caller } = incoming;
+  console.log('accepting call from', caller);
+  incoming = null;
+  try {
+    const answer = await doAnswer(offer);
+    accept(answer);
+  } catch (error) {
+    console.log('error during setup/answer', error);
+    stopAllStreams();
+    closePC();
+    return;
+  }
 };
 
 function getId() {
@@ -66,13 +89,13 @@ const socket = io({
 function register() {
   if (!socket.connected) return;
   const type = document.getElementById('type').value.length > 0 ? document.getElementById('type').value : null;
-  const uri = document.getElementById('uri').value;
+  const username = document.getElementById('username').value;
   const secret = document.getElementById('secret').value;
   const proxy = document.getElementById('proxy').value;
   socket.emit('register', {
     data: {
       type,
-      uri,
+      username,
       secret,
       proxy,
     },
@@ -91,9 +114,27 @@ function call(uri, offer) {
   });
 }
 
+function accept(answer) {
+  if (!socket.connected) return;
+  socket.emit('accept', {
+    data: {
+      jsep: answer
+    },
+    _id: getId(),
+  });
+}
+
 function hangup() {
   if (!socket.connected) return;
   socket.emit('hangup', {
+    data: {},
+    _id: getId(),
+  });
+}
+
+function decline() {
+  if (!socket.connected) return;
+  socket.emit('decline', {
     data: {},
     _id: getId(),
   });
@@ -116,7 +157,7 @@ socket.on('registering', ({ data }) => {
 
 socket.on('registered', ({ data }) => {
   console.log('sip registered', data);
-  document.getElementById('status').innerHTML = `registered (${data.uri})`;
+  document.getElementById('status').innerHTML = `registered (${data.username})`;
 });
 
 
@@ -137,7 +178,18 @@ socket.on('accepted', ({ data }) => {
       .then(() => console.log('remote sdp OK'))
       .catch(e => console.log('error setting remote sdp', e));
   }
-  document.getElementById('status').innerHTML = `in call (${data.uri})`;
+  document.getElementById('status').innerHTML = `in call (${data.username})`;
+});
+
+socket.on('incoming', async ({ data }) => {
+  console.log('sip incoming', data);
+  if (data.jsep) {
+    incoming = {
+      offer: data.jsep,
+      caller: data.username,
+    };
+  }
+  document.getElementById('status').innerHTML = `incoming (${data.username})`;
 });
 
 socket.on('hangingup', ({ data }) => {
@@ -150,6 +202,11 @@ socket.on('hangup', ({ data }) => {
   document.getElementById('status').innerHTML = 'hangup';
   stopAllStreams();
   closePC();
+});
+
+socket.on('declined', ({ data }) => {
+  console.log('declined', data);
+  document.getElementById('status').innerHTML = 'declined';
 });
 
 
@@ -229,6 +286,59 @@ async function doOffer() {
   return offer;
 }
 
+async function doAnswer(offer) {
+  const pc = new RTCPeerConnection({
+    'iceServers': [{
+      urls: 'stun:stun.l.google.com:19302'
+    }],
+  });
+  sipPeerConnection = pc;
+
+  pc.onnegotiationneeded = event => console.log('pc.onnegotiationneeded', event);
+  pc.onicecandidate = event => trickle({ candidate: event.candidate });
+  pc.oniceconnectionstatechange = () => {
+    if (pc.iceConnectionState === 'failed' || pc.iceConnectionState === 'closed') {
+      closePC(pc);
+    }
+  };
+  pc.ontrack = event => {
+    console.log('pc.ontrack', event);
+
+    event.track.onunmute = evt => {
+      console.log('track.onunmute', evt);
+      /* TODO set srcObject in this callback */
+    };
+    event.track.onmute = evt => {
+      console.log('track.onmute', evt);
+    };
+    event.track.onended = evt => {
+      console.log('track.onended', evt);
+    };
+
+    const remoteStream = event.streams[0];
+    setRemoteAudioElement(remoteStream);
+  };
+
+  const localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+
+  console.log('getUserMedia OK');
+
+  setLocalAudioElement(localStream);
+
+  localStream.getTracks().forEach(track => {
+    console.log('adding track', track);
+    pc.addTrack(track, localStream);
+  });
+
+  await sipPeerConnection.setRemoteDescription(offer);
+  console.log('set remote sdp OK');
+  const answer = await sipPeerConnection.createAnswer();
+  console.log('create answer OK');
+  await pc.setLocalDescription(answer);
+  console.log('set local sdp OK');
+  return answer;
+}
+
 function setLocalAudioElement(stream) {
   if (stream) {
     const audioStreamElem = document.getElementById('localAudio');
@@ -246,6 +356,7 @@ function setRemoteAudioElement(stream) {
 }
 
 function stopAllStreams() {
+  incoming = null;
   if (localAudio.srcObject) {
     localAudio.srcObject.getTracks().forEach(track => track.stop());
     localAudio.srcObject = null;

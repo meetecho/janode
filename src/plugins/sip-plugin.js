@@ -173,6 +173,7 @@ class SipHandle extends Handle {
           this._pendingCalls[call_id].incoming = result.username;
           janode_event.data.username = result.username;
           janode_event.data.callee = result.callee;
+          janode_event.data.display_name = result.displayname || undefined;
           closeTx = CLOSE_TX_NO;
           emit = true;
           break;

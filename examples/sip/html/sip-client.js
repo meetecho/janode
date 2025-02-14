@@ -209,10 +209,15 @@ socket.on('declined', ({ data }) => {
   document.getElementById('status').innerHTML = 'declined';
 });
 
+socket.on('missed', ({ data }) => {
+  console.log('missed', data);
+  document.getElementById('status').innerHTML = 'missed';
+});
+
 
 socket.on('sip-error', ({ error }) => {
   console.log('sip error', error);
-  document.getElementById('status').innerHTML = 'error';
+  document.getElementById('status').innerHTML = 'error: ' + error;
   stopAllStreams();
   closePC();
   //socket.disconnect();

@@ -139,6 +139,10 @@ function initFrontEnd() {
           Logger.info(`${LOG_NS} ${sipHandle.name} sip handle hangup`);
           replyEvent(socket, 'hangup', evtdata);
         });
+        sipHandle.on(SipPlugin.EVENT.SIP_MISSED, evtdata => {
+          Logger.info(`${LOG_NS} ${sipHandle.name} sip handle missed`);
+          replyEvent(socket, 'missed', evtdata);
+        });
 
         // generic sipHandle events
         sipHandle.on(Janode.EVENT.HANDLE_WEBRTCUP, () => Logger.info(`${LOG_NS} ${sipHandle.name} webrtcup event`));

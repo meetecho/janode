@@ -151,7 +151,7 @@ class TransactionManager {
         this.delete(id);
         error(new Error('Transaction timed out!'));
         Logger.error(`${LOG_NS} [${owner.id}] closed with timeout transaction ${id}, request "${request}"`);
-      }, 10000);
+      }, timeout_ms);
       tx.timeout = timeout;
     }
 

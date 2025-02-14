@@ -31,6 +31,7 @@ const PLUGIN_EVENT = {
   HANGINGUP: 'sip_hangingup',
   DECLINING: 'declining',
   ACCEPTED: 'sip_accepted',
+  MISSED: 'sip_missed',
   ERROR: 'sip_error',
   ERROR_EVENT: 'sip_error_event',
 };
@@ -168,19 +169,26 @@ class SipHandle extends Handle {
           emit = true;
           break;
 
-        case 'incomingcall':
+        /* Inbound call */
+        case 'incomingcall': {
           janode_event.event = PLUGIN_EVENT.INCOMING;
-          this._pendingCalls[call_id].incoming = result.username;
+          /* Store the incoming call URI */
+          const call = this._pendingCalls[call_id];
+          if (call) {
+            call.incoming = result.username;
+          }
           janode_event.data.username = result.username;
           janode_event.data.callee = result.callee;
           janode_event.data.display_name = result.displayname || undefined;
           closeTx = CLOSE_TX_NO;
           emit = true;
           break;
+        }
 
-        case 'hangup':
-          /* There is a pending call without a reply */
-          if (!this._pendingCalls[call_id].accepted && !this._pendingCalls[call_id].declined && !this._pendingCalls[call_id].incoming) {
+        case 'hangup': {
+          /* Is there is a pending call without a reply? */
+          const call = this._pendingCalls[call_id];
+          if (call && !call.accepted && !call.declined && !call.incoming) {
             janode_event.event = PLUGIN_EVENT.ERROR_EVENT;
             janode_event.data = new Error(`${result.code} ${result.reason}`);
             closeTx = CLOSE_TX_ERROR;
@@ -193,6 +201,7 @@ class SipHandle extends Handle {
           }
           delete this._pendingCalls[call_id];
           break;
+        }
 
         case 'hangingup':
           janode_event.event = PLUGIN_EVENT.HANGINGUP;
@@ -200,20 +209,40 @@ class SipHandle extends Handle {
           emit = false;
           break;
 
-        case 'declining':
+        case 'declining': {
           janode_event.event = PLUGIN_EVENT.DECLINING;
-          this._pendingCalls[call_id].declined = true;
+          const call = this._pendingCalls[call_id];
+          if (call) {
+            call.declined = true;
+          }
           closeTx = CLOSE_TX_SUCCESS;
           emit = false;
           break;
+        }
 
-        case 'accepted':
+        /* A call has been accepted */
+        case 'accepted': {
           janode_event.event = PLUGIN_EVENT.ACCEPTED;
           janode_event.data.username = result.username || this._pendingCalls[call_id].incoming;
-          this._pendingCalls[call_id].accepted = true;
+          const call = this._pendingCalls[call_id];
+          if (call) {
+            call.accepted = true;
+          }
           closeTx = CLOSE_TX_SUCCESS;
           emit = false;
           break;
+        }
+
+        /* Call has been missed */
+        case 'missed_call': {
+          delete this._pendingCalls[call_id];
+          janode_event.event = PLUGIN_EVENT.MISSED;
+          janode_event.data.callee = result.callee;
+          janode_event.data.caller = result.caller;
+          closeTx = CLOSE_TX_NO;
+          emit = true;
+          break;
+        }
       }
 
       /* The event has been handled */
@@ -323,7 +352,7 @@ class SipHandle extends Handle {
     };
     this.decorateRequest(request);
 
-    const response = await this.sendRequest(request, 10000);
+    const response = await this.sendRequest(request, 120000);
     const { event, data: evtdata } = response._janode || {};
     if (event === PLUGIN_EVENT.ACCEPTED)
       return evtdata;
@@ -362,6 +391,11 @@ class SipHandle extends Handle {
     throw (error);
   }
 
+  /**
+   * Hangup a SIP call.
+   *
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_HANGINGUP>}
+   */
   async sip_hangup() {
     const body = {
       request: REQUEST_HANGUP,
@@ -381,6 +415,11 @@ class SipHandle extends Handle {
     throw (error);
   }
 
+  /**
+   * Decline an incoming SIP call.
+   *
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_DECLINING>}
+   */
   async decline() {
     const body = {
       request: REQUEST_DECLINE,
@@ -410,17 +449,40 @@ class SipHandle extends Handle {
  */
 
 /**
- * The event notifying a REGISTER is in progress
+ * The event notifying a register is in progress
  * 
  * @typedef {object} SIP_EVENT_REGISTERING
  */
 
 /**
- * The success event for a REGISTER request
+ * The success event for a register request
  * 
  * @typedef {object} SIP_EVENT_REGISTERED
+ * @property {string} username - The URI that has been registered
+ * @property {boolean} register_sent - True is a REGISTER has been sent
+ */
+
+/**
+ * The success event for an accept request
+ *
+ * @typedef {object} SIP_EVENT_ACCEPTED
+ * @property {string} call_id
  * @property {string} username
- * @property {boolean} register_sent
+ * @property {RTCSessionDescription} [jsep]
+ */
+
+/**
+ * The success event for an hangup request
+ *
+ * @typedef {object} SIP_EVENT_HANGINGUP
+ * @property {string} call_id
+ */
+
+/**
+ * The success event for a decline request
+ *
+ * @typedef {object} SIP_EVENT_DECLINING
+ * @property {string} call_id
  */
 
 /**
@@ -446,5 +508,6 @@ export default {
     SIP_PROCEEDING: PLUGIN_EVENT.PROCEEDING,
     SIP_INCOMING: PLUGIN_EVENT.INCOMING,
     SIP_HANGUP: PLUGIN_EVENT.HANGUP,
+    SIP_MISSED: PLUGIN_EVENT.MISSED,
   },
 };

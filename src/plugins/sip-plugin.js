@@ -463,6 +463,34 @@ class SipHandle extends Handle {
  */
 
 /**
+ * Event for a SIP call in progress
+ *
+ * @typedef {object} SIP_EVENT_CALLING
+ * @property {string} call_id
+ */
+
+/**
+ * Event for a SIP call ringing
+ *
+ * @typedef {object} SIP_EVENT_RINGING
+ * @property {string} call_id
+ */
+
+/**
+ * Event for a SIP call proceeding
+ *
+ * @typedef {object} SIP_EVENT_PROCEEDING
+ * @property {string} call_id
+ */
+
+/**
+ * Event for a SIP call hangup
+ *
+ * @typedef {object} SIP_EVENT_HANGUP
+ * @property {string} call_id
+ */
+
+/**
  * The success event for an accept request
  *
  * @typedef {object} SIP_EVENT_ACCEPTED
@@ -486,6 +514,33 @@ class SipHandle extends Handle {
  */
 
 /**
+ * Event for an incoming SIP call
+ *
+ * @typedef {object} SIP_EVENT_INCOMING
+ * @property {string} call_id
+ * @property {string} callee
+ * @property {string} display_name
+ * @property {string} username
+ * @property {RTCSessionDescription} [jsep]
+ */
+
+/**
+ * Event for a SIP hangup
+ *
+ * @typedef {object} SIP_EVENT_HANGUP
+ * @property {string} call_id
+ */
+
+/**
+ * Event for a missed SIP call
+ *
+ * @typedef {object} SIP_EVENT_MISSED
+ * @property {string} call_id
+ * @property {string} callee
+ * @property {string} caller
+ */
+
+/**
  * The exported plugin descriptor.
  *
  * @type {object}
@@ -493,6 +548,12 @@ class SipHandle extends Handle {
  * @property {module:sip-plugin~SipHandle} Handle - The custom class implementing the plugin
  * @property {object} EVENT - The events emitted by the plugin
  * @property {string} EVENT.SIP_REGISTERING {@link module:sip-plugin~SIP_REGISTERING}
+ * @property {string} EVENT.SIP_CALLING {@link module:sip-plugin~SIP_CALLING}
+ * @property {string} EVENT.SIP_RINGING {@link module:sip-plugin~SIP_RINGING}
+ * @property {string} EVENT.SIP_PROCEEDING {@link module:sip-plugin~SIP_PROCEEDING}
+ * @property {string} EVENT.SIP_INCOMING {@link module:sip-plugin~SIP_INCOMING}
+ * @property {string} EVENT.SIP_HANGUP {@link module:sip-plugin~SIP_HANGUP}
+ * @property {string} EVENT.SIP_MISSED {@link module:sip-plugin~SIP_MISSED}
  */
 export default {
   id: PLUGIN_ID,
@@ -503,11 +564,35 @@ export default {
      * @type {module:sip-plugin~SIP_EVENT_REGISTERING}
      */
     SIP_REGISTERING: PLUGIN_EVENT.REGISTERING,
+    /**
+     * @event module:sip-plugin~SipHandle#event:SIP_CALLING
+     * @type {module:sip-plugin~SIP_EVENT_CALLING}
+     */
     SIP_CALLING: PLUGIN_EVENT.CALLING,
+    /**
+     * @event module:sip-plugin~SipHandle#event:SIP_RINGING
+     * @type {module:sip-plugin~SIP_EVENT_RINGING}
+     */
     SIP_RINGING: PLUGIN_EVENT.RINGING,
+    /**
+     * @event module:sip-plugin~SipHandle#event:SIP_PROCEEDING
+     * @type {module:sip-plugin~SIP_EVENT_PROCEEDING}
+     */
     SIP_PROCEEDING: PLUGIN_EVENT.PROCEEDING,
+    /**
+     * @event module:sip-plugin~SipHandle#event:SIP_INCOMING
+     * @type {module:sip-plugin~SIP_EVENT_INCOMING}
+     */
     SIP_INCOMING: PLUGIN_EVENT.INCOMING,
+    /**
+     * @event module:sip-plugin~SipHandle#event:SIP_HANGUP
+     * @type {module:sip-plugin~SIP_EVENT_HANGUP}
+     */
     SIP_HANGUP: PLUGIN_EVENT.HANGUP,
+    /**
+     * @event module:sip-plugin~SipHandle#event:SIP_MISSED
+     * @type {module:sip-plugin~SIP_EVENT_MISSED}
+     */
     SIP_MISSED: PLUGIN_EVENT.MISSED,
   },
 };

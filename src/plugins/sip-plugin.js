@@ -32,6 +32,7 @@ const PLUGIN_EVENT = {
   DECLINING: 'declining',
   ACCEPTED: 'sip_accepted',
   MISSED: 'sip_missed',
+  INFO: 'sip_info',
   ERROR: 'sip_error',
   ERROR_EVENT: 'sip_error_event',
 };
@@ -240,6 +241,22 @@ class SipHandle extends Handle {
           janode_event.data.callee = result.callee;
           janode_event.data.caller = result.caller;
           closeTx = CLOSE_TX_NO;
+          emit = true;
+          break;
+        }
+
+        /* SIP INFO */
+        case 'info': {
+          janode_event.event = PLUGIN_EVENT.INFO;
+          janode_event.data.sender = result.sender;
+          if (result.displayname) {
+            janode_event.data.displayname = result.displayname;
+          }
+          janode_event.data.type = result.type;
+          janode_event.data.content = result.content;
+          if (result.headers) {
+            janode_event.data.headers = result.headers;
+          }
           emit = true;
           break;
         }
@@ -541,6 +558,17 @@ class SipHandle extends Handle {
  */
 
 /**
+ * Event for a SIP INFO
+ *
+ * @typedef {object} SIP_EVENT_INFO
+ * @property {string} sender
+ * @property {string} [displayname]
+ * @property {string} type
+ * @property {string} content
+ * @property {object} [headers]
+ */
+
+/**
  * The exported plugin descriptor.
  *
  * @type {object}
@@ -594,5 +622,10 @@ export default {
      * @type {module:sip-plugin~SIP_EVENT_MISSED}
      */
     SIP_MISSED: PLUGIN_EVENT.MISSED,
+    /**
+     * @event module:sip-plugin~SipHandle#event:SIP_INFO
+     * @type {module:sip-plugin~SIP_EVENT_INFO}
+     */
+    SIP_INFO: PLUGIN_EVENT.INFO,
   },
 };

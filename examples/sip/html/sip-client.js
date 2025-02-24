@@ -214,6 +214,9 @@ socket.on('missed', ({ data }) => {
   document.getElementById('status').innerHTML = 'missed';
 });
 
+socket.on('info', ({ data }) => {
+  console.log('info', data);
+});
 
 socket.on('sip-error', ({ error }) => {
   console.log('sip error', error);

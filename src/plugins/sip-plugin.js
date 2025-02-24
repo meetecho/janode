@@ -562,6 +562,7 @@ class SipHandle extends Handle {
  *
  * @typedef {object} SIP_EVENT_INFO
  * @property {string} sender
+ * @property {string} [call_id]
  * @property {string} [displayname]
  * @property {string} type
  * @property {string} content

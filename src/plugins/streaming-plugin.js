@@ -563,7 +563,7 @@ class StreamingHandle extends Handle {
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata, collision }) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata, collision, media }) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',
@@ -571,9 +571,6 @@ class StreamingHandle extends Handle {
       permanent,
       is_private,
       e2ee,
-      audio: false,
-      video: false,
-      data: false,
       collision: 2000,
     };
     if (typeof name === 'string') body.name = name;
@@ -581,35 +578,44 @@ class StreamingHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
     if (typeof pin === 'string') body.pin = pin;
     if (typeof admin_key === 'string') body.admin_key = admin_key;
-    if (typeof audio === 'object' && audio) {
-      body.audio = true;
-      body.audioport = (typeof audio.port === 'number') ? audio.port : 0;
-      if (typeof audio.rtcpport === 'number') body.audiortcpport = audio.rtcppport;
-      if (typeof audio.mcast === 'string') body.audiomcast = audio.mcast;
-      if (audio.pt) body.audiopt = audio.pt;
-      if (audio.rtpmap) body.audiortpmap = audio.rtpmap;
-      if (typeof audio.skew === 'boolean') body.audioskew = audio.skew;
+    /* [multistream] */
+    if (media && Array.isArray(media)) {
+      body.media = media;
     }
-    if (typeof video === 'object' && video) {
-      body.video = true;
-      body.videoport = (typeof video.port === 'number') ? video.port : 0;
-      if (typeof video.rtcpport === 'number') body.videortcpport = video.rtcpport;
-      if (typeof video.mcast === 'string') body.videomcast = video.mcast;
-      if (video.pt) body.videopt = video.pt;
-      if (video.rtpmap) body.videortpmap = video.rtpmap;
-      if (video.fmtp) body.videofmtp = video.fmtp;
-      if (typeof video.buffer === 'boolean') body.videobufferkf = video.buffer;
-      if (typeof video.skew === 'boolean') body.videoskew = video.skew;
-      if (typeof video.port2 === 'number' && typeof video.port3 === 'number') {
-        body.videosimulcast = true;
-        body.videoport2 = video.port2;
-        body.videoport3 = video.port3;
+    else {
+      body.audio = false;
+      body.video = false;
+      body.data = false;
+      if (typeof audio === 'object' && audio) {
+        body.audio = true;
+        body.audioport = (typeof audio.port === 'number') ? audio.port : 0;
+        if (typeof audio.rtcpport === 'number') body.audiortcpport = audio.rtcppport;
+        if (typeof audio.mcast === 'string') body.audiomcast = audio.mcast;
+        if (audio.pt) body.audiopt = audio.pt;
+        if (audio.rtpmap) body.audiortpmap = audio.rtpmap;
+        if (typeof audio.skew === 'boolean') body.audioskew = audio.skew;
       }
-    }
-    if (typeof data === 'object' && data) {
-      body.data = true;
-      body.dataport = (typeof data.port === 'number') ? data.port : 0;
-      if (typeof data.buffer === 'boolean') body.databuffermsg = data.buffer;
+      if (typeof video === 'object' && video) {
+        body.video = true;
+        body.videoport = (typeof video.port === 'number') ? video.port : 0;
+        if (typeof video.rtcpport === 'number') body.videortcpport = video.rtcpport;
+        if (typeof video.mcast === 'string') body.videomcast = video.mcast;
+        if (video.pt) body.videopt = video.pt;
+        if (video.rtpmap) body.videortpmap = video.rtpmap;
+        if (video.fmtp) body.videofmtp = video.fmtp;
+        if (typeof video.buffer === 'boolean') body.videobufferkf = video.buffer;
+        if (typeof video.skew === 'boolean') body.videoskew = video.skew;
+        if (typeof video.port2 === 'number' && typeof video.port3 === 'number') {
+          body.videosimulcast = true;
+          body.videoport2 = video.port2;
+          body.videoport3 = video.port3;
+        }
+      }
+      if (typeof data === 'object' && data) {
+        body.data = true;
+        body.dataport = (typeof data.port === 'number') ? data.port : 0;
+        if (typeof data.buffer === 'boolean') body.databuffermsg = data.buffer;
+      }
     }
     if (typeof threads === 'number' && threads > 0) body.threads = threads;
     if (metadata) body.metadata = metadata;

@@ -428,15 +428,21 @@ class StreamingHandle extends Handle {
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_OK>}
    */
-  async startRecording({ id, audio, video, data, secret }) {
+  async startRecording({ id, audio, video, data, media, secret }) {
     const body = {
       request: REQUEST_RECORDING,
       action: ACTION_START_REC,
       id,
     };
-    if (audio) body.audio = audio;
-    if (video) body.video = video;
-    if (data) body.data = data;
+    /* [multistream] */
+    if (media && Array.isArray(media)) {
+      body.media = media;
+    }
+    else {
+      if (audio) body.audio = audio;
+      if (video) body.video = video;
+      if (data) body.data = data;
+    }
     if (typeof secret === 'string') body.secret = '' + secret;
 
     const response = await this.message(body);
@@ -458,15 +464,21 @@ class StreamingHandle extends Handle {
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_OK>}
    */
-  async stopRecording({ id, audio = true, video = true, data = true, secret }) {
+  async stopRecording({ id, audio = true, video = true, data = true, media, secret }) {
     const body = {
       request: REQUEST_RECORDING,
       action: ACTION_STOP_REC,
       id,
-      audio,
-      video,
-      data,
     };
+    /* [multistream] */
+    if (media && Array.isArray(media)) {
+      body.media = media;
+    }
+    else {
+      body.audio = audio;
+      body.video = video;
+      body.data = data;
+    }
     if (typeof secret === 'string') body.secret = '' + secret;
 
     const response = await this.message(body);

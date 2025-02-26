@@ -425,6 +425,7 @@ class StreamingHandle extends Handle {
    * @param {string} [params.audio] - The filename for audio
    * @param {string} [params.video] - The filename for video
    * @param {string} [params.data] - The filename for data
+   * @param {object[]} [params.media] - [multistream] The media object, each media includes mid, filename
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_OK>}
    */
@@ -461,6 +462,7 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.audio=true] - True to stop recording of audio
    * @param {boolean} [params.video=true] - True to stop recording of video
    * @param {boolean} [params.data=true] - True to stop recording of data
+   * @param {object[]} [params.media] - [multistream] The media object, each media includes mid
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_OK>}
    */
@@ -570,6 +572,7 @@ class StreamingHandle extends Handle {
    * @param {object} [params.data] - The datachannel descriptor for the mp
    * @param {number} [params.data.port] - Port used for datachannels packets
    * @param {boolean} [params.data.buffer] - Enable buffering of the datachannels
+   * @param {object[]} [params.media] - [multistream] The media object, each media includes type, mid, port, pt ...
    * @param {number} [params.threads] - The number of helper threads used in this mp
    * @param {object} [params.metadata] - An opaque metadata to add to the mp
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)

@@ -575,7 +575,7 @@ class StreamingHandle extends Handle {
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata, collision, media }) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, media, threads, metadata, collision }) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',

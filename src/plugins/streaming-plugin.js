@@ -425,18 +425,25 @@ class StreamingHandle extends Handle {
    * @param {string} [params.audio] - The filename for audio
    * @param {string} [params.video] - The filename for video
    * @param {string} [params.data] - The filename for data
+   * @param {object[]} [params.media] - [multistream] The media object, each media includes mid, filename
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_OK>}
    */
-  async startRecording({ id, audio, video, data, secret }) {
+  async startRecording({ id, audio, video, data, media, secret }) {
     const body = {
       request: REQUEST_RECORDING,
       action: ACTION_START_REC,
       id,
     };
-    if (audio) body.audio = audio;
-    if (video) body.video = video;
-    if (data) body.data = data;
+    /* [multistream] */
+    if (media && Array.isArray(media)) {
+      body.media = media;
+    }
+    else {
+      if (audio) body.audio = audio;
+      if (video) body.video = video;
+      if (data) body.data = data;
+    }
     if (typeof secret === 'string') body.secret = '' + secret;
 
     const response = await this.message(body);
@@ -455,18 +462,25 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.audio=true] - True to stop recording of audio
    * @param {boolean} [params.video=true] - True to stop recording of video
    * @param {boolean} [params.data=true] - True to stop recording of data
+   * @param {object[]} [params.media] - [multistream] The media object, each media includes mid
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_OK>}
    */
-  async stopRecording({ id, audio = true, video = true, data = true, secret }) {
+  async stopRecording({ id, audio = true, video = true, data = true, media, secret }) {
     const body = {
       request: REQUEST_RECORDING,
       action: ACTION_STOP_REC,
       id,
-      audio,
-      video,
-      data,
     };
+    /* [multistream] */
+    if (media && Array.isArray(media)) {
+      body.media = media;
+    }
+    else {
+      body.audio = audio;
+      body.video = video;
+      body.data = data;
+    }
     if (typeof secret === 'string') body.secret = '' + secret;
 
     const response = await this.message(body);
@@ -558,12 +572,13 @@ class StreamingHandle extends Handle {
    * @param {object} [params.data] - The datachannel descriptor for the mp
    * @param {number} [params.data.port] - Port used for datachannels packets
    * @param {boolean} [params.data.buffer] - Enable buffering of the datachannels
+   * @param {object[]} [params.media] - [multistream] The media object, each media includes type, mid, port, pt ...
    * @param {number} [params.threads] - The number of helper threads used in this mp
    * @param {object} [params.metadata] - An opaque metadata to add to the mp
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, threads, metadata, collision }) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, media, threads, metadata, collision }) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',
@@ -571,9 +586,6 @@ class StreamingHandle extends Handle {
       permanent,
       is_private,
       e2ee,
-      audio: false,
-      video: false,
-      data: false,
       collision: 2000,
     };
     if (typeof name === 'string') body.name = name;
@@ -581,35 +593,44 @@ class StreamingHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
     if (typeof pin === 'string') body.pin = pin;
     if (typeof admin_key === 'string') body.admin_key = admin_key;
-    if (typeof audio === 'object' && audio) {
-      body.audio = true;
-      body.audioport = (typeof audio.port === 'number') ? audio.port : 0;
-      if (typeof audio.rtcpport === 'number') body.audiortcpport = audio.rtcppport;
-      if (typeof audio.mcast === 'string') body.audiomcast = audio.mcast;
-      if (audio.pt) body.audiopt = audio.pt;
-      if (audio.rtpmap) body.audiortpmap = audio.rtpmap;
-      if (typeof audio.skew === 'boolean') body.audioskew = audio.skew;
+    /* [multistream] */
+    if (media && Array.isArray(media)) {
+      body.media = media;
     }
-    if (typeof video === 'object' && video) {
-      body.video = true;
-      body.videoport = (typeof video.port === 'number') ? video.port : 0;
-      if (typeof video.rtcpport === 'number') body.videortcpport = video.rtcpport;
-      if (typeof video.mcast === 'string') body.videomcast = video.mcast;
-      if (video.pt) body.videopt = video.pt;
-      if (video.rtpmap) body.videortpmap = video.rtpmap;
-      if (video.fmtp) body.videofmtp = video.fmtp;
-      if (typeof video.buffer === 'boolean') body.videobufferkf = video.buffer;
-      if (typeof video.skew === 'boolean') body.videoskew = video.skew;
-      if (typeof video.port2 === 'number' && typeof video.port3 === 'number') {
-        body.videosimulcast = true;
-        body.videoport2 = video.port2;
-        body.videoport3 = video.port3;
+    else {
+      body.audio = false;
+      body.video = false;
+      body.data = false;
+      if (typeof audio === 'object' && audio) {
+        body.audio = true;
+        body.audioport = (typeof audio.port === 'number') ? audio.port : 0;
+        if (typeof audio.rtcpport === 'number') body.audiortcpport = audio.rtcppport;
+        if (typeof audio.mcast === 'string') body.audiomcast = audio.mcast;
+        if (audio.pt) body.audiopt = audio.pt;
+        if (audio.rtpmap) body.audiortpmap = audio.rtpmap;
+        if (typeof audio.skew === 'boolean') body.audioskew = audio.skew;
       }
-    }
-    if (typeof data === 'object' && data) {
-      body.data = true;
-      body.dataport = (typeof data.port === 'number') ? data.port : 0;
-      if (typeof data.buffer === 'boolean') body.databuffermsg = data.buffer;
+      if (typeof video === 'object' && video) {
+        body.video = true;
+        body.videoport = (typeof video.port === 'number') ? video.port : 0;
+        if (typeof video.rtcpport === 'number') body.videortcpport = video.rtcpport;
+        if (typeof video.mcast === 'string') body.videomcast = video.mcast;
+        if (video.pt) body.videopt = video.pt;
+        if (video.rtpmap) body.videortpmap = video.rtpmap;
+        if (video.fmtp) body.videofmtp = video.fmtp;
+        if (typeof video.buffer === 'boolean') body.videobufferkf = video.buffer;
+        if (typeof video.skew === 'boolean') body.videoskew = video.skew;
+        if (typeof video.port2 === 'number' && typeof video.port3 === 'number') {
+          body.videosimulcast = true;
+          body.videoport2 = video.port2;
+          body.videoport3 = video.port3;
+        }
+      }
+      if (typeof data === 'object' && data) {
+        body.data = true;
+        body.dataport = (typeof data.port === 'number') ? data.port : 0;
+        if (typeof data.buffer === 'boolean') body.databuffermsg = data.buffer;
+      }
     }
     if (typeof threads === 'number' && threads > 0) body.threads = threads;
     if (metadata) body.metadata = metadata;
@@ -691,6 +712,15 @@ class StreamingHandle extends Handle {
  * @property {number} [video_port_3] - The port for RTP video (simulcast)
  * @property {number} [video_rtcp_port] - The port for RTCP video
  * @property {number} [data_port] - The port for datachannels
+ * @property {object[]} [ports] - [multistream] The ports used by the RTP mountpoint
+ * @property {string} ports.type - The type of the port (audio, video, data)
+ * @property {string} ports.mid - The unique mid of the stream
+ * @property {string} [ports.msid] - The msid of the stream
+ * @property {string} [ports.host] - The address in use for this stream
+ * @property {number} [ports.port] - The port on which the plugin listens for this stream's media
+ * @property {number} [ports.rtcp_port] - The local port for receiving and sending RTCP feedback
+ * @property {number} [ports.port_2] - The second local port for receiving video frames (only for RTP video, and simulcasting)
+ * @property {number} [ports.port_3] - The third local port for receiving video frames (only for RTP video, and simulcasting)
  */
 
 /**

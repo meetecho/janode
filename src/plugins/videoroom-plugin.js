@@ -1259,6 +1259,7 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
    * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
    * @param {boolean} [params.require_pvtid] - Whether subscriptions are required to provide a valid private_id
+   * @param {boolean} [params.notify_joining] - Whether to notify all participants when a new participant joins the room
    * @param {boolean} [params.require_e2ee] - Whether all participants are required to publish and subscribe using e2e encryption
    * @param {boolean} [params.record] - Wheter to enable recording of any publisher
    * @param {string} [params.rec_dir] - Folder where recordings should be stored
@@ -1270,7 +1271,7 @@ class VideoRoomHandle extends Handle {
    */
   async create({ room, description, max_publishers, permanent, is_private, secret, pin, admin_key, bitrate,
     bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold,
-    require_pvtid, require_e2ee, record, rec_dir, videoorient, h264_profile, vp9_profile, threads }) {
+    require_pvtid, notify_joining, require_e2ee, record, rec_dir, videoorient, h264_profile, vp9_profile, threads }) {
     const body = {
       request: REQUEST_CREATE,
     };
@@ -1291,6 +1292,7 @@ class VideoRoomHandle extends Handle {
     if (typeof talking_level_threshold === 'number' && talking_level_threshold >= 0 && talking_level_threshold <= 127) body.audio_level_average = talking_level_threshold;
     if (typeof talking_packets_threshold === 'number' && talking_packets_threshold > 0) body.audio_active_packets = talking_packets_threshold;
     if (typeof require_pvtid === 'boolean') body.require_pvtid = require_pvtid;
+    if (typeof notify_joining === 'boolean') body.notify_joining = notify_joining;
     if (typeof require_e2ee === 'boolean') body.require_e2ee = require_e2ee;
     if (typeof record === 'boolean') body.record = record;
     if (typeof rec_dir === 'string') body.rec_dir = rec_dir;

@@ -716,9 +716,9 @@ class StreamingHandle extends Handle {
  * @property {string} ports.type - The type of the port (audio, video, data)
  * @property {string} ports.mid - The unique mid of the stream
  * @property {string} [ports.msid] - The msid of the stream
- * @property {string} [ports.host] - The host of the stream
+ * @property {string} [ports.host] - The address in use for this stream
  * @property {number} [ports.port] - The port on which the plugin listens for this stream's media
- * @property {number} [ports.rtcp_port] - The port to bind to for receiving and sending audio RTCP feedback
+ * @property {number} [ports.rtcp_port] - The local port for receiving and sending RTCP feedback
  * @property {number} [ports.port_2] - The second local port for receiving video frames (only for RTP video, and simulcasting)
  * @property {number} [ports.port_3] - The third local port for receiving video frames (only for RTP video, and simulcasting)
  */

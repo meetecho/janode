@@ -712,6 +712,11 @@ class StreamingHandle extends Handle {
  * @property {number} [video_port_3] - The port for RTP video (simulcast)
  * @property {number} [video_rtcp_port] - The port for RTCP video
  * @property {number} [data_port] - The port for datachannels
+ * @property {object[]} [ports] - [multistream] The ports used by the RTP mountpoint
+ * @property {string} [ports.type] - The type of the port (audio, video, data)
+ * @property {string} [ports.mid] - The unique mid of the stream
+ * @property {string} [ports.msid] - The msid of the stream, if configured
+ * @property {number} [ports.port] - The port on which the plugin listens for this stream's media
  */
 
 /**

@@ -147,6 +147,10 @@ function initFrontEnd() {
           Logger.info(`${LOG_NS} ${sipHandle.name} sip handle info`);
           replyEvent(socket, 'info', evtdata);
         });
+        sipHandle.on(SipPlugin.EVENT.SIP_DTMF, evtdata => {
+          Logger.info(`${LOG_NS} ${sipHandle.name} sip handle dtmf`);
+          replyEvent(socket, 'dtmf', evtdata);
+        });
 
         // generic sipHandle events
         sipHandle.on(Janode.EVENT.HANDLE_WEBRTCUP, () => Logger.info(`${LOG_NS} ${sipHandle.name} webrtcup event`));

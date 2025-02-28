@@ -33,6 +33,7 @@ const PLUGIN_EVENT = {
   ACCEPTED: 'sip_accepted',
   MISSED: 'sip_missed',
   INFO: 'sip_info',
+  DTMF: 'sip_dtmf',
   ERROR: 'sip_error',
   ERROR_EVENT: 'sip_error_event',
 };
@@ -257,6 +258,16 @@ class SipHandle extends Handle {
           if (result.headers) {
             janode_event.data.headers = result.headers;
           }
+          emit = true;
+          break;
+        }
+
+        /* RFC2833 DTMF */
+        case 'dtmf': {
+          janode_event.event = PLUGIN_EVENT.DTMF;
+          janode_event.data.sender = result.sender;
+          janode_event.data.signal = result.signal;
+          janode_event.data.duration = result.duration;
           emit = true;
           break;
         }
@@ -570,6 +581,16 @@ class SipHandle extends Handle {
  */
 
 /**
+ * Event for a RFC2833 DTMF
+ *
+ * @typedef {object} SIP_EVENT_DTMF
+ * @property {string} sender
+ * @property {string} [call_id]
+ * @property {string} signal
+ * @property {number} duration
+ */
+
+/**
  * The exported plugin descriptor.
  *
  * @type {object}
@@ -628,5 +649,10 @@ export default {
      * @type {module:sip-plugin~SIP_EVENT_INFO}
      */
     SIP_INFO: PLUGIN_EVENT.INFO,
+    /**
+     * @event module:sip-plugin~SipHandle#event:SIP_DTMF
+     * @type {module:sip-plugin~SIP_EVENT_DTMF}
+     */
+    SIP_DTMF: PLUGIN_EVENT.DTMF,
   },
 };

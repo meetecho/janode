@@ -218,6 +218,10 @@ socket.on('info', ({ data }) => {
   console.log('info', data);
 });
 
+socket.on('dtmf', ({ data }) => {
+  console.log('dtmf', data);
+});
+
 socket.on('sip-error', ({ error }) => {
   console.log('sip error', error);
   document.getElementById('status').innerHTML = 'error: ' + error;

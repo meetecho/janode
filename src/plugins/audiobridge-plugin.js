@@ -460,10 +460,11 @@ class AudioBridgeHandle extends Handle {
    * @param {number} [params.expected_loss] - Set a new expected_loss value for this participant (overrides room default)
    * @param {number} [params.prebuffer] - Set a new prebuffer value (overrides room default)
    * @param {string} [params.group] - Set the group that the participant belongs to
-   * @param {RTCSessionDescription} [params.jsep=null] - JSEP offer
+   * @param {module:audiobridge-plugin~RtpParticipant} [params.rtp_participant] - Set a descriptor object if you need a RTP participant
+   * @param {RTCSessionDescription} [params.jsep=null] - JSEP offer/answer to be sent to Janus
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_CONFIGURED>}
    */
-  async configure({ display, muted, quality, bitrate, volume, record, filename, expected_loss, prebuffer, group, jsep = null }) {
+  async configure({ display, muted, quality, bitrate, volume, record, filename, expected_loss, prebuffer, group, rtp_participant, jsep = null }) {
     const body = {
       request: REQUEST_CONFIGURE,
     };
@@ -477,6 +478,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof expected_loss === 'number') body.expected_loss = expected_loss;
     if (typeof prebuffer === 'number') body.prebuffer = prebuffer;
     if (typeof group === 'string') body.group = group;
+    if (typeof rtp_participant === 'object' && rtp_participant) body.rtp = rtp_participant;
 
     const response = await this.message(body, jsep);
     const { event, data: evtdata } = response._janode || {};
@@ -493,6 +495,7 @@ class AudioBridgeHandle extends Handle {
       if (typeof body.filename !== 'undefined') evtdata.filename = body.filename;
       if (typeof body.prebuffer !== 'undefined') evtdata.prebuffer = body.prebuffer;
       if (typeof body.group !== 'undefined') evtdata.group = body.group;
+      if (typeof body.rtp !== 'undefined') evtdata.rtp_participant = body.rtp;
       return evtdata;
     }
     const error = new Error(`unexpected response to ${body.request} request`);

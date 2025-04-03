@@ -46,7 +46,7 @@ class EchoTestHandle extends Handle {
    * @returns {object} A falsy value for unhandled events, a truthy value for handled events
    */
   handleMessage(janus_message) {
-    const { plugindata, jsep, transaction } = janus_message;
+    const { plugindata, transaction } = janus_message;
     if (plugindata && plugindata.data && plugindata.data.echotest) {
       /**
        * @type {EchoTestData}
@@ -55,22 +55,11 @@ class EchoTestHandle extends Handle {
       const { echotest, event, error, error_code, result } = message_data;
 
       /* Prepare an object for the output Janode event */
-      const janode_event = {
-        /* The name of the resolved event */
-        event: null,
-        /* The event payload */
-        data: {},
-      };
-
-      /* Add JSEP data if available */
-      if (jsep) janode_event.data.jsep = jsep;
+      const janode_event = this._newPluginEvent(janus_message);
 
       /* The plugin will emit an event only if the handle does not own the transaction */
       /* That means that a transaction has already been closed or this is an async event */
       const emit = (this.ownsTransaction(transaction) === false);
-
-      /* Use the "janode" property to store the output event */
-      janus_message._janode = janode_event;
 
       switch (echotest) {
 
@@ -141,7 +130,7 @@ class EchoTestHandle extends Handle {
     if (typeof filename === 'string') body.filename = filename;
 
     const response = await this.message(body, jsep);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.RESULT && evtdata.result === 'ok')
       return evtdata;
     const error = new Error('invalid echotest result');

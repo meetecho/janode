@@ -122,7 +122,7 @@ class VideoRoomHandle extends Handle {
    * @returns {object} A falsy value for unhandled events, a truthy value for handled events
    */
   handleMessage(janus_message) {
-    const { plugindata, jsep, transaction } = janus_message;
+    const { plugindata, transaction } = janus_message;
     if (plugindata && plugindata.data && plugindata.data.videoroom) {
       /**
        * @type {VideoRoomData}
@@ -131,25 +131,14 @@ class VideoRoomHandle extends Handle {
       const { videoroom, error, error_code, room } = message_data;
 
       /* Prepare an object for the output Janode event */
-      const janode_event = {
-        /* The name of the resolved event */
-        event: null,
-        /* The event payload */
-        data: {},
-      };
+      const janode_event = this._newPluginEvent(janus_message);
 
-      /* Add JSEP data if available */
-      if (jsep) janode_event.data.jsep = jsep;
-      if (jsep && typeof jsep.e2ee === 'boolean') janode_event.data.e2ee = jsep.e2ee;
       /* Add room information if available */
       if (room) janode_event.data.room = room;
 
       /* The plugin will emit an event only if the handle does not own the transaction */
       /* That means that a transaction has already been closed or this is an async event */
       const emit = (this.ownsTransaction(transaction) === false);
-
-      /* Use the "janode" property to store the output event */
-      janus_message._janode = janode_event;
 
       switch (videoroom) {
 
@@ -661,7 +650,7 @@ class VideoRoomHandle extends Handle {
     if (descriptions && Array.isArray(descriptions)) body.descriptions = descriptions;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.PUB_JOINED) {
       if (body.display) evtdata.display = body.display;
       return evtdata;
@@ -732,7 +721,7 @@ class VideoRoomHandle extends Handle {
       throw e;
     });
 
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.PUB_JOINED) {
       if (body.display) evtdata.display = body.display;
       return evtdata;
@@ -821,7 +810,7 @@ class VideoRoomHandle extends Handle {
       throw e;
     });
 
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.CONFIGURED && evtdata.configured === 'ok') {
       if (body.display) evtdata.display = body.display;
       if (typeof body.request === 'boolean') evtdata.restart = body.restart;
@@ -894,7 +883,7 @@ class VideoRoomHandle extends Handle {
       throw e;
     });
 
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.CONFIGURED && evtdata.configured === 'ok') {
       if (body.display) evtdata.display = body.display;
       return evtdata;
@@ -914,7 +903,7 @@ class VideoRoomHandle extends Handle {
     };
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.UNPUBLISHED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -976,7 +965,7 @@ class VideoRoomHandle extends Handle {
     if (typeof use_msid === 'boolean') body.use_msid = use_msid;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.SUB_JOINED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1008,7 +997,7 @@ class VideoRoomHandle extends Handle {
       jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
 
     const response = await this.message(body, jsep);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.STARTED && evtdata.started === 'ok')
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1026,7 +1015,7 @@ class VideoRoomHandle extends Handle {
     };
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.PAUSED && evtdata.paused === 'ok')
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1061,7 +1050,7 @@ class VideoRoomHandle extends Handle {
     }
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.SWITCHED && evtdata.switched === 'ok') {
       return evtdata;
     }
@@ -1081,7 +1070,7 @@ class VideoRoomHandle extends Handle {
     };
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.LEAVING)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1104,7 +1093,7 @@ class VideoRoomHandle extends Handle {
     if (unsubscribe && Array.isArray(unsubscribe)) body.unsubscribe = unsubscribe;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.UPDATED) {
       return evtdata;
     }
@@ -1134,7 +1123,7 @@ class VideoRoomHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.PARTICIPANTS_LIST)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1159,7 +1148,7 @@ class VideoRoomHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.RECORDING_ENABLED_STATE) {
       evtdata.room = body.room;
       return evtdata;
@@ -1186,7 +1175,7 @@ class VideoRoomHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.SUCCESS) {
       evtdata.room = body.room;
       evtdata.feed = body.id;
@@ -1210,7 +1199,7 @@ class VideoRoomHandle extends Handle {
     };
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.EXISTS)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1231,7 +1220,7 @@ class VideoRoomHandle extends Handle {
     if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.ROOMS_LIST)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1259,6 +1248,7 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.talking_level_threshold] - Audio level threshold for talking events in the range [0, 127]
    * @param {number} [params.talking_packets_threshold] - Audio packets threshold for talking events
    * @param {boolean} [params.require_pvtid] - Whether subscriptions are required to provide a valid private_id
+   * @param {boolean} [params.notify_joining] - Whether to notify all participants when a new participant joins the room
    * @param {boolean} [params.require_e2ee] - Whether all participants are required to publish and subscribe using e2e encryption
    * @param {boolean} [params.record] - Wheter to enable recording of any publisher
    * @param {string} [params.rec_dir] - Folder where recordings should be stored
@@ -1270,7 +1260,7 @@ class VideoRoomHandle extends Handle {
    */
   async create({ room, description, max_publishers, permanent, is_private, secret, pin, admin_key, bitrate,
     bitrate_cap, fir_freq, audiocodec, videocodec, talking_events, talking_level_threshold, talking_packets_threshold,
-    require_pvtid, require_e2ee, record, rec_dir, videoorient, h264_profile, vp9_profile, threads }) {
+    require_pvtid, notify_joining, require_e2ee, record, rec_dir, videoorient, h264_profile, vp9_profile, threads }) {
     const body = {
       request: REQUEST_CREATE,
     };
@@ -1291,6 +1281,7 @@ class VideoRoomHandle extends Handle {
     if (typeof talking_level_threshold === 'number' && talking_level_threshold >= 0 && talking_level_threshold <= 127) body.audio_level_average = talking_level_threshold;
     if (typeof talking_packets_threshold === 'number' && talking_packets_threshold > 0) body.audio_active_packets = talking_packets_threshold;
     if (typeof require_pvtid === 'boolean') body.require_pvtid = require_pvtid;
+    if (typeof notify_joining === 'boolean') body.notify_joining = notify_joining;
     if (typeof require_e2ee === 'boolean') body.require_e2ee = require_e2ee;
     if (typeof record === 'boolean') body.record = record;
     if (typeof rec_dir === 'string') body.rec_dir = rec_dir;
@@ -1300,7 +1291,7 @@ class VideoRoomHandle extends Handle {
     if (typeof threads === 'number') body.threads = threads;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.CREATED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1325,7 +1316,7 @@ class VideoRoomHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.DESTROYED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1352,7 +1343,7 @@ class VideoRoomHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.ALLOWED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1411,7 +1402,7 @@ class VideoRoomHandle extends Handle {
     if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.RTP_FWD_STARTED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1440,7 +1431,7 @@ class VideoRoomHandle extends Handle {
     if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.RTP_FWD_STOPPED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -1463,7 +1454,7 @@ class VideoRoomHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.RTP_FWD_LIST)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);

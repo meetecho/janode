@@ -305,7 +305,6 @@ class AudioBridgeHandle extends Handle {
         /* Announcement events */
         case 'announcement-started':
         case 'announcement-stopped':
-          janode_event.data.room = message_data.room;
           janode_event.data.file_id = message_data.file_id;
           janode_event.event = audiobridge === 'announcement-started' ? PLUGIN_EVENT.ANNOUNCEMENT_STARTED : PLUGIN_EVENT.ANNOUNCEMENT_STOPPED;
           break;
@@ -1077,7 +1076,7 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @param {string} [params.group] - The optional group to play in
    * @param {string} [params.file_id] - The optional ID of the announcement
-   * @param {string} [params.filename] - The path to the Opus file to play
+   * @param {string} params.filename - The path to the Opus file to play
    * @param {boolean} [params.loop] - Whether the file should be played in a loop
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_PLAY_FILE_RESPONSE>}
    */
@@ -1108,7 +1107,7 @@ class AudioBridgeHandle extends Handle {
    * @param {object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
-   * @param {string} [params.file_id] - The involved announcement ID
+   * @param {string} params.file_id - The involved announcement ID
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_IS_PLAYING_RESPONSE>}
    */
   async isPlaying({ room, secret, file_id }) {
@@ -1135,7 +1134,7 @@ class AudioBridgeHandle extends Handle {
    * @param {object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
-   * @param {string} [params.file_id] - The involved announcement ID
+   * @param {string} params.file_id - The involved announcement ID
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_STOP_FILE_RESPONSE>}
    */
   async stopFile({ room, secret, file_id }) {
@@ -1414,9 +1413,9 @@ class AudioBridgeHandle extends Handle {
  * @property {number|string} room - The involved room
  * @property {object[]} announcements - The list of announcements
  * @property {string} announcements[].file_id - The announcement identifier
- * @property {string} [announcements[].filename] - The path to the Opus file
- * @property {boolean} [announcements[].playing] - True if the announcement is playing
- * @property {boolean} [announcements[].loop] - True if the announcement will be played in a loop
+ * @property {string} announcements[].filename - The path to the Opus file
+ * @property {boolean} announcements[].playing - True if the announcement is playing
+ * @property {boolean} announcements[].loop - True if the announcement will be played in a loop
  */
 
 /**

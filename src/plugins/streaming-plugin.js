@@ -76,7 +76,7 @@ class StreamingHandle extends Handle {
    * @returns {object} A falsy value for unhandled events, a truthy value for handled events
    */
   handleMessage(janus_message) {
-    const { plugindata, jsep, transaction } = janus_message;
+    const { plugindata, transaction } = janus_message;
     if (plugindata && plugindata.data && plugindata.data.streaming) {
       /**
        * @type {StreamingData}
@@ -85,23 +85,11 @@ class StreamingHandle extends Handle {
       const { streaming, error, error_code } = message_data;
 
       /* Prepare an object for the output Janode event */
-      const janode_event = {
-        /* The name of the resolved event */
-        event: null,
-        /* The event payload */
-        data: {},
-      };
-
-      /* Add JSEP data if available */
-      if (jsep) janode_event.data.jsep = jsep;
-      if (jsep && typeof jsep.e2ee === 'boolean') janode_event.data.e2ee = jsep.e2ee;
+      const janode_event = this._newPluginEvent(janus_message);
 
       /* The plugin will emit an event only if the handle does not own the transaction */
       /* That means that a transaction has already been closed or this is an async event */
       const emit = (this.ownsTransaction(transaction) === false);
-
-      /* Use the "janode" property to store the output event */
-      janus_message._janode = janode_event;
 
       switch (streaming) {
 
@@ -235,7 +223,7 @@ class StreamingHandle extends Handle {
     if (typeof restart === 'boolean') body.restart = restart;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);;
     if (event === PLUGIN_EVENT.STATUS && (evtdata.status === 'preparing' || evtdata.status === 'updating')) {
       /* Set current mp to subscribed id */
       this.mp = id;
@@ -265,7 +253,7 @@ class StreamingHandle extends Handle {
     jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
 
     const response = await this.message(body, jsep);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);;
     if (event === PLUGIN_EVENT.STATUS && (evtdata.status === 'starting' || evtdata.status === 'started'))
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -283,7 +271,7 @@ class StreamingHandle extends Handle {
     };
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);;
     if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'pausing')
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -301,7 +289,7 @@ class StreamingHandle extends Handle {
     };
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);;
     if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'stopping')
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -322,7 +310,7 @@ class StreamingHandle extends Handle {
     };
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);;
     if (event === PLUGIN_EVENT.SWITCHED && evtdata.switched === 'ok') {
       /* Set current mp to the switched id */
       this.mp = evtdata.id;
@@ -360,7 +348,7 @@ class StreamingHandle extends Handle {
     if (typeof temporal_layer === 'number') body.temporal_layer = temporal_layer;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.CONFIGURED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -387,7 +375,7 @@ class StreamingHandle extends Handle {
     if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.LIST)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -410,7 +398,7 @@ class StreamingHandle extends Handle {
     if (typeof secret === 'string') body.secret = '' + secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.INFO)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -447,7 +435,7 @@ class StreamingHandle extends Handle {
     if (typeof secret === 'string') body.secret = '' + secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.OK)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -484,7 +472,7 @@ class StreamingHandle extends Handle {
     if (typeof secret === 'string') body.secret = '' + secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.OK)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -507,7 +495,7 @@ class StreamingHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.OK)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -532,7 +520,7 @@ class StreamingHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.OK)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -637,7 +625,7 @@ class StreamingHandle extends Handle {
     if (typeof collision === 'number') body.collision = collision;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.CREATED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -662,7 +650,7 @@ class StreamingHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.DESTROYED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);

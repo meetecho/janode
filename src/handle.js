@@ -13,6 +13,7 @@ const LOG_NS = '[handle.js]';
 import { getNumericID } from './utils/utils.js';
 import { JANUS, JANODE, isAckData, isResponseData, isErrorData } from './protocol.js';
 
+const PLUGIN_EVENT_SYM = Symbol('plugin_event');
 /**
  * Class representing a Janode handle.<br>
  *
@@ -385,6 +386,43 @@ class Handle extends EventEmitter {
   _decorateRequest(request) {
     request.transaction = request.transaction || getNumericID();
     request.handle_id = request.handle_id || this.id;
+  }
+
+  /**
+   * Helper method used by plugins to create a new plugin event and assign it to a janus message.
+   *
+   * @private
+   * @param {object} janus_message
+   * @returns {object}
+   */
+  _newPluginEvent(janus_message) {
+    /* Prepare an object for the output Janode event */
+    const janode_event = {
+      /* The name of the resolved event */
+      event: null,
+      /* The event payload */
+      data: {},
+    };
+
+    /* Add JSEP data if available */
+    if (janus_message.jsep) {
+      janode_event.data.jsep = janus_message.jsep;
+      if (typeof janus_message.jsep.e2ee === 'boolean') janode_event.data.e2ee = janus_message.jsep.e2ee;
+    }
+
+    janus_message[PLUGIN_EVENT_SYM] = janode_event;
+    return janode_event;
+  }
+
+  /**
+   * Helper method used by plugins to get an assigned plugin eventfrom a handled janus message.
+   *
+   * @private
+   * @param {object} janus_message
+   * @returns {object}
+   */
+  _getPluginEvent(janus_message) {
+    return janus_message[PLUGIN_EVENT_SYM] || {};
   }
 
   /**

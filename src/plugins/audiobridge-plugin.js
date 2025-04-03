@@ -32,6 +32,10 @@ const REQUEST_MUTE_PARTICIPANT = 'mute';
 const REQUEST_UNMUTE_PARTICIPANT = 'unmute';
 const REQUEST_MUTE_ROOM = 'unmute_room';
 const REQUEST_UNMUTE_ROOM = 'unmute_room';
+const REQUEST_PLAY_FILE = 'play_file';
+const REQUEST_IS_PLAYING = 'is_playing';
+const REQUEST_STOP_FILE = 'stop_file';
+const REQUEST_LIST_ANNOUNCEMENTS = 'listannouncements';
 
 /* These are the events/responses that the Janode plugin will manage */
 /* Some of them will be exported in the plugin descriptor */
@@ -61,6 +65,9 @@ const PLUGIN_EVENT = {
   FWD_LIST: 'audiobridge_rtp_list',
   ALLOWED: 'audiobridge_allowed',
   ROOM_MUTED: 'audiobridge_room_muted',
+  ANNOUNCEMENTS_LIST: 'audiobridge_announcements_list',
+  ANNOUNCEMENT_STARTED: 'audiobridge_announcement_started',
+  ANNOUNCEMENT_STOPPED: 'audiobridge_announcement_stopped',
   SUCCESS: 'audiobridge_success',
   ERROR: 'audiobridge_error',
 };
@@ -164,6 +171,12 @@ class AudioBridgeHandle extends Handle {
           if (typeof message_data.allowed !== 'undefined') {
             janode_event.data.list = message_data.allowed;
           }
+          if (typeof message_data.file_id !== 'undefined') {
+            janode_event.data.file_id = message_data.file_id;
+          }
+          if (typeof message_data.playing !== 'undefined') {
+            janode_event.data.playing = message_data.playing;
+          }
           /* In this case the "event" field of the Janode event is "success" */
           janode_event.event = PLUGIN_EVENT.SUCCESS;
           break;
@@ -264,12 +277,26 @@ class AudioBridgeHandle extends Handle {
           janode_event.event = PLUGIN_EVENT.FWD_LIST;
           break;
 
+        /* Announcements list */
+        case 'announcements':
+          janode_event.data.announcements = message_data.announcements;
+          janode_event.event = PLUGIN_EVENT.ANNOUNCEMENTS_LIST;
+          break;
+
         /* Talking events */
         case 'talking':
         case 'stopped-talking':
           janode_event.data.feed = message_data.id;
           janode_event.data.talking = (audiobridge === 'talking');
           janode_event.event = message_data.id !== this.feed ? PLUGIN_EVENT.PEER_TALKING : PLUGIN_EVENT.TALKING;
+          break;
+
+        /* Announcement events */
+        case 'announcement-started':
+        case 'announcement-stopped':
+          janode_event.data.room = message_data.room;
+          janode_event.data.file_id = message_data.file_id;
+          janode_event.event = audiobridge === 'announcement-started' ? PLUGIN_EVENT.ANNOUNCEMENT_STARTED : PLUGIN_EVENT.ANNOUNCEMENT_STOPPED;
           break;
 
         /* Generic event (e.g. errors) */
@@ -1031,6 +1058,116 @@ class AudioBridgeHandle extends Handle {
     throw (error);
   }
 
+  /**
+   * Play a file inside a room.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @param {string} [params.group] - The optional group to play in
+   * @param {string} [params.file_id] - The optional ID of the announcement
+   * @param {string} [params.filename] - The path to the Opus file to play
+   * @param {boolean} [params.loop] - Whether the file should be played in a loop
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_PLAY_FILE_RESPONSE>}
+   */
+  async playFile({ room, secret, group, file_id, filename, loop }) {
+    const body = {
+      request: REQUEST_PLAY_FILE,
+      room,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+    if (typeof group === 'string') body.group = group;
+    if (typeof file_id === 'string') body.file_id = file_id;
+    if (typeof filename === 'string') body.filename = filename;
+    if (typeof loop === 'boolean') body.loop = loop;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Check whether a file is playing inside a room.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @param {string} [params.file_id] - The involved announcement ID
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_IS_PLAYING_RESPONSE>}
+   */
+  async isPlaying({ room, secret, file_id }) {
+    const body = {
+      request: REQUEST_IS_PLAYING,
+      room,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+    if (typeof file_id === 'string') body.file_id = file_id;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Stop playing a file inside a room.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @param {string} [params.file_id] - The involved announcement ID
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_STOP_FILE_RESPONSE>}
+   */
+  async stopFile({ room, secret, file_id }) {
+    const body = {
+      request: REQUEST_STOP_FILE,
+      room,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+    if (typeof file_id === 'string') body.file_id = file_id;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * List announcements inside a room.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The room where to execute the list
+   * @param {string} [params.secret] - The optional secret needed for managing the room
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_ANNOUNCEMENTS_LIST>}
+   */
+  async listAnnouncements({ room, secret }) {
+    const body = {
+      request: REQUEST_LIST_ANNOUNCEMENTS,
+      room,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.ANNOUNCEMENTS_LIST)
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
 }
 
 /**
@@ -1235,6 +1372,43 @@ class AudioBridgeHandle extends Handle {
  */
 
 /**
+ * The response event for audiobridge play_file request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_PLAY_FILE_RESPONSE
+ * @property {number|string} room - The involved room
+ * @property {string} file_id - The involved file id
+ */
+
+/**
+ * The response event for audiobridge is_playing request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_IS_PLAYING_RESPONSE
+ * @property {number|string} room - The involved room
+ * @property {string} file_id - The involved file id
+ * @property {boolean} playing - True if the file is being played
+ */
+
+/**
+ * The response event for audiobridge stop_file request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_STOP_FILE_RESPONSE
+ * @property {number|string} room - The involved room
+ * @property {string} file_id - The involved file id
+ */
+
+/**
+ * The response event for audiobridge announcements list request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_ANNOUNCEMENTS_LIST
+ * @property {number|string} room - The involved room
+ * @property {object[]} announcements - The list of announcements
+ * @property {string} announcements[].file_id - The announcement identifier
+ * @property {string} [announcements[].filename] - The path to the Opus file
+ * @property {boolean} [announcements[].playing] - True if the announcement is playing
+ * @property {boolean} [announcements[].loop] - True if the announcement will be played in a loop
+ */
+
+/**
  * The exported plugin descriptor.
  *
  * @type {object}
@@ -1255,6 +1429,8 @@ class AudioBridgeHandle extends Handle {
  * @property {string} EVENT.AUDIOBRIDGE_RESUMED {@link module:audiobridge-plugin~AUDIOBRIDGE_RESUMED}
  * @property {string} EVENT.AUDIOBRIDGE_PEER_RESUMED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_RESUMED}
  * @property {string} EVENT.AUDIOBRIDGE_ROOM_MUTED {@link module:audiobridge-plugin~AUDIOBRIDGE_ROOM_MUTED}
+ * @property {string} EVENT.AUDIOBRIDGE_ANNOUNCEMENT_STARTED {@link module:audiobridge-plugin~AUDIOBRIDGE_ANNOUNCEMENT_STARTED}
+ * @property {string} EVENT.AUDIOBRIDGE_ANNOUNCEMENT_STOPPED {@link module:audiobridge-plugin~AUDIOBRIDGE_ANNOUNCEMENT_STOPPED}
  * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
  */
 export default {
@@ -1411,6 +1587,26 @@ export default {
      * @property {boolean} muted
      */
     AUDIOBRIDGE_ROOM_MUTED: PLUGIN_EVENT.ROOM_MUTED,
+
+    /**
+     * The announcement has been started.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED
+     * @type {object}
+     * @property {number|string} room
+     * @property {string} file_id
+     */
+    AUDIOBRIDGE_ANNOUNCEMENT_STARTED: PLUGIN_EVENT.ANNOUNCEMENT_STARTED,
+
+    /**
+     * The announcement has been stopped.
+     *
+     * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED
+     * @type {object}
+     * @property {number|string} room
+     * @property {string} file_id
+     */
+    AUDIOBRIDGE_ANNOUNCEMENT_STOPPED: PLUGIN_EVENT.ANNOUNCEMENT_STOPPED,
 
     /**
      * Generic audiobridge error.

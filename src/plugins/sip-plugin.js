@@ -77,7 +77,7 @@ class SipHandle extends Handle {
    * @returns {object} A falsy value for unhandled events, a truthy value for handled events
    */
   handleMessage(janus_message) {
-    const { plugindata, jsep, transaction } = janus_message;
+    const { plugindata, transaction } = janus_message;
     if (plugindata && plugindata.data && plugindata.data.sip) {
       /**
        * @type {SipData}
@@ -90,23 +90,13 @@ class SipHandle extends Handle {
         return null;
 
       /* Prepare an object for the output Janode event */
-      const janode_event = {
-        /* The name of the resolved event */
-        event: null,
-        /* The event payload */
-        data: {},
-      };
+      const janode_event = this._newPluginEvent(janus_message);
 
-      /* Add JSEP data if available */
-      if (jsep) janode_event.data.jsep = jsep;
       /* Add call id information if available */
       if (call_id) {
         janode_event.data.call_id = call_id;
         this._pendingCalls[call_id] = this._pendingCalls[call_id] || {};
       }
-
-      /* Use the "janode" property to store the output event */
-      janus_message._janode = janode_event;
 
       /* Plugin messaging error (not related to SIP requests) */
       if (error) {
@@ -336,7 +326,7 @@ class SipHandle extends Handle {
     this._pendingRegister = request.transaction;
 
     const response = await this.sendRequest(request, 10000);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.REGISTERED) {
       evtdata.username = username;
       return evtdata;
@@ -381,7 +371,7 @@ class SipHandle extends Handle {
     this.decorateRequest(request);
 
     const response = await this.sendRequest(request, 120000);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.ACCEPTED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -412,7 +402,7 @@ class SipHandle extends Handle {
     this.decorateRequest(request);
 
     const response = await this.sendRequest(request, 10000);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.ACCEPTED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -436,7 +426,7 @@ class SipHandle extends Handle {
     this.decorateRequest(request);
 
     const response = await this.sendRequest(request, 10000);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.HANGINGUP)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -460,7 +450,7 @@ class SipHandle extends Handle {
     this.decorateRequest(request);
 
     const response = await this.sendRequest(request, 10000);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.DECLINING)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);

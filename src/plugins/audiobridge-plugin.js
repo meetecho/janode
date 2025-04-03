@@ -124,6 +124,7 @@ class AudioBridgeHandle extends Handle {
 
       /* Prepare an object for the output Janode event */
       const janode_event = this._newPluginEvent(janus_message);
+      
       /* Add room information if available */
       if (room) janode_event.data.room = room;
 
@@ -1081,7 +1082,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof loop === 'boolean') body.loop = loop;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.SUCCESS) {
       evtdata.room = body.room;
       return evtdata;
@@ -1108,7 +1109,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof file_id === 'string') body.file_id = file_id;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.SUCCESS) {
       evtdata.room = body.room;
       return evtdata;
@@ -1135,7 +1136,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof file_id === 'string') body.file_id = file_id;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.SUCCESS) {
       evtdata.room = body.room;
       return evtdata;
@@ -1160,7 +1161,7 @@ class AudioBridgeHandle extends Handle {
     if (typeof secret === 'string') body.secret = secret;
 
     const response = await this.message(body);
-    const { event, data: evtdata } = response._janode || {};
+    const { event, data: evtdata } = this._getPluginEvent(response);
     if (event === PLUGIN_EVENT.ANNOUNCEMENTS_LIST)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);

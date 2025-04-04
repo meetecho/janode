@@ -35,6 +35,7 @@ const REQUEST_UNMUTE_ROOM = 'unmute_room';
 const REQUEST_PLAY_FILE = 'play_file';
 const REQUEST_IS_PLAYING = 'is_playing';
 const REQUEST_STOP_FILE = 'stop_file';
+const REQUEST_STOP_ALL_FILES = 'stop_all_files';
 const REQUEST_LIST_ANNOUNCEMENTS = 'listannouncements';
 
 /* These are the events/responses that the Janode plugin will manage */
@@ -174,6 +175,9 @@ class AudioBridgeHandle extends Handle {
           }
           if (typeof message_data.file_id !== 'undefined') {
             janode_event.data.file_id = message_data.file_id;
+          }
+          if (typeof message_data.file_id_list !== 'undefined') {
+            janode_event.data.file_id_list = message_data.file_id_list;
           }
           if (typeof message_data.playing !== 'undefined') {
             janode_event.data.playing = message_data.playing;
@@ -1146,6 +1150,31 @@ class AudioBridgeHandle extends Handle {
   }
 
   /**
+   * Stop playing all files inside a room.
+   *
+   * @param {object} params
+   * @param {number|string} params.room - The involved room
+   * @param {string} [params.secret] - The optional secret needed to manage the room
+   * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_STOP_ALL_FILES_RESPONSE>}
+   */
+  async stopAllFiles({ room, secret, file_id }) {
+    const body = {
+      request: REQUEST_STOP_ALL_FILES,
+      room,
+    };
+    if (typeof secret === 'string') body.secret = secret;
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = response._janode || {};
+    if (event === PLUGIN_EVENT.SUCCESS) {
+      evtdata.room = body.room;
+      return evtdata;
+    }
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
    * List announcements inside a room.
    *
    * @param {object} params
@@ -1394,6 +1423,14 @@ class AudioBridgeHandle extends Handle {
  * @typedef {object} AUDIOBRIDGE_EVENT_STOP_FILE_RESPONSE
  * @property {number|string} room - The involved room
  * @property {string} file_id - The involved file id
+ */
+
+/**
+ * The response event for audiobridge stop_all_files request.
+ *
+ * @typedef {object} AUDIOBRIDGE_EVENT_STOP_ALL_FILES_RESPONSE
+ * @property {number|string} room - The involved room
+ * @property {string[]} file_id_list - The list of file ids that was stopped
  */
 
 /**

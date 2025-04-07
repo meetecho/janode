@@ -208,10 +208,16 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.audio] - True to request audio
    * @param {boolean} [params.video] - True to request video
    * @param {boolean} [params.data] - True to request data
+   * @param {RTCSessionDescription} [params.jsep=null] - JSEP offer
+   * @property {boolean} [params.e2ee] - True if end-to-end enecryption is used
    * @param {boolean} [params.restart=false] - True to trigger a restart
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_STATUS>}
    */
-  async watch({ id, pin, audio, video, data, restart = false }) {
+  async watch({ id, pin, audio, video, data, jsep = null, e2ee, restart = false }) {
+    if (typeof jsep === 'object' && jsep && jsep.type !== 'offer') {
+      const error = new Error('jsep must be an offer');
+      return Promise.reject(error);
+    }
     const body = {
       request: REQUEST_WATCH,
       id,
@@ -221,10 +227,12 @@ class StreamingHandle extends Handle {
     if (typeof video === 'boolean') body.offer_video = video;
     if (typeof data === 'boolean') body.offer_data = data;
     if (typeof restart === 'boolean') body.restart = restart;
+	if(jsep)
+		jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
 
-    const response = await this.message(body);
-    const { event, data: evtdata } = this._getPluginEvent(response);;
-    if (event === PLUGIN_EVENT.STATUS && (evtdata.status === 'preparing' || evtdata.status === 'updating')) {
+    const response = await this.message(body, jsep);
+    const { event, data: evtdata } = this._getPluginEvent(response);
+    if (event === PLUGIN_EVENT.STATUS && (evtdata.status === 'preparing' || evtdata.status === 'updating' || (jsep && evtdata.status === 'starting'))) {
       /* Set current mp to subscribed id */
       this.mp = id;
       return evtdata;

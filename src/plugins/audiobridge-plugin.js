@@ -1157,7 +1157,7 @@ class AudioBridgeHandle extends Handle {
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_STOP_ALL_FILES_RESPONSE>}
    */
-  async stopAllFiles({ room, secret, file_id }) {
+  async stopAllFiles({ room, secret }) {
     const body = {
       request: REQUEST_STOP_ALL_FILES,
       room,

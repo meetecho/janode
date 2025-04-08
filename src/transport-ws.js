@@ -123,7 +123,7 @@ class TransportWs {
     Logger.info(`${LOG_NS} ${this.name} trying connection with ${this._connection._address_iterator.currElem().url}`);
 
     return new Promise((resolve, reject) => {
-      const wsOptions = this._connection._config.wsOptions() || { };
+      const wsOptions = this._connection._config.wsOptions() || {};
       if (!wsOptions.handshakeTimeout) wsOptions.handshakeTimeout = 5000;
 
       const ws = new WebSocket(
@@ -197,7 +197,7 @@ class TransportWs {
       /* In case of error notifies the user, but try with another address */
       this._attempts++;
       /* Get the max number of attempts from the configuration */
-      if (this._attempts >= this._connection._config.getMaxRetries()) {
+      if (this._attempts >= this._connection._config.getMaxRetries() + 1) {
         this._opening = false;
         const err = new Error('attempt limit exceeded');
         Logger.error(`${LOG_NS} ${this.name} connection failed, ${err.message}`);

@@ -189,7 +189,7 @@ class TransportUnix {
       /* In case of error notifies the user, but try with another address */
       this._attempts++;
       /* Get the max number of attempts from the configuration */
-      if (this._attempts >= this._connection._config.getMaxRetries()) {
+      if (this._attempts >= this._connection._config.getMaxRetries() + 1) {
         this._opening = false;
         const err = new Error('attempt limit exceeded');
         Logger.error(`${LOG_NS} ${this.name} socket connection failed, ${err.message}`);

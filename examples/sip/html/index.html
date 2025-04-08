@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>SIP Socket.IO Janode</title>
+  <style></style>
+</head>
+
+<body>
+  <div>
+    <div>
+      <span id="status">disconnected</span>
+    </div><br>
+    <button id="connect" type="button" style="height:50px;width:100px">CONNECT</button><br><br>
+    <select name="types" id="type">
+      <option value="">credentials</option>
+      <option value="guest">guest</option>
+    </select><br>
+    <input id="username" type="text" value="sip:100@localhost"></input><br>
+    <input id="secret" type="password" value="password"></input><br>
+    <input id="proxy" type="text" value="sip:localhost:5060"></input><br>
+    <br><br>
+    <button id="call" type="button" style="height:50px;width:100px">CALL</button>
+    <button id="hangup" type="button" style="height:50px;width:100px">HANGUP</button>
+    <button id="accept" type="button" style="height:50px;width:100px">ACCEPT</button>
+    <button id="decline" type="button" style="height:50px;width:100px">DECLINE</button><br><br>
+    <input id="callee" type="text" value="sip:101@localhost"></input><br><br>
+    <div>
+      <audio id="localAudio" muted></audio>
+      <audio id="remoteAudio" autoplay playsinline></audio>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="./sip-client.js"></script>
+</body>
+
+</html>

@@ -151,7 +151,7 @@ class Connection extends EventEmitter {
       /* If this event is unexpected emit an error */
       const error = new Error('unexpected disconnection');
       /**
-       * An error occurred on the connection.
+       * This event is emitted when the connection is closed unexpectedly.
        *
        * @event module:connection~Connection#event:CONNECTION_ERROR
        * @type {Error}

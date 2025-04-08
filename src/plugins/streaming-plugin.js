@@ -227,8 +227,8 @@ class StreamingHandle extends Handle {
     if (typeof video === 'boolean') body.offer_video = video;
     if (typeof data === 'boolean') body.offer_data = data;
     if (typeof restart === 'boolean') body.restart = restart;
-	if(jsep)
-		jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
+    if (jsep)
+      jsep.e2ee = (typeof e2ee === 'boolean') ? e2ee : jsep.e2ee;
 
     const response = await this.message(body, jsep);
     const { event, data: evtdata } = this._getPluginEvent(response);

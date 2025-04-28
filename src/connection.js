@@ -490,7 +490,7 @@ class Connection extends EventEmitter {
    *
    * @param {number} session_id - The session identifier
    * @param {number} handle_id - The handle identifier
-   * @returns {Promsie<object>} The stop pcap response
+   * @returns {Promise<object>} The stop pcap response
    */
   async stopPcap(session_id, handle_id) {
     Logger.info(`${LOG_NS} ${this.name} requesting pcap stop for handle ${handle_id}`);

@@ -986,7 +986,7 @@ class VideoRoomHandle extends Handle {
    *
    * @param {object} params
    * @param {RTCSessionDescription} params.jsep - The JSEP answer
-   * @param {boolean} [e2ee] - True to hint an end-to-end encrypted negotiation
+   * @param {boolean} [params.e2ee] - True to hint an end-to-end encrypted negotiation
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_STARTED>}
    */
   async start({ jsep, e2ee }) {
@@ -1080,8 +1080,9 @@ class VideoRoomHandle extends Handle {
   /**
    * [multistream] Update a subscription.
    *
-   * @param {object[]} subscribe - The array of streams to subscribe
-   * @param {object[]} unsubscribe - The array of streams to unsubscribe
+   * @param {object} params
+   * @param {object[]} params.subscribe - The array of streams to subscribe
+   * @param {object[]} params.unsubscribe - The array of streams to unsubscribe
    *
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED>}
    */

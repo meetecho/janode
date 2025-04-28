@@ -209,7 +209,7 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.video] - True to request video
    * @param {boolean} [params.data] - True to request data
    * @param {RTCSessionDescription} [params.jsep=null] - JSEP offer
-   * @property {boolean} [params.e2ee] - True if end-to-end enecryption is used
+   * @param {boolean} [params.e2ee] - True if end-to-end enecryption is used
    * @param {boolean} [params.restart=false] - True to trigger a restart
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_STATUS>}
    */
@@ -245,8 +245,8 @@ class StreamingHandle extends Handle {
    * Start a mountpoint stream.
    *
    * @param {object} params
-   * @property {RTCSessionDescription} params.jsep
-   * @property {boolean} [params.e2ee]
+   * @param {RTCSessionDescription} params.jsep
+   * @param {boolean} [params.e2ee]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_STATUS>}
    */
   async start({ jsep, e2ee }) {
@@ -515,7 +515,7 @@ class StreamingHandle extends Handle {
    *
    * @param {object} params
    * @param {number|string} params.id
-   * @param {boolean} [stop_recording=true] - True if the user wants to also stop the recording of a disabled moutnpoint
+   * @param {boolean} [params.stop_recording=true] - True if the user wants to also stop the recording of a disabled moutnpoint
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_OK>}
    */
@@ -540,6 +540,7 @@ class StreamingHandle extends Handle {
    *
    * @param {object} params
    * @param {number|string} [params.id=0] - The id for the new mountpoint (if omitted Janus will pick one)
+   * @param {string} [params.name] - A name for the mp
    * @param {string} [params.description] - A description for the mp
    * @param {string} [params.secret] - The secret that'll be needed to edit this mountpoint
    * @param {string} [params.pin] - The pin that'll be needed to connect to the new mountpoint

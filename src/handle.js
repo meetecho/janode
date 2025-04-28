@@ -430,8 +430,10 @@ class Handle extends EventEmitter {
    * Implementations must return falsy values for unhandled events and truthy value
    * for handled events.
    *
+   * @param {object} _janus_message
+   * @returns {object}
    */
-  handleMessage() {
+  handleMessage(_janus_message) {
     return null;
   }
 
@@ -474,7 +476,7 @@ class Handle extends EventEmitter {
    * Send a request from this handle.
    *
    * @param {object} request
-   * @returns {Promise<object>} A promsie resolving with the response to the request
+   * @returns {Promise<object>} A Promise resolving with the response to the request
    */
   async sendRequest(request) {
     /* Input check */

@@ -52,6 +52,6 @@
   "scripts": {
     "build": "npm install --omit=dev",
     "lint": "npx eslint --debug",
-    "build-docs": "npx jsdoc -r src"
+    "build-docs": "npx jsdoc --recurse --pedantic --verbose --destination ./out src/"
   }
 }

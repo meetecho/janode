@@ -1789,7 +1789,7 @@ export default {
     /**
      * A handle received a slow link notification.
      *
-     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_DISPLAY
+     * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SLOWLINK
      * @type {object}
      * @property {number|string} room - The involved room
      * @property {number|string} feed - The feed of the peer that change display name

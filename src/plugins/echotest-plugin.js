@@ -26,6 +26,7 @@ const PLUGIN_EVENT = {
  * Moreover it defines some methods to support EchoTest operations.<br>
  *
  * @hideconstructor
+ * @extends module:handle~Handle
  */
 class EchoTestHandle extends Handle {
   /**
@@ -42,8 +43,8 @@ class EchoTestHandle extends Handle {
    * The custom "handleMessage" needed for handling EchoTest messages.
    *
    * @private
-   * @param {object} janus_message
-   * @returns {object} A falsy value for unhandled events, a truthy value for handled events
+   * @param {Object} janus_message
+   * @returns {Object} A falsy value for unhandled events, a truthy value for handled events
    */
   handleMessage(janus_message) {
     const { plugindata, transaction } = janus_message;
@@ -105,7 +106,7 @@ class EchoTestHandle extends Handle {
   /**
    * Start/update an echotest session.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {boolean} [params.audio] - True to request audio in this session
    * @param {boolean} [params.video] - True to request video in this session
    * @param {RTCSessionDescription} [params.jsep=null] - The JSEP offer
@@ -144,11 +145,11 @@ class EchoTestHandle extends Handle {
  * {@link https://janus.conf.meetecho.com/docs/echotest.html}
  *
  * @private
- * @typedef {object} EchoTestData
+ * @typedef {Object} EchoTestData
  */
 
 /**
- * @typedef {object} ECHOTEST_EVENT_RESULT
+ * @typedef {Object} ECHOTEST_EVENT_RESULT
  * @property {string} result - The result status (ok, done ...)
  * @property {RTCSessionDescription} [jsep] - The answer from Janus
  */
@@ -156,13 +157,13 @@ class EchoTestHandle extends Handle {
 /**
  * The exported plugin descriptor.
  *
- * @type {object}
+ * @type {Object}
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:echotest-plugin~EchoTestHandle} Handle - The custom class implementing the plugin
- * @property {object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.ECHOTEST_RESULT {@link module:echotest-plugin~ECHOTEST_RESULT}
- * @property {string} EVENT.ECHOTEST_SLOWLINK {@link module:echotest-plugin~ECHOTEST_SLOWLINK}
- * @property {string} EVENT.ECHOTEST_ERROR {@link module:echotest-plugin~ECHOTEST_ERROR}
+ * @property {Object} EVENT - The events emitted by the plugin
+ * @property {string} EVENT.ECHOTEST_RESULT {@link module:echotest-plugin~EchoTestHandle#event:ECHOTEST_RESULT ECHOTEST_RESULT}
+ * @property {string} EVENT.ECHOTEST_SLOWLINK {@link module:echotest-plugin~EchoTestHandle#event:ECHOTEST_SLOWLINK ECHOTEST_SLOWLINK}
+ * @property {string} EVENT.ECHOTEST_ERROR {@link module:echotest-plugin~EchoTestHandle#event:ECHOTEST_ERROR ECHOTEST_ERROR}
  */
 export default {
   id: PLUGIN_ID,
@@ -170,13 +171,15 @@ export default {
   EVENT: {
     /**
      * @event module:echotest-plugin~EchoTestHandle#event:ECHOTEST_RESULT
-     * @type {module:echotest-plugin~ECHOTEST_EVENT_RESULT}
+     * @type {Object}
+     * @property {string} result
+     * @property {RTCSessionDescription} [jsep]
      */
     ECHOTEST_RESULT: PLUGIN_EVENT.RESULT,
 
     /**
      * @event module:echotest-plugin~EchoTestHandle#event:ECHOTEST_SLOWLINK
-     * @type {object}
+     * @type {Object}
      * @property {number} bitrate
      */
     ECHOTEST_SLOWLINK: PLUGIN_EVENT.SLOWLINK,

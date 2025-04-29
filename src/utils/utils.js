@@ -6,13 +6,6 @@
  * @private
  */
 
-
-/**
- * @typedef {object} CircularIterator
- * @property {function} nextElem - Advance the iterator and get the new element
- * @property {function} currElem - Get the current element without advancing
- */
-
 /**
  * Generate a random alpha-numeric string with a given length.
  *
@@ -49,6 +42,12 @@ export const getNumericID = (_ => {
 })();
 
 /**
+ * @typedef {Object} CircularIterator
+ * @property {function} nextElem - Advance the iterator and get the new element
+ * @property {function} currElem - Get the current element without advancing
+ */
+
+/**
  * Generate a circular iterator from an array.
  *
  * @param {Array} list - The array that must be iterated
@@ -59,10 +58,13 @@ export const newIterator = list => {
   const len = l.length;
   var i = 0;
 
-  return {
+  /** @type {CircularIterator} */
+  const iterator = {
     nextElem: _ => l[i++ % len],
     currElem: _ => l[i % len],
   };
+
+  return iterator;
 };
 
 /**
@@ -81,7 +83,7 @@ export const delayOp = ms => {
  * Check if a url string contains one of the protocols in a white list.
  *
  * @param {string} url_string - The url string to be checked
- * @param {Array<string>} admitted - The admitted protocols
+ * @param {Array} admitted - The admitted protocols
  * @returns {boolean} True if the check succeeds
  */
 export const checkUrl = (url_string, admitted) => {

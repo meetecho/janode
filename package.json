@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.4.0",
+    "clean-jsdoc-theme": "^4.3.0",
     "eslint": "^9.4.0",
     "globals": "^15.4.0",
     "jsdoc": "^4.0.4"
@@ -52,6 +53,6 @@
   "scripts": {
     "build": "npm install --omit=dev",
     "lint": "npx eslint --debug",
-    "build-docs": "npx jsdoc --recurse --pedantic --verbose --destination ./out src/"
+    "build-docs": "rm -rf ./docs && npx jsdoc -c ./jsdoc.json --destination ./docs ./src"
   }
 }

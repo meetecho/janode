@@ -80,6 +80,7 @@ const PLUGIN_EVENT = {
  * Moreover it defines many methods to support VideoRoom operations.<br>
  *
  * @hideconstructor
+ * @extends module:handle~Handle
  */
 class VideoRoomHandle extends Handle {
   /**
@@ -118,8 +119,8 @@ class VideoRoomHandle extends Handle {
    * The custom "handleMessage" needed for handling VideoRoom messages.
    *
    * @private
-   * @param {object} janus_message
-   * @returns {object} A falsy value for unhandled events, a truthy value for handled events
+   * @param {Object} janus_message
+   * @returns {Object} A falsy value for unhandled events, a truthy value for handled events
    */
   handleMessage(janus_message) {
     const { plugindata, transaction } = janus_message;
@@ -614,7 +615,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Join a videoroom as publisher.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room to join to
    * @param {number|string} [params.feed] - The feed identifier to use, if missing it is picked by Janus
    * @param {boolean} [params.audio] - True to request audio relaying
@@ -662,7 +663,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Join and configure videoroom handle as publisher.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room to join to
    * @param {number|string} [params.feed] - The feed identifier to use, if missing it is picked by Janus
    * @param {boolean} [params.audio] - True to request audio relaying
@@ -739,7 +740,7 @@ class VideoRoomHandle extends Handle {
    * restart/update flags, while subscribers need to use them to force
    * the operation.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {boolean} [params.audio] - True to request audio relaying
    * @param {boolean} [params.video] - True to request video relaying
    * @param {boolean} [params.data] - True to request datachannel relaying
@@ -756,7 +757,7 @@ class VideoRoomHandle extends Handle {
    * @param {number} [params.sc_temporal_layers] - Temporal layers to receive (0-2), in case VP8 simulcasting is enabled (subscribers only)
    * @param {boolean} [params.e2ee] - True to notify end-to-end encryption for this connection
    * @param {RTCSessionDescription} [params.jsep] - The JSEP offer (publishers only)
-   * @param {boolean} [params.keyframe] - True to request a keyframe (publishers only) 
+   * @param {boolean} [params.keyframe] - True to request a keyframe (publishers only)
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED>}
    */
   async configure({ audio, video, data, bitrate, record, filename, display, restart, update, streams, descriptions, sc_substream_layer, sc_substream_fallback_ms, sc_temporal_layers, e2ee, jsep, keyframe }) {
@@ -825,7 +826,7 @@ class VideoRoomHandle extends Handle {
    * Publish a feed in the room.
    * Room is detected from the context since a handle must have joined before.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {boolean} [params.audio] - True to request audio relaying
    * @param {boolean} [params.video] - True to request video relaying
    * @param {boolean} [params.data] - True to request datachannel relaying
@@ -913,7 +914,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Join a room as subscriber.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room to join
    * @param {number|string} [params.feed=0] - The feed the user wants to subscribe to
    * @param {boolean} [params.audio] - Whether or not audio should be relayed
@@ -984,7 +985,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Start a subscriber stream.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {RTCSessionDescription} params.jsep - The JSEP answer
    * @param {boolean} [params.e2ee] - True to hint an end-to-end encrypted negotiation
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_STARTED>}
@@ -1025,7 +1026,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Switch to another feed.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} [params.to_feed] - The feed id of the new publisher to switch to
    * @param {boolean} [params.audio] - True to subscribe to the audio feed
    * @param {boolean} [params.video] - True to subscribe to the video feed
@@ -1080,7 +1081,7 @@ class VideoRoomHandle extends Handle {
   /**
    * [multistream] Update a subscription.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {object[]} params.subscribe - The array of streams to subscribe
    * @param {object[]} params.unsubscribe - The array of streams to unsubscribe
    *
@@ -1111,7 +1112,7 @@ class VideoRoomHandle extends Handle {
   /**
    * List the participants inside a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room where the list is being requested
    * @param {string} params.secret - The optional secret for the operation
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_PARTICIPANTS_LIST>}
@@ -1134,7 +1135,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Enable or disable recording for all participants in a room while the conference is in progress.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room where the change of recording state is being requested
    * @param {string} params.secret - The optional secret for the operation
    * @param {boolean} params.record - True starts recording for all participants in an already running conference, false stops the recording
@@ -1161,7 +1162,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Kick a publisher out from a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room where the kick is being requested
    * @param {number|string} params.feed - The identifier of the feed to kick out
    * @param {string} params.secret - The optional secret for the operation
@@ -1189,7 +1190,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Check if a room exists.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room to check
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_EXISTS>}
    */
@@ -1210,7 +1211,7 @@ class VideoRoomHandle extends Handle {
   /**
    * List all the available rooms.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_LIST>}
    */
@@ -1231,7 +1232,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Create a new room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} [params.room] - The room identifier, if missing picked by janus
    * @param {string} [params.description] - A textual description of the room
    * @param {number} [params.max_publishers] - The max number of publishers allowed
@@ -1302,7 +1303,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Destroy a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room to destroy
    * @param {boolean} [params.permanent] - True to remove the room from the Janus config file
    * @param {string} [params.secret] - The secret needed to manage the room
@@ -1327,7 +1328,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Edit the ACL tokens for a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room where to change the acl
    * @param {"enable"|"disable"|"add"|"remove"} params.action - The action to execute on the acl
    * @param {string[]} params.list - The list of tokens to execute the action onto
@@ -1354,7 +1355,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Start a RTP forwarding in a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room where to start a forwarder
    * @param {number|string} params.feed - The feed identifier to forward (must be published)
    * @param {string} params.host - The target host for the forwarder
@@ -1413,7 +1414,7 @@ class VideoRoomHandle extends Handle {
   /**
    * Stop a RTP forwarder in a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room where to stop a forwarder
    * @param {number|string} params.feed - The feed identifier for the forwarder to stop (must be published)
    * @param {number|string} params.stream - The forwarder identifier as returned by the start forward API
@@ -1442,7 +1443,7 @@ class VideoRoomHandle extends Handle {
   /**
    * List the active forwarders in a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room where to list the forwarders
    * @param {string} [params.secret] - The secret needed for managing the room
    * @returns {Promise<module:videoroom-plugin~VIDEOROOM_EVENT_RTP_FWD_LIST>}
@@ -1469,13 +1470,13 @@ class VideoRoomHandle extends Handle {
  * {@link https://janus.conf.meetecho.com/docs/videoroom.html}
  *
  * @private
- * @typedef {object} VideoRoomData
+ * @typedef {Object} VideoRoomData
  */
 
 /**
  * The response event when a publisher has joined.
  *
- * @typedef {object} VIDEOROOM_EVENT_PUB_JOINED
+ * @typedef {Object} VIDEOROOM_EVENT_PUB_JOINED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed identifier
  * @property {string} [display] - The dsplay name, if available
@@ -1496,7 +1497,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event when a subscriber has joined.
  *
- * @typedef {object} VIDEOROOM_EVENT_SUB_JOINED
+ * @typedef {Object} VIDEOROOM_EVENT_SUB_JOINED
  * @property {number|string} room - The involved room
  * @property {number|string} [feed] - The published feed identifier
  * @property {string} [display] - The published feed display name
@@ -1506,7 +1507,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event to a participant list request.
  *
- * @typedef {object} VIDEOROOM_EVENT_PARTICIPANTS_LIST
+ * @typedef {Object} VIDEOROOM_EVENT_PARTICIPANTS_LIST
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The current published feed
  * @property {object[]} participants - The list of current participants
@@ -1519,7 +1520,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for room create request.
  *
- * @typedef {object} VIDEOROOM_EVENT_CREATED
+ * @typedef {Object} VIDEOROOM_EVENT_CREATED
  * @property {number|string} room - The created room
  * @property {boolean} permanent - True if the room has been persisted on the Janus configuratin file
  */
@@ -1527,7 +1528,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for room destroy request.
  *
- * @typedef {object} VIDEOROOM_EVENT_DESTROYED
+ * @typedef {Object} VIDEOROOM_EVENT_DESTROYED
  * @property {number|string} room - The destroyed room
  * @property {boolean} permanent - True if the room has been removed from the Janus configuratin file
  */
@@ -1535,14 +1536,14 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for room exists request.
  *
- * @typedef {object} VIDEOROOM_EVENT_EXISTS
+ * @typedef {Object} VIDEOROOM_EVENT_EXISTS
  * @property {number|string} room - The queried room
  */
 
 /**
  * Descriptrion of an active RTP forwarder.
  *
- * @typedef {object} RtpForwarder
+ * @typedef {Object} RtpForwarder
  * @property {string} host - The target host
  * @property {number} [audio_port] - The RTP audio target port
  * @property {number} [audio_rtcp_port] - The RTCP audio target port
@@ -1565,7 +1566,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for RTP forward start request.
  *
- * @typedef {object} VIDEOROOM_EVENT_RTP_FWD_STARTED
+ * @typedef {Object} VIDEOROOM_EVENT_RTP_FWD_STARTED
  * @property {number|string} room - The involved room
  * @property {RtpForwarder} [forwarder] - The forwarder object
  * @property {RtpForwarder[]} [forwarders] - [multistream] The array of forwarders
@@ -1574,7 +1575,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for RTP forward stop request.
  *
- * @typedef {object} VIDEOROOM_EVENT_RTP_FWD_STOPPED
+ * @typedef {Object} VIDEOROOM_EVENT_RTP_FWD_STOPPED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed identifier being forwarded
  * @property {number} stream - The forwarder identifier
@@ -1583,7 +1584,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for RTP forwarders list request.
  *
- * @typedef {object} VIDEOROOM_EVENT_RTP_FWD_LIST
+ * @typedef {Object} VIDEOROOM_EVENT_RTP_FWD_LIST
  * @property {number|string} room - The involved room
  * @property {object[]} forwarders - The list of forwarders
  * @property {number|string} forwarders[].feed - The feed that is being forwarded
@@ -1593,21 +1594,21 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for videoroom list request.
  *
- * @typedef {object} VIDEOROOM_EVENT_LIST
+ * @typedef {Object} VIDEOROOM_EVENT_LIST
  * @property {object[]} list - The list of the room as returned by Janus
  */
 
 /**
  * The response event for ACL tokens edit (allowed) request.
  *
- * @typedef {object} VIDEOROOM_EVENT_ALLOWED
+ * @typedef {Object} VIDEOROOM_EVENT_ALLOWED
  * @property {string[]} list - The updated, complete, list of allowed tokens
  */
 
 /**
  * The response event for publisher/subscriber configure request.
  *
- * @typedef {object} VIDEOROOM_EVENT_CONFIGURED
+ * @typedef {Object} VIDEOROOM_EVENT_CONFIGURED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed identifier
  * @property {string} [display] - The display name, if available
@@ -1622,7 +1623,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for subscriber start request.
  *
- * @typedef {object} VIDEOROOM_EVENT_STARTED
+ * @typedef {Object} VIDEOROOM_EVENT_STARTED
  * @property {number|string} room - The involved room
  * @property {number|string} [feed] - The feed that started
  * @property {boolean} [e2ee] - True if started stream is e2ee
@@ -1632,7 +1633,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for subscriber pause request.
  *
- * @typedef {object} VIDEOROOM_EVENT_PAUSED
+ * @typedef {Object} VIDEOROOM_EVENT_PAUSED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed that has been paused
  * @property {string} paused - A string with the value returned by Janus
@@ -1641,7 +1642,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for subscriber switch request.
  *
- * @typedef {object} VIDEOROOM_EVENT_SWITCHED
+ * @typedef {Object} VIDEOROOM_EVENT_SWITCHED
  * @property {number|string} room - The involved room
  * @property {number|string} [from_feed] - The feed that has been switched from
  * @property {number|string} [to_feed] - The feed that has been switched to
@@ -1653,7 +1654,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for publisher unpublish request.
  *
- * @typedef {object} VIDEOROOM_EVENT_UNPUBLISHED
+ * @typedef {Object} VIDEOROOM_EVENT_UNPUBLISHED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed that unpublished
  */
@@ -1661,7 +1662,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for publiher/subscriber leave request.
  *
- * @typedef {object} VIDEOROOM_EVENT_LEAVING
+ * @typedef {Object} VIDEOROOM_EVENT_LEAVING
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed that left
  * @property {string} [reason] - An optional string with the reason of the leaving
@@ -1670,7 +1671,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for the kick request.
  *
- * @typedef {object} VIDEOROOM_EVENT_KICKED
+ * @typedef {Object} VIDEOROOM_EVENT_KICKED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed that has been kicked
  */
@@ -1678,7 +1679,7 @@ class VideoRoomHandle extends Handle {
 /**
  * The response event for the recording enabled request.
  *
- * @typedef {object} VIDEOROOM_EVENT_RECORDING_ENABLED_STATE
+ * @typedef {Object} VIDEOROOM_EVENT_RECORDING_ENABLED_STATE
  * @property {number|string} room - The involved room
  * @property {boolean} recording - Whether or not the room recording is now enabled
  */
@@ -1686,7 +1687,7 @@ class VideoRoomHandle extends Handle {
 /**
  * [multistream] The response event for update subscriber request.
  *
- * @typedef {object} VIDEOROOM_EVENT_UPDATED
+ * @typedef {Object} VIDEOROOM_EVENT_UPDATED
  * @property {number|string} room - The involved room
  * @property {RTCSessionDescription} [jsep] - The updated JSEP offer
  * @property {object[]} streams - List of the updated streams in this subscription
@@ -1695,20 +1696,25 @@ class VideoRoomHandle extends Handle {
 /**
  * The exported plugin descriptor.
  *
- * @type {object}
+ * @type {Object}
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:videoroom-plugin~VideoRoomHandle} Handle - The custom class implementing the plugin
- * @property {object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.VIDEOROOM_PUB_PEER_JOINED {@link module:videoroom-plugin~VIDEOROOM_PUB_PEER_JOINED}
- * @property {string} EVENT.VIDEOROOM_PUB_LIST {@link module:videoroom-plugin~VIDEOROOM_PUB_LIST}
- * @property {string} EVENT.VIDEOROOM_DESTROYED {@link module:videoroom-plugin~VIDEOROOM_DESTROYED}
- * @property {string} EVENT.VIDEOROOM_UNPUBLISHED {@link module:videoroom-plugin~VIDEOROOM_UNPUBLISHED}
- * @property {string} EVENT.VIDEOROOM_LEAVING {@link module:videoroom-plugin~VIDEOROOM_LEAVING}
- * @property {string} EVENT.VIDEOROOM_DISPLAY {@link module:videoroom-plugin~VIDEOROOM_DISPLAY}
- * @property {string} EVENT.VIDEOROOM_KICKED {@link module:videoroom-plugin~VIDEOROOM_KICKED}
- * @property {string} EVENT.VIDEOROOM_RECORDING_ENABLED_STATE {@link module:videoroom-plugin~VIDEOROOM_RECORDING_ENABLED_STATE}
- * @property {string} EVENT.VIDEOROOM_TALKING {@link module:videoroom-plugin~VIDEOROOM_TALKING}
- * @property {string} EVENT.VIDEOROOM_ERROR {@link module:videoroom-plugin~VIDEOROOM_ERROR}
+ * @property {Object} EVENT - The events emitted by the plugin
+ * @property {string} EVENT.VIDEOROOM_PUB_PEER_JOINED {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_PUB_PEER_JOINED VIDEOROOM_PUB_PEER_JOINED}
+ * @property {string} EVENT.VIDEOROOM_PUB_LIST {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_PUB_LIST VIDEOROOM_PUB_LIST}
+ * @property {string} EVENT.VIDEOROOM_DESTROYED {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_DESTROYED VIDEOROOM_DESTROYED}
+ * @property {string} EVENT.VIDEOROOM_UNPUBLISHED {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_UNPUBLISHED VIDEOROOM_UNPUBLISHED}
+ * @property {string} EVENT.VIDEOROOM_LEAVING {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_LEAVING VIDEOROOM_LEAVING}
+ * @property {string} EVENT.VIDEOROOM_DISPLAY {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_DISPLAY VIDEOROOM_DISPLAY}
+ * @property {string} EVENT.VIDEOROOM_CONFIGURED {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_CONFIGURED VIDEOROOM_CONFIGURED}
+ * @property {string} EVENT.VIDEOROOM_SLOWLINK {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SLOWLINK VIDEOROOM_SLOWLINK}
+ * @property {string} EVENT.VIDEOROOM_TALKING {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_TALKING VIDEOROOM_TALKING}
+ * @property {string} EVENT.VIDEOROOM_KICKED {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_KICKED VIDEOROOM_KICKED}
+ * @property {string} EVENT.VIDEOROOM_RECORDING_ENABLED_STATE {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_RECORDING_ENABLED_STATE VIDEOROOM_RECORDING_ENABLED_STATE}
+ * @property {string} EVENT.VIDEOROOM_SC_SUBSTREAM_LAYER {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SC_SUBSTREAM_LAYER VIDEOROOM_SC_SUBSTREAM_LAYER}
+ * @property {string} EVENT.VIDEOROOM_SC_TEMPORAL_LAYERS {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SC_TEMPORAL_LAYERS VIDEOROOM_SC_TEMPORAL_LAYERS}
+ * @property {string} EVENT.VIDEOROOM_UPDATED {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_UPDATED VIDEOROOM_UPDATED}
+ * @property {string} EVENT.VIDEOROOM_ERROR {@link module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_ERROR VIDEOROOM_ERROR}
  */
 export default {
   id: PLUGIN_ID,
@@ -1718,7 +1724,7 @@ export default {
      * A peer has joined theh room (notify-joining).
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_PUB_PEER_JOINED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room - The involved room
      * @property {number|string} feed - The feed identifier that joined
      * @property {string} display - The display name of the peer
@@ -1729,7 +1735,7 @@ export default {
      * Active publishers list updated.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_PUB_LIST
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room - The involved room
      * @property {number|string} feed - The current feed identifier
      * @property {object[]} publishers - List of the new publishers
@@ -1747,7 +1753,9 @@ export default {
      * The videoroom has been destroyed.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_DESTROYED
-     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_DESTROYED}
+     * @type {Object}
+     * @property {number|string} room - The destroyed room
+     * @property {boolean} permanent - True if the room has been removed from the Janus configuratin file
      */
     VIDEOROOM_DESTROYED: PLUGIN_EVENT.DESTROYED,
 
@@ -1755,7 +1763,9 @@ export default {
      * A feed has been unpublished.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_UNPUBLISHED
-     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_UNPUBLISHED}
+     * @type {Object}
+     * @property {number|string} room - The involved room
+     * @property {number|string} feed - The feed that unpublished
      */
     VIDEOROOM_UNPUBLISHED: PLUGIN_EVENT.UNPUBLISHED,
 
@@ -1763,7 +1773,10 @@ export default {
      * A peer has left the room.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_LEAVING
-     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_LEAVING}
+     * @type {Object}
+     * @property {number|string} room - The involved room
+     * @property {number|string} feed - The feed that left
+     * @property {string} [reason] - An optional string with the reason of the leaving
      */
     VIDEOROOM_LEAVING: PLUGIN_EVENT.LEAVING,
 
@@ -1771,7 +1784,7 @@ export default {
      * A participant has changed the display name.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_DISPLAY
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room - The involved room
      * @property {number|string} feed - The feed of the peer that change display name
      * @property {string} display - The new display name of the peer
@@ -1782,7 +1795,16 @@ export default {
      * A handle received a configured event.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_CONFIGURED
-     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_CONFIGURED}
+     * @type {Object}
+     * @property {number|string} room - The involved room
+     * @property {number|string} feed - The feed identifier
+     * @property {string} [display] - The display name, if available
+     * @property {boolean} [restart] - True if the request had it true
+     * @property {boolean} [update] - True if the request had it true
+     * @property {string} configured - A string with the value returned by Janus
+     * @property {object[]} [streams] - [multistream] Streams description as returned by Janus
+     * @property {boolean} [e2ee] - True if the stream is end-to-end encrypted
+     * @property {RTCSessionDescription} [jsep] - The JSEP answer
      */
     VIDEOROOM_CONFIGURED: PLUGIN_EVENT.CONFIGURED,
 
@@ -1790,7 +1812,7 @@ export default {
      * A handle received a slow link notification.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SLOWLINK
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room - The involved room
      * @property {number|string} feed - The feed of the peer that change display name
      * @property {number} bitrate - The current bitrate cap for the participant
@@ -1801,7 +1823,7 @@ export default {
      * Notify if the current user is talking.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_TALKING
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room - The involved room
      * @property {number|string} feed - The feed of the peer this talking notification refers to
      * @property {boolean} talking - True if the participant is talking
@@ -1813,7 +1835,9 @@ export default {
      * A feed has been kicked out.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_KICKED
-     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_KICKED}
+     * @type {Object}
+     * @property {number|string} room - The involved room
+     * @property {number|string} feed - The feed that has been kicked
      */
     VIDEOROOM_KICKED: PLUGIN_EVENT.KICKED,
 
@@ -1821,7 +1845,9 @@ export default {
      * Conference recording has been enabled or disabled.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_RECORDING_ENABLED_STATE
-     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_RECORDING_ENABLED_STATE}
+     * @type {Object}
+     * @property {number|string} room - The involved room
+     * @property {boolean} recording - Whether or not the room recording is now enabled
      */
     VIDEOROOM_RECORDING_ENABLED_STATE: PLUGIN_EVENT.RECORDING_ENABLED_STATE,
 
@@ -1829,7 +1855,7 @@ export default {
      * A switch to a different simulcast substream has been completed.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SC_SUBSTREAM_LAYER
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room - The involved room
      * @property {number|string} feed - The feed of the peer this notification refers to
      * @property {number} sc_substream_layer - The new simuclast substream layer relayed
@@ -1840,7 +1866,7 @@ export default {
      * A switch to a different number of simulcast temporal layers has been completed.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_SC_TEMPORAL_LAYERS
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room - The involved room
      * @property {number|string} feed - The feed of the peer this switch notification refers to
      * @property {number} sc_temporal_layers - The new number of simuclast teporal layers relayed
@@ -1851,7 +1877,10 @@ export default {
      * A multistream subscription has been updated.
      *
      * @event module:videoroom-plugin~VideoRoomHandle#event:VIDEOROOM_UPDATED
-     * @type {module:videoroom-plugin~VIDEOROOM_EVENT_UPDATED}
+     * @type {Object}
+     * @property {number|string} room - The involved room
+     * @property {RTCSessionDescription} [jsep] - The updated JSEP offer
+     * @property {object[]} streams - List of the updated streams in this subscription
      */
     VIDEOROOM_UPDATED: PLUGIN_EVENT.UPDATED,
 

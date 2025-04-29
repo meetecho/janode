@@ -3,7 +3,7 @@
 /**
  * This module contains the Unix Sockets transport implementation.
  * @module transport-unix
- * @access private
+ * @private
  */
 
 import { Buffer } from 'buffer';
@@ -15,6 +15,11 @@ import { createSocket } from 'unix-dgram';
 import Logger from './utils/logger.js';
 const LOG_NS = '[transport-unix.js]';
 import { delayOp } from './utils/utils.js';
+
+/**
+ * @typedef {Object} UnixDgramSocket
+ * @link https://www.npmjs.com/package/unix-dgram#api
+ */
 
 /**
  * Class representing a connection through Unix dgram sockets transport.<br>
@@ -42,7 +47,8 @@ class TransportUnix {
     /**
      * The internal Unix Socket.
      *
-     * @type {module:unix-dgram~Socket}
+     * @type {UnixDgramSocket}
+     * @link https://www.npmjs.com/package/unix-dgram#api
      */
     this._socket = null;
 
@@ -171,7 +177,7 @@ class TransportUnix {
    * In case of error retry the connection with another address from the available pool.
    * If maximum number of attempts is reached, throws an error.
    *
-   * @returns {module:unix-dgram~Socket} The unix socket
+   * @returns {UnixDgramSocket} The unix socket
    */
   async _attemptOpen() {
     /* Reset status at every attempt */
@@ -291,8 +297,8 @@ class TransportUnix {
    * Send a request from this connection.
    * It is called from the parent connection.
    *
-   * @param {object} request - The request to be sent
-   * @returns {Promise<object>} A promise resolving with a response from Janus
+   * @param {Object} request - The request to be sent
+   * @returns {Promise<Object>} A promise resolving with a response from Janus
    */
   async send(request) {
     /* Check connection status */

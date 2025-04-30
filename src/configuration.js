@@ -78,7 +78,7 @@ class Configuration {
   /**
    * Return the specific WebSocket transport options.
    *
-   * @returns {object}
+   * @returns {Object}
    */
   wsOptions() {
     return this.ws_options;

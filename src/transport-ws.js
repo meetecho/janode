@@ -3,7 +3,7 @@
 /**
  * This module contains the WebSocket transport implementation.
  * @module transport-ws
- * @access private
+ * @private
  */
 
 import Logger from './utils/logger.js';
@@ -81,7 +81,6 @@ class TransportWs {
      * @type {boolean}
      */
     this._closed = false; // true if websocket has been closed after being opened
-
 
     /**
      * A numerical identifier assigned for logging purposes.
@@ -272,8 +271,8 @@ class TransportWs {
    * Wraps with a promise the standard WebSocket API "send".
    * It is called from the parent connection.
    *
-   * @param {object} request - The request to be sent
-   * @returns {Promise<object>} A promise resolving with a response from Janus
+   * @param {Object} request - The request to be sent
+   * @returns {Promise<Object>} A promise resolving with a response from Janus
    */
   async send(request) {
     /* Check connection status */

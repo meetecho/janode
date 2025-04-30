@@ -3,7 +3,7 @@
 /**
  * This module contains the Handle class definition.
  * @module handle
- * @access private
+ * @private
  */
 
 import { EventEmitter } from 'events';
@@ -14,6 +14,7 @@ import { getNumericID } from './utils/utils.js';
 import { JANUS, JANODE, isAckData, isResponseData, isErrorData } from './protocol.js';
 
 const PLUGIN_EVENT_SYM = Symbol('plugin_event');
+
 /**
  * Class representing a Janode handle.<br>
  *
@@ -39,7 +40,7 @@ class Handle extends EventEmitter {
      * The transaction manager used by this handle.
      *
      * @private
-     * @type {TransactionManager}
+     * @type {module:tmanager~TransactionManager}
      */
     this._tm = session._tm; // keep track of pending requests
 
@@ -114,7 +115,7 @@ class Handle extends EventEmitter {
      * The handle has been detached.
      *
      * @event module:handle~Handle#event:HANDLE_DETACHED
-     * @type {object}
+     * @type {Object}
      * @property {number} id - The handle identifier
      */
     this.emit(JANODE.EVENT.HANDLE_DETACHED, { id: this.id });
@@ -169,7 +170,7 @@ class Handle extends EventEmitter {
    * Generic Janus API events like `detached`, `hangup` etc. are handled here.
    *
    * @private
-   * @param {object} janus_message
+   * @param {Object} janus_message
    */
   _handleMessage(janus_message) {
     const { transaction, janus } = janus_message;
@@ -269,7 +270,7 @@ class Handle extends EventEmitter {
          * The handle has detected an ICE failure.
          *
          * @event module:handle~Handle#event:HANDLE_ICE_FAILED
-         * @type {object}
+         * @type {Object}
          */
         this.emit(JANODE.EVENT.HANDLE_ICE_FAILED, janode_event_data);
         break;
@@ -283,7 +284,7 @@ class Handle extends EventEmitter {
          * The handle WebRTC connection has been closed.
          *
          * @event module:handle~Handle#event:HANDLE_HANGUP
-         * @type {object}
+         * @type {Object}
          * @property {string} [reason] - The reason of the hangup (e.g. ICE failed)
          */
         this.emit(JANODE.EVENT.HANDLE_HANGUP, janode_event_data);
@@ -302,7 +303,7 @@ class Handle extends EventEmitter {
          * The handle received a media notification.
          *
          * @event module:handle~Handle#event:HANDLE_MEDIA
-         * @type {object}
+         * @type {Object}
          * @property {string} type - The kind of media (audio/video)
          * @property {boolean} receiving - True if Janus is receiving media
          * @property {string} [mid] - The involved mid
@@ -319,6 +320,7 @@ class Handle extends EventEmitter {
          * The handle WebRTC connection is up.
          *
          * @event module:handle~Handle#event:HANDLE_WEBRTCUP
+         * @type {Object}
          */
         this.emit(JANODE.EVENT.HANDLE_WEBRTCUP, janode_event_data);
         break;
@@ -335,7 +337,7 @@ class Handle extends EventEmitter {
          * The handle has received a slowlink notification.
          *
          * @event module:handle~Handle#event:HANDLE_SLOWLINK
-         * @type {object}
+         * @type {Object}
          * @property {boolean} uplink - The direction of the slow link
          * @property {string} media - The media kind (audio/video)
          * @property {string} [mid] - The involved stream mid
@@ -347,17 +349,6 @@ class Handle extends EventEmitter {
 
       /* Trickle from Janus */
       case JANUS.EVENT.TRICKLE: {
-        /**
-         * The handle has received a trickle notification.
-         *
-         * @event module:handle~Handle#event:HANDLE_TRICKLE
-         * @type {object}
-         * @property {boolean} [completed] - If true, this notifies the end of triclking (the other fields of the event are missing in this case)
-         * @property {string} [sdpMid] - The mid the candidate refers to
-         * @property {number} [sdpMLineIndex] - The m-line the candidate refers to
-         * @property {string} [candidate] - The candidate string
-         */
-
         const { completed, sdpMid, sdpMLineIndex, candidate } = janus_message.candidate;
         if (!completed) {
           janode_event_data.sdpMid = sdpMid;
@@ -368,6 +359,16 @@ class Handle extends EventEmitter {
           janode_event_data.completed = true;
         }
 
+        /**
+         * The handle has received a trickle notification.
+         *
+         * @event module:handle~Handle#event:HANDLE_TRICKLE
+         * @type {Object}
+         * @property {boolean} [completed] - If true, this notifies the end of triclking (the other fields of the event are missing in this case)
+         * @property {string} [sdpMid] - The mid the candidate refers to
+         * @property {number} [sdpMLineIndex] - The m-line the candidate refers to
+         * @property {string} [candidate] - The candidate string
+         */
         this.emit(JANODE.EVENT.HANDLE_TRICKLE, janode_event_data);
         break;
       }
@@ -381,7 +382,7 @@ class Handle extends EventEmitter {
    * Decorate request with handle id and transaction (if missing).
    *
    * @private
-   * @param {object} request
+   * @param {Object} request
    */
   _decorateRequest(request) {
     request.transaction = request.transaction || getNumericID();
@@ -392,8 +393,8 @@ class Handle extends EventEmitter {
    * Helper method used by plugins to create a new plugin event and assign it to a janus message.
    *
    * @private
-   * @param {object} janus_message
-   * @returns {object}
+   * @param {Object} janus_message
+   * @returns {Object}
    */
   _newPluginEvent(janus_message) {
     /* Prepare an object for the output Janode event */
@@ -418,8 +419,8 @@ class Handle extends EventEmitter {
    * Helper method used by plugins to get an assigned plugin eventfrom a handled janus message.
    *
    * @private
-   * @param {object} janus_message
-   * @returns {object}
+   * @param {Object} janus_message
+   * @returns {Object}
    */
   _getPluginEvent(janus_message) {
     return janus_message[PLUGIN_EVENT_SYM] || {};
@@ -430,8 +431,10 @@ class Handle extends EventEmitter {
    * Implementations must return falsy values for unhandled events and truthy value
    * for handled events.
    *
+   * @param {Object} _janus_message
+   * @returns {Object}
    */
-  handleMessage() {
+  handleMessage(_janus_message) {
     return null;
   }
 
@@ -449,7 +452,7 @@ class Handle extends EventEmitter {
    * Helper to close a transaction with error.
    *
    * @property {string} id - The transaction id
-   * @property {object} error - The error object
+   * @property {Error} error - The error object
    * @returns {void}
    */
   closeTransactionWithError(id, error) {
@@ -461,7 +464,7 @@ class Handle extends EventEmitter {
    * Helper to close a transaction with success.
    *
    * @property {string} id - The transaction id
-   * @property {object} [data] - The callback success data
+   * @property {Object} [data] - The callback success data
    * @returns {void}
    */
   closeTransactionWithSuccess(id, data) {
@@ -473,8 +476,8 @@ class Handle extends EventEmitter {
   /**
    * Send a request from this handle.
    *
-   * @param {object} request
-   * @returns {Promise<object>} A promsie resolving with the response to the request
+   * @param {Object} request
+   * @returns {Promise<Object>} A Promise resolving with the response to the request
    */
   async sendRequest(request) {
     /* Input check */
@@ -544,7 +547,7 @@ class Handle extends EventEmitter {
   /**
    * Close the peer connection associated to this handle.
    *
-   * @returns {Promise<object>}
+   * @returns {Promise<Object>}
    */
   async hangup() {
     const request = {
@@ -611,9 +614,9 @@ class Handle extends EventEmitter {
   /**
    * Send a `message` to Janus from this handle, with given body and optional jsep.
    *
-   * @param {object} body - The body of the message
+   * @param {Object} body - The body of the message
    * @param {RTCSessionDescription} [jsep]
-   * @returns {Promise<object>} A promise resolving with the response to the message
+   * @returns {Promise<Object>} A promise resolving with the response to the message
    *
    * @example
    * // This is a plugin that sends a message with a custom body

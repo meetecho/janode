@@ -17,7 +17,7 @@ const { EVENT } = JANODE_PROTO;
 /**
  * An object describing a janus server (e.g. url, secret).
  *
- * @typedef {object} ServerObjectConf
+ * @typedef {Object} ServerObjectConf
  * @property {string} url - The URL to reach this server API
  * @property {string} apisecret - The API secret for this server
  * @property {string} [token] - The optional Janus API token
@@ -26,22 +26,22 @@ const { EVENT } = JANODE_PROTO;
 /**
  * The configuration passed by the user.
  *
- * @typedef {object} RawConfiguration
+ * @typedef {Object} RawConfiguration
  * @property {string} [server_key] - The key used to refer to this server in Janode.connect
  * @property {module:janode~ServerObjectConf[]|module:janode~ServerObjectConf} address - The server to connect to
  * @property {number} [retry_time_secs=10] - The seconds between any connection attempts
  * @property {number} [max_retries=5] - The maximum number of retries before issuing a connection error
  * @property {boolean} [is_admin=false] - True if the connection is dedicated to the Janus Admin API
- * @property {object} [ws_options] - Specific WebSocket transport options
+ * @property {Object} [ws_options] - Specific WebSocket transport options
  */
 
 /**
  * The plugin descriptor used when attaching a plugin from a session.
  *
- * @typedef {object} PluginDescriptor
+ * @typedef {Object} PluginDescriptor
  * @property {string} id - The plugin id used when sending the attach request to Janus
  * @property {module:handle~Handle} [Handle] - The class implementing the handle
- * @property {object} [EVENT] - The object with the list of events emitted by the plugin
+ * @property {Object} [EVENT] - The object containing the events emitted by the plugin
  */
 
 /**
@@ -106,7 +106,6 @@ const { EVENT } = JANODE_PROTO;
  */
 const connect = (config = {}, key = null) => {
   Logger.info(`${LOG_NS} creating new connection`);
-
   const janus_server_list = Array.isArray(config) ? config : [config];
   let index = 0;
   if (typeof key === 'number')
@@ -134,28 +133,14 @@ export default {
   /**
    * The Logger used in Janode.
    *
-   * @type {object}
-   * @property {function} debug - Print out a debug message
-   * @property {function} verbose - Print out a verbose message
-   * @property {function} info - Print out an info message
-   * @property {function} warn - Print out a warning message
-   * @property {function} error - Print out an error message
-   * @property {function} setLevel - Set logger level
+   * @type {module:logger~Logger}
    */
   Logger,
 
   /**
    * Events emitted by Janode
    *
-   * @type {object}
-   * @property {string} CONNECTION_CLOSED - {@link module:connection~Connection#event:CONNECTION_CLOSED}
-   * @property {string} SESSION_DESTROYED - {@link module:session~Session#event:SESSION_DESTROYED}
-   * @property {string} HANDLE_DETACHED - {@link module:handle~Handle#event:HANDLE_DETACHED}
-   * @property {string} HANDLE_HANGUP - {@link module:handle~Handle#event:HANDLE_HANGUP}
-   * @property {string} HANDLE_MEDIA - {@link module:handle~Handle#event:HANDLE_MEDIA}
-   * @property {string} HANDLE_WEBRTCUP - {@link module:handle~Handle#event:HANDLE_WEBRTCUP}
-   * @property {string} HANDLE_SLOWLINK - {@link module:handle~Handle#event:HANDLE_SLOWLINK}
-   * @property {string} CONNECTION_ERROR - {@link module:connection~Connection#event:CONNECTION_ERROR}
+   * @type {module:protocol~JanodeCoreEvents}
    */
   EVENT,
 };

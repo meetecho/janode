@@ -13,7 +13,6 @@
  *
  * Some helper methods related to the protocols are defined here too.
  * @module protocol
- * @private
  */
 
 /**
@@ -78,6 +77,20 @@ export const JANUS = {
 };
 
 /**
+ * @typedef {Object} JanodeCoreEvents
+ * @property {string} CONNECTION_CLOSED - {@link module:connection~Connection#event:CONNECTION_CLOSED CONNECTION_CLOSED}
+ * @property {string} SESSION_DESTROYED - {@link module:session~Session#event:SESSION_DESTROYED SESSION_DESTROYED}
+ * @property {string} HANDLE_DETACHED - {@link module:handle~Handle#event:HANDLE_DETACHED HANDLE_DETACHED}
+ * @property {string} HANDLE_ICE_FAILED - {@link module:handle~Handle#event:HANDLE_ICE_FAILED HANDLE_ICE_FAILED}
+ * @property {string} HANDLE_HANGUP - {@link module:handle~Handle#event:HANDLE_HANGUP HANDLE_HANGUP}
+ * @property {string} HANDLE_MEDIA - {@link module:handle~Handle#event:HANDLE_MEDIA HANDLE_MEDIA}
+ * @property {string} HANDLE_WEBRTCUP - {@link module:handle~Handle#event:HANDLE_WEBRTCUP HANDLE_WEBRTCUP}
+ * @property {string} HANDLE_SLOWLINK - {@link module:handle~Handle#event:HANDLE_SLOWLINK HANDLE_SLOWLINK}
+ * @property {string} HANDLE_TRICKLE - {@link module:handle~Handle#event:HANDLE_TRICKLE HANDLE_TRICKLE}
+ * @property {string} CONNECTION_ERROR - {@link module:connection~Connection#event:CONNECTION_ERROR CONNECTION_ERROR}
+ */
+
+/**
  * Janode protocol constants
  *
  * @private
@@ -85,6 +98,8 @@ export const JANUS = {
 export const JANODE = {
   /**
    * Janode core events.
+   *
+   * @type {JanodeCoreEvents}
    */
   EVENT: {
     CONNECTION_CLOSED: 'connection_closed',
@@ -104,7 +119,7 @@ export const JANODE = {
  * Check if a message from Janus is a definitive response.
  *
  * @private
- * @param {object} data - The data from Janus
+ * @param {Object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
 export const isResponseData = data => {
@@ -118,7 +133,7 @@ export const isResponseData = data => {
  * Check if a message from Janus is an event.
  *
  * @private
- * @param {object} data - The data from Janus
+ * @param {Object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
 export const isEventData = data => {
@@ -132,7 +147,7 @@ export const isEventData = data => {
  * Check if a message from Janus is an error.
  *
  * @private
- * @param {object} data - The data from Janus
+ * @param {Object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
 export const isErrorData = data => {
@@ -146,7 +161,7 @@ export const isErrorData = data => {
  * Check if a message from Janus is a timeout notification.
  *
  * @private
- * @param {object} data - The data from Janus
+ * @param {Object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
 export const isTimeoutData = data => {
@@ -160,7 +175,7 @@ export const isTimeoutData = data => {
  * Check if a message from Janus is an ack.
  *
  * @private
- * @param {object} data - The data from Janus
+ * @param {Object} data - The data from Janus
  * @returns {boolean} True if the check succeeds
  */
 export const isAckData = data => {

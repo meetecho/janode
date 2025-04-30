@@ -25,7 +25,6 @@ export default defineConfig([
       }
     },
     rules: {
-      'no-trailing-spaces': 'warn',
       'no-unused-vars': [
         'warn',
         {
@@ -37,6 +36,9 @@ export default defineConfig([
           'caughtErrorsIgnorePattern': '^_'
         }
       ],
+      'no-empty': 'off',
+      // deprecated rules
+      'no-trailing-spaces': 'warn',
       'indent': [
         'warn',
         2,
@@ -52,7 +54,6 @@ export default defineConfig([
         'warn',
         'always'
       ],
-      'no-empty': 'off',
       'multiline-comment-style': 1
     }
   }

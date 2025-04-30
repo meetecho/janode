@@ -734,9 +734,9 @@ class StreamingHandle extends Handle {
  * @typedef {Object} STREAMING_EVENT_STATUS
  * @property {string} status - The current status of the stream
  * @property {number|string} [id] - The involved mountpoint identifier
- * @property {boolean} [restart] - True if the request had it true
+ * @property {boolean} [restart] - True if the event involves an ICE Restart
  * @property {boolean} [e2ee] - True if an offered stream is end to end encrypted
- * @property {RTCSessionDescription} [jsep] - Optional JSEP offer from Janus
+ * @property {RTCSessionDescription} [jsep] - Optional JSEP from Janus
  */
 
 /**
@@ -772,11 +772,11 @@ export default {
      *
      * @event module:streaming-plugin~StreamingHandle#event:STREAMING_STATUS
      * @type {Object}
-     * @property {string} status
-     * @property {number|string} [id]
-     * @property {boolean} [restart]
-     * @property {boolean} [e2ee]
-     * @property {RTCSessionDescription} [jsep]
+     * @property {string} status - The current status of the stream
+     * @property {number|string} [id] - The involved mountpoint identifier
+     * @property {boolean} [restart] - True if the event involves an ICE Restart
+     * @property {boolean} [e2ee] - True if an offered stream is end to end encrypted
+     * @property {RTCSessionDescription} [jsep] - Optional JSEP from Janus
      */
     STREAMING_STATUS: PLUGIN_EVENT.STATUS,
 

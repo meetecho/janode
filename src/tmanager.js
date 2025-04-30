@@ -10,9 +10,9 @@
 /**
  * An object describing a pending transaction stored in the manager.
  *
- * @typedef {object} PendingTransaction
+ * @typedef {Object} PendingTransaction
  * @property {string} id - The transaction identifier
- * @property {object} owner - A reference to the object that created the transaction
+ * @property {Object} owner - A reference to the object that created the transaction
  * @property {string} request - The janus request for the pending transaction
  * @property {function} done - The success callback
  * @property {function} error - The error callback
@@ -130,7 +130,7 @@ class TransactionManager {
    * Create a new transaction if id does not exist in the table and add it to the TM.
    *
    * @param {string} id - The transaction identifier
-   * @param {object} owner - A reference to the object that created the transaction
+   * @param {Object} owner - A reference to the object that created the transaction
    * @param {string} request - The janus request for the pending transaction
    * @param {function} done - The success callback
    * @param {function} error - The error callback
@@ -165,8 +165,8 @@ class TransactionManager {
    * The closed transaction will be removed from the internal table and the error cb will be invoked with the error string.
    *
    * @param {string} id - The transaction identifier
-   * @param {object} owner - A reference to the transaction owner
-   * @param {object} error - The error object
+   * @param {Object} owner - A reference to the transaction owner
+   * @param {Error} error - The error object
    * @returns {PendingTransaction|void} The closed transaction, or nothing if the id does not exist or the owner does not match
    */
   closeTransactionWithError(id, owner, error) {
@@ -185,8 +185,8 @@ class TransactionManager {
    * If an owner is specified only the owner's transaction will be closed.
    * The closed transactions will be removed from the internal table.
    *
-   * @param {object} [owner] - A reference to the transaction owner
-   * @param {object} error - The error object
+   * @param {Object} [owner] - A reference to the transaction owner
+   * @param {Error} error - The error object
    */
   closeAllTransactionsWithError(owner, error) {
     for (const [_, pendingTx] of this.transactions) {
@@ -200,8 +200,8 @@ class TransactionManager {
    * The closed transaction will be removed from the internal table and the success cb will be invoked with the specified data.
    *
    * @param {string} id - The transaction identifier
-   * @param {object} owner - A reference to the transaction owner
-   * @param {*} data - The success callback data
+   * @param {Object} owner - A reference to the transaction owner
+   * @param {Object} data - The success callback data
    * @returns {PendingTransaction|void} The closed transaction, or nothing if the id does not exist or the owner does not match
    */
   closeTransactionWithSuccess(id, owner, data) {

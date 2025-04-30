@@ -50,6 +50,7 @@ const PLUGIN_EVENT = {
  * Moreover it defines many methods to support Streaming operations.<br>
  *
  * @hideconstructor
+ * @extends module:handle~Handle
  */
 class StreamingHandle extends Handle {
   /**
@@ -72,8 +73,8 @@ class StreamingHandle extends Handle {
    * The custom "handleMessage" needed for handling Streamiing messages.
    *
    * @private
-   * @param {object} janus_message
-   * @returns {object} A falsy value for unhandled events, a truthy value for handled events
+   * @param {Object} janus_message
+   * @returns {Object} A falsy value for unhandled events, a truthy value for handled events
    */
   handleMessage(janus_message) {
     const { plugindata, transaction } = janus_message;
@@ -202,14 +203,14 @@ class StreamingHandle extends Handle {
   /**
    * Subscribe to a mountpoint.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.id - The mp id
    * @param {string} [params.pin] - The optional mp pin
    * @param {boolean} [params.audio] - True to request audio
    * @param {boolean} [params.video] - True to request video
    * @param {boolean} [params.data] - True to request data
    * @param {RTCSessionDescription} [params.jsep=null] - JSEP offer
-   * @property {boolean} [params.e2ee] - True if end-to-end enecryption is used
+   * @param {boolean} [params.e2ee] - True if end-to-end enecryption is used
    * @param {boolean} [params.restart=false] - True to trigger a restart
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_STATUS>}
    */
@@ -244,9 +245,9 @@ class StreamingHandle extends Handle {
   /**
    * Start a mountpoint stream.
    *
-   * @param {object} params
-   * @property {RTCSessionDescription} params.jsep
-   * @property {boolean} [params.e2ee]
+   * @param {Object} params
+   * @param {RTCSessionDescription} params.jsep
+   * @param {boolean} [params.e2ee]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_STATUS>}
    */
   async start({ jsep, e2ee }) {
@@ -307,7 +308,7 @@ class StreamingHandle extends Handle {
   /**
    * Switch to another mountpoint.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.id - The mp id to switch to
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_SWITCHED>}
    */
@@ -331,7 +332,7 @@ class StreamingHandle extends Handle {
   /**
    * Configure an active stream.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {boolean} [params.audio] - Enable/disable audio
    * @param {boolean} [params.video] - Enable/disable video
    * @param {boolean} [params.data] - Enable/disable data
@@ -372,7 +373,7 @@ class StreamingHandle extends Handle {
   /**
    * List all the available mountpoints.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {string} [params.admin_key] - The admin key needed for invoking the API
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_LIST>}
    */
@@ -393,7 +394,7 @@ class StreamingHandle extends Handle {
   /**
    * Get mountpoint info.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.id
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_INFO>}
@@ -416,7 +417,7 @@ class StreamingHandle extends Handle {
   /**
    * Start recording on a mountpoint
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.id
    * @param {string} [params.audio] - The filename for audio
    * @param {string} [params.video] - The filename for video
@@ -453,7 +454,7 @@ class StreamingHandle extends Handle {
   /**
    * Stop recording on a mountpoint.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.id
    * @param {boolean} [params.audio=true] - True to stop recording of audio
    * @param {boolean} [params.video=true] - True to stop recording of video
@@ -490,7 +491,7 @@ class StreamingHandle extends Handle {
   /**
    * Enable a mountpoint.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.id
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_OK>}
@@ -513,9 +514,9 @@ class StreamingHandle extends Handle {
   /**
    * Disable a mountpoint.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.id
-   * @param {boolean} [stop_recording=true] - True if the user wants to also stop the recording of a disabled moutnpoint
+   * @param {boolean} [params.stop_recording=true] - True if the user wants to also stop the recording of a disabled moutnpoint
    * @param {string} [params.secret]
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_OK>}
    */
@@ -538,8 +539,9 @@ class StreamingHandle extends Handle {
   /**
    * Create a RTP live mountpoint.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} [params.id=0] - The id for the new mountpoint (if omitted Janus will pick one)
+   * @param {string} [params.name] - A name for the mp
    * @param {string} [params.description] - A description for the mp
    * @param {string} [params.secret] - The secret that'll be needed to edit this mountpoint
    * @param {string} [params.pin] - The pin that'll be needed to connect to the new mountpoint
@@ -547,14 +549,14 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.permanent=false] - True if Janus must persist the mp on a config file
    * @param {boolean} [params.is_private=false] - Flag the mp as private
    * @param {boolean} [params.e2ee=false] - True to set a a mp as end to end encrypted
-   * @param {object} [params.audio] - The audio descriptor for the mp
+   * @param {Object} [params.audio] - The audio descriptor for the mp
    * @param {number} [params.audio.port] - Port used for audio RTP
    * @param {number} [params.audio.rtcpport] - Port used for audio RTCP
    * @param {string} [params.audio.mcast] - Multicast address to listen to
    * @param {number} [params.audio.pt] - Payload type that will be used
    * @param {string} [params.audio.rtpmap] - rtpmap type that will be used
    * @param {boolean} [params.audio.skew] - Set skew compensation
-   * @param {object} [params.video] - The video descriptor for the mp
+   * @param {Object} [params.video] - The video descriptor for the mp
    * @param {number} [params.video.port] - Port used for video RTP
    * @param {number} [params.video.port2] - Port used for video RTP (simulcast layer)
    * @param {number} [params.video.port3] - Port used for video RTP (simulcast layer)
@@ -565,12 +567,12 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.video.skew] - Set skew compensation
    * @param {string} [params.video.fmtp] - fmtp that will be used
    * @param {boolean} [params.video.buffer] - Enable buffering of the keyframes
-   * @param {object} [params.data] - The datachannel descriptor for the mp
+   * @param {Object} [params.data] - The datachannel descriptor for the mp
    * @param {number} [params.data.port] - Port used for datachannels packets
    * @param {boolean} [params.data.buffer] - Enable buffering of the datachannels
    * @param {object[]} [params.media] - [multistream] The media object, each media includes type, mid, port, pt ...
    * @param {number} [params.threads] - The number of helper threads used in this mp
-   * @param {object} [params.metadata] - An opaque metadata to add to the mp
+   * @param {Object} [params.metadata] - An opaque metadata to add to the mp
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
@@ -643,7 +645,7 @@ class StreamingHandle extends Handle {
   /**
    * Destroy a mountpoint.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.id
    * @param {boolean} [params.permanent]
    * @param {string} [params.secret]
@@ -672,32 +674,32 @@ class StreamingHandle extends Handle {
  * {@link https://janus.conf.meetecho.com/docs/streaming.html}
  *
  * @private
- * @typedef {object} StreamingData
+ * @typedef {Object} StreamingData
  */
 
 /**
  * Success response for streaming requests.
  *
- * @typedef {object} STREAMING_EVENT_OK
+ * @typedef {Object} STREAMING_EVENT_OK
  */
 
 /**
  * Response event for mountpoint info request.
  *
- * @typedef {object} STREAMING_EVENT_INFO
+ * @typedef {Object} STREAMING_EVENT_INFO
  */
 
 /**
  * Response event for mountpoint list request.
  *
- * @typedef {object} STREAMING_EVENT_LIST
+ * @typedef {Object} STREAMING_EVENT_LIST
  * @property {object[]} list - The list of mountpoints as returned by Janus
  */
 
 /**
  * Response event for mountpoint create request.
  *
- * @typedef {object} STREAMING_EVENT_CREATED
+ * @typedef {Object} STREAMING_EVENT_CREATED
  * @property {string} name - The name of the mountpoint
  * @property {number|string} id - The identifier for the mountpoint
  * @property {string} description - An optional description
@@ -722,14 +724,14 @@ class StreamingHandle extends Handle {
 /**
  * Response event for mountpoint destroy request.
  *
- * @typedef {object} STREAMING_EVENT_DESTROYED
+ * @typedef {Object} STREAMING_EVENT_DESTROYED
  * @property {number|string} id - The identifier of the dstroyed mountpoint
  */
 
 /**
  * A streaming status update event.
  *
- * @typedef {object} STREAMING_EVENT_STATUS
+ * @typedef {Object} STREAMING_EVENT_STATUS
  * @property {string} status - The current status of the stream
  * @property {number|string} [id] - The involved mountpoint identifier
  * @property {boolean} [restart] - True if the request had it true
@@ -740,7 +742,7 @@ class StreamingHandle extends Handle {
 /**
  * Response event for mountpoint switch request.
  *
- * @typedef {object} STREAMING_EVENT_SWITCHED
+ * @typedef {Object} STREAMING_EVENT_SWITCHED
  * @property {string} switched - The string as returned by Janus
  * @property {number|string} id - The identifier of the mp that has been switched to
  */
@@ -748,18 +750,18 @@ class StreamingHandle extends Handle {
 /**
  * Response event for configure stream request
  *
- * @typedef {object} STREAMING_EVENT_CONFIGURED
+ * @typedef {Object} STREAMING_EVENT_CONFIGURED
  */
 
 /**
  * The exported plugin descriptor.
  *
- * @type {object}
+ * @type {Object}
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:streaming-plugin~StreamingHandle} Handle - The custom class implementing the plugin
- * @property {object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.STREAMING_STATUS {@link module:streaming-plugin~STREAMING_STATUS}
- * @property {string} EVENT.STREAMING_ERROR {@link module:streaming-plugin~STREAMING_ERROR}
+ * @property {Object} EVENT - The events emitted by the plugin
+ * @property {string} EVENT.STREAMING_STATUS {@link module:streaming-plugin~StreamingHandle#event:STREAMING_STATUS STREAMING_STATUS}
+ * @property {string} EVENT.STREAMING_ERROR {@link module:streaming-plugin~StreamingHandle#event:STREAMING_ERROR STREAMING_ERROR}
  */
 export default {
   id: PLUGIN_ID,
@@ -769,7 +771,12 @@ export default {
      * Update of the status for the active stream.
      *
      * @event module:streaming-plugin~StreamingHandle#event:STREAMING_STATUS
-     * @type {module:streaming-plugin~STREAMING_EVENT_STATUS}
+     * @type {Object}
+     * @property {string} status
+     * @property {number|string} [id]
+     * @property {boolean} [restart]
+     * @property {boolean} [e2ee]
+     * @property {RTCSessionDescription} [jsep]
      */
     STREAMING_STATUS: PLUGIN_EVENT.STATUS,
 

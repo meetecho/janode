@@ -1,12 +1,18 @@
-import globals from 'globals';
+import { defineConfig } from 'eslint/config';
 import js from '@eslint/js';
+import globals from 'globals';
 
-export default [
+export default defineConfig([
   {
     files: [
+      '*.js',
       'src/**/*.js',
       'examples/**/*.js'
     ],
+    plugins: {
+      js
+    },
+    extends: ['js/recommended'],
     ignores: [
       'examples/browser/**/*'
     ],
@@ -19,7 +25,6 @@ export default [
       }
     },
     rules: {
-      ...js.configs.recommended.rules,
       'no-unused-vars': [
         'warn',
         {
@@ -31,6 +36,9 @@ export default [
           'caughtErrorsIgnorePattern': '^_'
         }
       ],
+      'no-empty': 'off',
+      // deprecated rules
+      'no-trailing-spaces': 'warn',
       'indent': [
         'warn',
         2,
@@ -46,8 +54,7 @@ export default [
         'warn',
         'always'
       ],
-      'no-empty': 'off',
       'multiline-comment-style': 1
     }
   }
-];
+]);

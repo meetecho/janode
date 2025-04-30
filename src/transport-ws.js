@@ -3,7 +3,7 @@
 /**
  * This module contains the WebSocket transport implementation.
  * @module transport-ws
- * @access private
+ * @private
  */
 
 /* Isomorphic implementation of WebSocket */
@@ -94,7 +94,7 @@ class TransportWs {
     /**
      * The task of the peridic ws ping.
      *
-     * @type {*}
+     * @type {Object}
      */
     this._ping_task = null;
 
@@ -378,8 +378,8 @@ class TransportWs {
    * Wraps with a promise the standard WebSocket API "send".
    * It is called from the parent connection.
    *
-   * @param {object} request - The request to be sent
-   * @returns {Promise<object>} A promise resolving with a response from Janus
+   * @param {Object} request - The request to be sent
+   * @returns {Promise<Object>} A promise resolving with a response from Janus
    */
   async send(request) {
     /* Check connection status */

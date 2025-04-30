@@ -3,7 +3,7 @@
 /**
  * This module contains the Session class definition.
  * @module session
- * @access private
+ * @private
  */
 
 import { EventEmitter } from 'events';
@@ -38,7 +38,7 @@ class Session extends EventEmitter {
      * The transaction manager used by this session.
      *
      * @private
-     * @type {TransactionManager}
+     * @type {module:tmanager~TransactionManager}
      */
     this._tm = connection._tm;
 
@@ -145,7 +145,6 @@ class Session extends EventEmitter {
      * The session has been destroyed.
      *
      * @event module:session~Session#event:SESSION_DESTROYED
-     * @type {object}
      * @property {number} id - The session identifier
      */
     this.emit(JANODE.EVENT.SESSION_DESTROYED, { id: this.id });
@@ -240,7 +239,7 @@ class Session extends EventEmitter {
    * the transaction will be closed.
    *
    * @private
-   * @param {object} janus_message
+   * @param {Object} janus_message
    */
   _handleMessage(janus_message) {
     const { sender, janus, transaction } = janus_message;
@@ -325,7 +324,7 @@ class Session extends EventEmitter {
    * Decorate request with session id and transaction (if missing).
    *
    * @private
-   * @param {object} request
+   * @param {Object} request
    */
   _decorateRequest(request) {
     request.transaction = request.transaction || getNumericID();
@@ -335,8 +334,8 @@ class Session extends EventEmitter {
   /**
    * Send a request from this session.
    *
-   * @param {object} request
-   * @returns {Promise<object>} A promise resolving with the response
+   * @param {Object} request
+   * @returns {Promise<Object>} A promise resolving with the response
    */
   async sendRequest(request) {
     /* Input check */

@@ -3,7 +3,7 @@
 /**
  * This module contains the Connection class definition.
  * @module connection
- * @access private
+ * @private
  */
 
 import { EventEmitter } from 'events';
@@ -87,13 +87,9 @@ class Connection extends EventEmitter {
     this.name = `[${this.id}]`;
 
     /**
-     * The internal transport that will be used for the connection.
+     * The transport used by this connection.
      *
-     * @typedef {object} Transport
-     * @property {function} open
-     * @property {function} close
-     * @property {function} send
-     * @property {function} getRemoteHostname
+     * @private
      */
     this._transport = {
       open: async _ => { throw new Error('transport does not implement the "open" function'); },
@@ -139,10 +135,10 @@ class Connection extends EventEmitter {
     if (graceful) {
       /* This is a greceful teardown */
       /**
-       * The connection has been closed.
+       * The connection has been gracefully closed.
        *
        * @event module:connection~Connection#event:CONNECTION_CLOSED
-       * @type {object}
+       * @type {Object}
        * @property {number} id - The connection identifier
        */
       this.emit(JANODE.EVENT.CONNECTION_CLOSED, { id: this.id });
@@ -151,7 +147,7 @@ class Connection extends EventEmitter {
       /* If this event is unexpected emit an error */
       const error = new Error('unexpected disconnection');
       /**
-       * This event is emitted when the connection is closed unexpectedly.
+       * The connection has been unexpectedly closed.
        *
        * @event module:connection~Connection#event:CONNECTION_ERROR
        * @type {Error}
@@ -180,7 +176,7 @@ class Connection extends EventEmitter {
    * the transaction will be closed.
    *
    * @private
-   * @param {object} janus_message
+   * @param {Object} janus_message
    */
   _handleMessage(janus_message) {
     const { session_id, transaction, janus } = janus_message;
@@ -239,7 +235,7 @@ class Connection extends EventEmitter {
    * Decorate request with apisecret, token and transaction (if missing).
    *
    * @private
-   * @param {object} request
+   * @param {Object} request
    */
   _decorateRequest(request) {
     request.transaction = request.transaction || getNumericID();
@@ -266,8 +262,8 @@ class Connection extends EventEmitter {
   /**
    * Send a request from this connection using the transport defined send method.
    *
-   * @param {object} request - The request to be sent
-   * @returns {Promise<object>} A promise resolving with a response from Janus
+   * @param {Object} request - The request to be sent
+   * @returns {Promise<Object>} A promise resolving with a response from Janus
    */
   async sendRequest(request) {
     /* Add connection properties */
@@ -342,7 +338,7 @@ class Connection extends EventEmitter {
   /**
    * Janus GET INFO API.
    *
-   * @returns {Promise<object>} The Get Info response
+   * @returns {Promise<Object>} The Get Info response
    *
    * @example
    *
@@ -368,7 +364,7 @@ class Connection extends EventEmitter {
   /**
    * (Admin API) List the sessions in a janus instance.
    *
-   * @returns {Promise<object>}
+   * @returns {Promise<Object>}
    *
    * @example
    *
@@ -389,7 +385,7 @@ class Connection extends EventEmitter {
    * (Admin API) List the handles in a session.
    *
    * @param {number} session_id - The identifier of the session
-   * @returns {Promise<object>}
+   * @returns {Promise<Object>}
    *
    * @example
    *
@@ -416,7 +412,7 @@ class Connection extends EventEmitter {
    *
    * @param {number} session_id - The session identifier
    * @param {number} handle_id - The handle identifier
-   * @returns {Promise<object>} The Get Handle Info response
+   * @returns {Promise<Object>} The Get Handle Info response
    *
    * @example
    *
@@ -452,7 +448,7 @@ class Connection extends EventEmitter {
    * @param {string} folder - The folder in which save the pcap
    * @param {string} filename - The pcap file name
    * @param {number} [truncate] - Number of bytes to truncate the pcap to
-   * @returns {Promise<object>} The start pcap response
+   * @returns {Promise<Object>} The start pcap response
    */
   async startPcap(session_id, handle_id, folder, filename, truncate) {
     Logger.info(`${LOG_NS} ${this.name} requesting pcap start for handle ${handle_id}`);
@@ -490,7 +486,7 @@ class Connection extends EventEmitter {
    *
    * @param {number} session_id - The session identifier
    * @param {number} handle_id - The handle identifier
-   * @returns {Promsie<object>} The stop pcap response
+   * @returns {Promise<Object>} The stop pcap response
    */
   async stopPcap(session_id, handle_id) {
     Logger.info(`${LOG_NS} ${this.name} requesting pcap stop for handle ${handle_id}`);

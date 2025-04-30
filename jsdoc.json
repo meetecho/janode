@@ -1,0 +1,31 @@
+{
+  "opts": {
+    "encoding": "utf8",
+    "package": "./package.json",
+    "readme": "./README.md",
+    "pedantic": true,
+    "recurse": true,
+    "verbose": true,
+    "template": "./node_modules/clean-jsdoc-theme",
+    "theme_opts": {
+      "default_theme": "dark",
+      "menu": [
+        {
+          "title": "Home",
+          "link": "index.html"
+        },
+        {
+          "title": "GitHub",
+          "link": "https://github.com/meetecho/janode"
+        }
+      ],
+      "search": true,
+      "sort": true,
+      "exclude_inherited": true
+    }
+  },
+  "markdown": {
+    "hardwrap": false,
+    "idInHeadings": true
+  }
+}

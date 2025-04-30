@@ -81,6 +81,7 @@ const PLUGIN_EVENT = {
  * Moreover it defines many methods to support AudioBridge operations.
  *
  * @hideconstructor
+ * @extends module:handle~Handle
  */
 class AudioBridgeHandle extends Handle {
   /**
@@ -111,8 +112,8 @@ class AudioBridgeHandle extends Handle {
    * The custom "handleMessage" needed for handling AudioBridge messages.
    *
    * @private
-   * @param {object} janus_message
-   * @returns {object} A falsy value for unhandled events, a truthy value for handled events
+   * @param {Object} janus_message
+   * @returns {Object} A falsy value for unhandled events, a truthy value for handled events
    */
   handleMessage(janus_message) {
     const { plugindata, transaction } = janus_message;
@@ -418,7 +419,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Join an audiobridge room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room to join
    * @param {number|string} [params.feed] - The feed identifier for the participant, picked by Janus if omitted
    * @param {string} [params.display] - The display name to use
@@ -469,7 +470,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Configure an audiobridge handle.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {string} [params.display] - The display name to use
    * @param {boolean} [params.muted] - Set muted status
    * @param {number} [params.quality] - Set opus quality
@@ -568,7 +569,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * List participants inside a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room where to execute the list
    * @param {string} [params.secret] - The optional secret needed for managing the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_PARTICIPANTS_LIST>}
@@ -591,7 +592,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Kick an user out from a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {number|string} params.feed - The feed to kick out
    * @param {string} [params.secret] - The optional secret needed for managing the room
@@ -620,7 +621,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Check if a room exists.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_EXISTS>}
    */
@@ -659,7 +660,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Create an audiobridge room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room identifier
    * @param {string} [params.description] - A room description
    * @param {boolean} [params.permanent] - Set to true to persist the room in the Janus config file
@@ -719,7 +720,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Destroy an audiobridge room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room to destroy
    * @param {boolean} [params.permanent] - Set to true to remove the room from the Janus config file
    * @param {string} [params.secret] - The optional secret needed to manage the room
@@ -744,7 +745,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Enable/disable mixed audio recording.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room identifier
    * @param {boolean} params.record - Enable/disable recording
    * @param {string} [params.secret] - The secret to be used when managing the room
@@ -775,7 +776,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Edit an audiobridge token list.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {"enable"|"disable"|"add"|"remove"} params.action - The action to perform
    * @param {string[]} params.list - The list of tokens to add/remove
@@ -802,7 +803,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Start a RTP forwarder.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {boolean} [params.always] - Whether silence should be forwarded when the room is empty
    * @param {string} params.host - The host to forward to
@@ -843,7 +844,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Stop a RTP forwarder.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {number} params.stream - The forwarder identifier to stop
    * @param {string} [params.secret] - The optional secret needed to manage the room
@@ -870,7 +871,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * List active forwarders.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @param {string} [params.admin_key] - The admin key needed for invoking the API
@@ -895,7 +896,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Mute an user in the audiobridge.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {number|string} params.feed - The feed to mute
    * @param {string} [params.secret] - The optional secret needed for managing the room
@@ -924,7 +925,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Unmute an user in the audiobridge.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {number|string} params.feed - The feed to unmute
    * @param {string} [params.secret] - The optional secret needed for managing the room
@@ -953,7 +954,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Mute the given room for every participant.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_MUTE_ROOM_RESPONSE>}
@@ -978,7 +979,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Unmute the given room for every participant.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE>}
@@ -1003,7 +1004,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Suspend an audiobridge participant.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {number|string} params.feed - The feed id to be suspended
    * @param {boolean} [params.stop_record] - Whether the recording of this participant should be stopped too
@@ -1034,7 +1035,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Resume an audiobridge participant after a suspend.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {number|string} params.feed - The feed id to be resumed
    * @param {boolean} [params.record] - Whether to start recording this resumed feed
@@ -1065,7 +1066,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Play a file inside a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @param {string} [params.group] - The optional group to play in
@@ -1098,7 +1099,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Check whether a file is playing inside a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @param {string} params.file_id - The involved announcement ID
@@ -1125,7 +1126,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Stop playing a file inside a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @param {string} params.file_id - The involved announcement ID
@@ -1152,7 +1153,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * Stop playing all files inside a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {string} [params.secret] - The optional secret needed to manage the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_STOP_ALL_FILES_RESPONSE>}
@@ -1177,7 +1178,7 @@ class AudioBridgeHandle extends Handle {
   /**
    * List announcements inside a room.
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {number|string} params.room - The room where to execute the list
    * @param {string} [params.secret] - The optional secret needed for managing the room
    * @returns {Promise<module:audiobridge-plugin~AUDIOBRIDGE_EVENT_ANNOUNCEMENTS_LIST>}
@@ -1204,11 +1205,11 @@ class AudioBridgeHandle extends Handle {
  * {@link https://janus.conf.meetecho.com/docs/audiobridge.html}
  *
  * @private
- * @typedef {object} AudioBridgeData
+ * @typedef {Object} AudioBridgeData
  */
 
 /**
- * @typedef {object} RtpParticipant
+ * @typedef {Object} RtpParticipant
  * @property {string} ip - IP address you want media to be sent to
  * @property {number} port - The port you want media to be sent to
  * @property {number} payload_type - The payload type to use for RTP packets
@@ -1217,7 +1218,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event to a join request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_JOINED
+ * @typedef {Object} AUDIOBRIDGE_EVENT_JOINED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed identifier
  * @property {module:audiobridge-plugin~RtpParticipant} [rtp_participant] - The descriptor in case this is a plain RTP participant
@@ -1231,7 +1232,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for configure request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_CONFIGURED
+ * @typedef {Object} AUDIOBRIDGE_EVENT_CONFIGURED
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed identifier
  * @property {string} [display] - The display name, if available
@@ -1248,7 +1249,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge hangup request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_AUDIO_HANGINGUP
+ * @typedef {Object} AUDIOBRIDGE_EVENT_AUDIO_HANGINGUP
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed that is being hung up
  */
@@ -1256,7 +1257,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge leave request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_LEAVING
+ * @typedef {Object} AUDIOBRIDGE_EVENT_LEAVING
  * @property {number|string} room - The involved room
  * @property {number|string} feed- The feed that is leaving
  */
@@ -1264,7 +1265,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge participants list request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_PARTICIPANTS_LIST
+ * @typedef {Object} AUDIOBRIDGE_EVENT_PARTICIPANTS_LIST
  * @property {number|string} room - The involved room
  * @property {object[]} participants - The list of participants
  * @property {number|string} participants[].feed - The participant feed identifier
@@ -1278,7 +1279,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge participant kick request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_KICK_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_KICK_RESPONSE
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The feed that has been kicked out
  */
@@ -1286,7 +1287,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge room exists request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_EXISTS
+ * @typedef {Object} AUDIOBRIDGE_EVENT_EXISTS
  * @property {number|string} room - The involved room
  * @property {boolean} exists - True if the rooms exists
  */
@@ -1294,16 +1295,16 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge room list request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_ROOMS_LIST
+ * @typedef {Object} AUDIOBRIDGE_EVENT_ROOMS_LIST
  * @property {object[]} list - The list of the rooms as returned by Janus
  */
 
 /**
  * The response event for audiobridge forwarder start request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_RTP_FWD
+ * @typedef {Object} AUDIOBRIDGE_EVENT_RTP_FWD
  * @property {number|string} room - The involved room
- * @property {object} forwarder - Forwarder descriptor
+ * @property {Object} forwarder - Forwarder descriptor
  * @property {string} forwarder.host - The target host
  * @property {number} forwarder.audio_port - The target port
  * @property {number} forwarder.audio_stream - The identifier of the forwarder
@@ -1313,7 +1314,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge room create request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_CREATED
+ * @typedef {Object} AUDIOBRIDGE_EVENT_CREATED
  * @property {number|string} room - The created room
  * @property {boolean} permanent - True if the room is being persisted in the Janus config file
  */
@@ -1321,14 +1322,14 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge room destroy request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_DESTROYED
+ * @typedef {Object} AUDIOBRIDGE_EVENT_DESTROYED
  * @property {number|string} room - The destroyed room
  */
 
 /**
  * The response event for audiobridge ACL token edit request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_RECORDING
+ * @typedef {Object} AUDIOBRIDGE_EVENT_RECORDING
  * @property {number|string} room - The involved room
  * @property {boolean} record - Wheter recording is active or not
  */
@@ -1336,7 +1337,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge forwarders list request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_FWD_LIST
+ * @typedef {Object} AUDIOBRIDGE_EVENT_FWD_LIST
  * @property {number|string} room - The involved room
  * @property {object[]} forwarders - The list of forwarders
  * @property {string} forwarders[].host - The target host
@@ -1349,7 +1350,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge mute participant request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_MUTE_PARTICIPANT_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_MUTE_PARTICIPANT_RESPONSE
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The involved feed id
  */
@@ -1357,7 +1358,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge unmute participant request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_UNMUTE_PARTICIPANT_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_UNMUTE_PARTICIPANT_RESPONSE
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The involved feed id
  */
@@ -1365,21 +1366,21 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge mute room request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_MUTE_ROOM_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_MUTE_ROOM_RESPONSE
  * @property {number|string} room - The involved room
  */
 
 /**
  * The response event for audiobridge unmute room request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_UNMUTE_ROOM_RESPONSE
  * @property {number|string} room - The involved room
  */
 
 /**
  * The response event for audiobridge suspend request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_SUSPEND_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_SUSPEND_RESPONSE
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The involved feed id
  */
@@ -1387,7 +1388,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge resume request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_RESUME_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_RESUME_RESPONSE
  * @property {number|string} room - The involved room
  * @property {number|string} feed - The involved feed id
  */
@@ -1395,7 +1396,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge ACL token edit request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_ALLOWED
+ * @typedef {Object} AUDIOBRIDGE_EVENT_ALLOWED
  * @property {number|string} room - The involved room
  * @property {string[]} list - The updated, complete, list of allowed tokens
  */
@@ -1403,7 +1404,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge play_file request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_PLAY_FILE_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_PLAY_FILE_RESPONSE
  * @property {number|string} room - The involved room
  * @property {string} file_id - The involved file id
  */
@@ -1411,7 +1412,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge is_playing request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_IS_PLAYING_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_IS_PLAYING_RESPONSE
  * @property {number|string} room - The involved room
  * @property {string} file_id - The involved file id
  * @property {boolean} playing - True if the file is being played
@@ -1420,7 +1421,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge stop_file request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_STOP_FILE_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_STOP_FILE_RESPONSE
  * @property {number|string} room - The involved room
  * @property {string} file_id - The involved file id
  */
@@ -1428,7 +1429,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge stop_all_files request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_STOP_ALL_FILES_RESPONSE
+ * @typedef {Object} AUDIOBRIDGE_EVENT_STOP_ALL_FILES_RESPONSE
  * @property {number|string} room - The involved room
  * @property {string[]} file_id_list - The list of file ids that was stopped
  */
@@ -1436,7 +1437,7 @@ class AudioBridgeHandle extends Handle {
 /**
  * The response event for audiobridge announcements list request.
  *
- * @typedef {object} AUDIOBRIDGE_EVENT_ANNOUNCEMENTS_LIST
+ * @typedef {Object} AUDIOBRIDGE_EVENT_ANNOUNCEMENTS_LIST
  * @property {number|string} room - The involved room
  * @property {object[]} announcements - The list of announcements
  * @property {string} announcements[].file_id - The announcement identifier
@@ -1448,27 +1449,27 @@ class AudioBridgeHandle extends Handle {
 /**
  * The exported plugin descriptor.
  *
- * @type {object}
+ * @type {Object}
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:audiobridge-plugin~AudioBridgeHandle} Handle - The custom class implementing the plugin
- * @property {object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.AUDIOBRIDGE_DESTROYED {@link module:audiobridge-plugin~AUDIOBRIDGE_DESTROYED}
- * @property {string} EVENT.AUDIOBRIDGE_CONFIGURED {@link module:audiobridge-plugin~AUDIOBRIDGE_CONFIGURED}
- * @property {string} EVENT.AUDIOBRIDGE_KICKED - {@link module:audiobridge-plugin~AUDIOBRIDGE_KICKED}
- * @property {string} EVENT.AUDIOBRIDGE_PEER_JOINED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_JOINED}
- * @property {string} EVENT.AUDIOBRIDGE_PEER_CONFIGURED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_CONFIGURED}
- * @property {string} EVENT.AUDIOBRIDGE_PEER_KICKED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_KICKED}
- * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_LEAVING}
- * @property {string} EVENT.AUDIOBRIDGE_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_TALKING}
- * @property {string} EVENT.AUDIOBRIDGE_PEER_TALKING {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_TALKING}
- * @property {string} EVENT.AUDIOBRIDGE_SUSPENDED {@link module:audiobridge-plugin~AUDIOBRIDGE_SUSPENDED}
- * @property {string} EVENT.AUDIOBRIDGE_PEER_SUSPENDED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_SUSPENDED}
- * @property {string} EVENT.AUDIOBRIDGE_RESUMED {@link module:audiobridge-plugin~AUDIOBRIDGE_RESUMED}
- * @property {string} EVENT.AUDIOBRIDGE_PEER_RESUMED {@link module:audiobridge-plugin~AUDIOBRIDGE_PEER_RESUMED}
- * @property {string} EVENT.AUDIOBRIDGE_ROOM_MUTED {@link module:audiobridge-plugin~AUDIOBRIDGE_ROOM_MUTED}
- * @property {string} EVENT.AUDIOBRIDGE_ANNOUNCEMENT_STARTED {@link module:audiobridge-plugin~AUDIOBRIDGE_ANNOUNCEMENT_STARTED}
- * @property {string} EVENT.AUDIOBRIDGE_ANNOUNCEMENT_STOPPED {@link module:audiobridge-plugin~AUDIOBRIDGE_ANNOUNCEMENT_STOPPED}
- * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AUDIOBRIDGE_ERROR}
+ * @property {Object} EVENT - The events emitted by the plugin
+ * @property {string} EVENT.AUDIOBRIDGE_DESTROYED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_DESTROYED AUDIOBRIDGE_DESTROYED}
+ * @property {string} EVENT.AUDIOBRIDGE_CONFIGURED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_CONFIGURED AUDIOBRIDGE_CONFIGURED}
+ * @property {string} EVENT.AUDIOBRIDGE_KICKED - {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_KICKED AUDIOBRIDGE_KICKED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_JOINED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_JOINED AUDIOBRIDGE_PEER_JOINED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_CONFIGURED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_CONFIGURED AUDIOBRIDGE_PEER_CONFIGURED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_KICKED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_KICKED AUDIOBRIDGE_PEER_KICKED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_LEAVING {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_LEAVING AUDIOBRIDGE_PEER_LEAVING}
+ * @property {string} EVENT.AUDIOBRIDGE_TALKING {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_TALKING AUDIOBRIDGE_TALKING}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_TALKING {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_TALKING AUDIOBRIDGE_PEER_TALKING}
+ * @property {string} EVENT.AUDIOBRIDGE_SUSPENDED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_SUSPENDED AUDIOBRIDGE_SUSPENDED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_SUSPENDED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_SUSPENDED AUDIOBRIDGE_PEER_SUSPENDED}
+ * @property {string} EVENT.AUDIOBRIDGE_RESUMED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_RESUMED AUDIOBRIDGE_RESUMED}
+ * @property {string} EVENT.AUDIOBRIDGE_PEER_RESUMED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_RESUMED AUDIOBRIDGE_PEER_RESUMED}
+ * @property {string} EVENT.AUDIOBRIDGE_ROOM_MUTED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ROOM_MUTED AUDIOBRIDGE_ROOM_MUTED}
+ * @property {string} EVENT.AUDIOBRIDGE_ANNOUNCEMENT_STARTED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED AUDIOBRIDGE_ANNOUNCEMENT_STARTED}
+ * @property {string} EVENT.AUDIOBRIDGE_ANNOUNCEMENT_STOPPED {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED AUDIOBRIDGE_ANNOUNCEMENT_STOPPED}
+ * @property {string} EVENT.AUDIOBRIDGE_ERROR {@link module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ERROR AUDIOBRIDGE_ERROR}
  */
 export default {
   id: PLUGIN_ID,
@@ -1479,7 +1480,8 @@ export default {
      * The audiobridge room has been destroyed.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_DESTROYED
-     * @type {module:audiobridge-plugin~AUDIOBRIDGE_EVENT_DESTROYED}
+     * @type {Object}
+     * @property {number|string} room
      */
     AUDIOBRIDGE_DESTROYED: PLUGIN_EVENT.DESTROYED,
 
@@ -1487,7 +1489,7 @@ export default {
      * The current user has been configured.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_CONFIGURED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      * @property {string} [display]
@@ -1500,7 +1502,7 @@ export default {
      * The current user has been kicked out.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_KICKED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      */
@@ -1510,7 +1512,7 @@ export default {
      * A new participant joined.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_JOINED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      * @property {string} [display]
@@ -1523,7 +1525,7 @@ export default {
      * A participant has been configured.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_CONFIGURED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      * @property {string} [display]
@@ -1536,7 +1538,7 @@ export default {
      * A participant has been kicked out.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_KICKED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      */
@@ -1546,7 +1548,7 @@ export default {
      * A participant is leaving.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_LEAVING
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      */
@@ -1556,7 +1558,7 @@ export default {
      * Notify if the current user is talking.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_TALKING
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      * @property {boolean} talking
@@ -1567,7 +1569,7 @@ export default {
      * Notify if a participant is talking.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_TALKING
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      * @property {boolean} talking
@@ -1578,7 +1580,7 @@ export default {
      * The current user has been suspended.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_SUSPENDED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      */
@@ -1587,7 +1589,7 @@ export default {
      * Notify if a participant has been suspended.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_SUSPENDED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      * @property {string} display
@@ -1598,7 +1600,7 @@ export default {
      * The current user has been resumed.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_RESUMED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      */
@@ -1608,7 +1610,7 @@ export default {
      * Notify if a participant has been resumed.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_RESUMED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {number|string} feed
      * @property {string} display
@@ -1619,7 +1621,7 @@ export default {
      * The room has been muted or not.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ROOM_MUTED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {boolean} muted
      */
@@ -1629,7 +1631,7 @@ export default {
      * The announcement has been started.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {string} file_id
      */
@@ -1639,7 +1641,7 @@ export default {
      * The announcement has been stopped.
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED
-     * @type {object}
+     * @type {Object}
      * @property {number|string} room
      * @property {string} file_id
      */

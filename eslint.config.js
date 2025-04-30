@@ -9,13 +9,13 @@ export default defineConfig([
       'src/**/*.js',
       'examples/**/*.js'
     ],
+    ignores: [
+      'examples/browser/**/*'
+    ],
     plugins: {
       js
     },
     extends: ['js/recommended'],
-    ignores: [
-      'examples/browser/**/*'
-    ],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',

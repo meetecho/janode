@@ -141,3 +141,19 @@ You need to create a bundle with the core library and the needed plugins using a
 
 If you get the code from the repo, you can find a `rollup` bundling sample in the `bundle.sh` script under `examples/browser/`.
 The output will be a `bundle.js` script that defines an `App` global object with the members `Janode` and `EchoTestPlugin`.
+
+## How to build documentation
+
+First install the dev dependecies:
+
+```bash
+npm install
+```
+
+Then use the npm script:
+
+```bash
+npm run build-docs
+```
+
+Documentation in HTML format will be built under the `docs` folder.

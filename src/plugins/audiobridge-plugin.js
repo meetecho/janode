@@ -1481,7 +1481,7 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_DESTROYED
      * @type {Object}
-     * @property {number|string} room
+     * @property {number|string} room - The destroyed room identifier
      */
     AUDIOBRIDGE_DESTROYED: PLUGIN_EVENT.DESTROYED,
 
@@ -1490,11 +1490,11 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_CONFIGURED
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
-     * @property {string} [display]
-     * @property {boolean} [muted]
-     * @property {boolean} [setup]
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The user feed identifier
+     * @property {string} [display] - The user display name
+     * @property {boolean} [muted] - True if the user is muted
+     * @property {boolean} [setup] - True if the user PeerConnection is up
      */
     AUDIOBRIDGE_CONFIGURED: PLUGIN_EVENT.CONFIGURED,
 
@@ -1503,8 +1503,8 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_KICKED
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The user feed identifier
      */
     AUDIOBRIDGE_KICKED: PLUGIN_EVENT.KICKED,
 
@@ -1513,11 +1513,11 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_JOINED
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
-     * @property {string} [display]
-     * @property {boolean} [muted]
-     * @property {boolean} [setup]
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The joined participant feed identifier
+     * @property {string} [display] - The joined participant display name
+     * @property {boolean} [muted] - True if the participant is muted
+     * @property {boolean} [setup] - True if the participant PeerConnection is up
      */
     AUDIOBRIDGE_PEER_JOINED: PLUGIN_EVENT.PEER_JOINED,
 
@@ -1526,11 +1526,11 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_CONFIGURED
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
-     * @property {string} [display]
-     * @property {boolean} [muted]
-     * @property {boolean} [setup]
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The configured participant feed identifier
+     * @property {string} [display] - The configured participant display name
+     * @property {boolean} [muted] - True if the participant is muted
+     * @property {boolean} [setup] - True if the participant PeerConnection is up
      */
     AUDIOBRIDGE_PEER_CONFIGURED: PLUGIN_EVENT.PEER_CONFIGURED,
 
@@ -1539,8 +1539,8 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_KICKED
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The kicked participant feed identifier
      */
     AUDIOBRIDGE_PEER_KICKED: PLUGIN_EVENT.PEER_KICKED,
 
@@ -1549,8 +1549,8 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_LEAVING
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The leaving participant feed identifier
      */
     AUDIOBRIDGE_PEER_LEAVING: PLUGIN_EVENT.PEER_LEAVING,
 
@@ -1559,9 +1559,9 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_TALKING
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
-     * @property {boolean} talking
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The user feed identifier
+     * @property {boolean} talking - True if the user is talking
      */
     AUDIOBRIDGE_TALKING: PLUGIN_EVENT.TALKING,
 
@@ -1570,9 +1570,9 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_TALKING
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
-     * @property {boolean} talking
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The participant feed identifier
+     * @property {boolean} talking - True if the participant is talking
      */
     AUDIOBRIDGE_PEER_TALKING: PLUGIN_EVENT.PEER_TALKING,
 
@@ -1581,8 +1581,8 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_SUSPENDED
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The user feed identifier
      */
     AUDIOBRIDGE_SUSPENDED: PLUGIN_EVENT.SUSPENDED,
     /**
@@ -1590,9 +1590,9 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_SUSPENDED
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
-     * @property {string} display
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The participant feed identifier
+     * @property {string} display - The participant display name
      */
     AUDIOBRIDGE_PEER_SUSPENDED: PLUGIN_EVENT.PEER_SUSPENDED,
 
@@ -1601,8 +1601,8 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_RESUMED
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The user feed identifier
      */
     AUDIOBRIDGE_RESUMED: PLUGIN_EVENT.RESUMED,
 
@@ -1611,9 +1611,9 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_PEER_RESUMED
      * @type {Object}
-     * @property {number|string} room
-     * @property {number|string} feed
-     * @property {string} display
+     * @property {number|string} room - The involved room identifier
+     * @property {number|string} feed - The participant feed identifier
+     * @property {string} display - The participant display name
      */
     AUDIOBRIDGE_PEER_RESUMED: PLUGIN_EVENT.PEER_RESUMED,
 
@@ -1622,8 +1622,8 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ROOM_MUTED
      * @type {Object}
-     * @property {number|string} room
-     * @property {boolean} muted
+     * @property {number|string} room - The involved room identifier
+     * @property {boolean} muted - True if the room is muted
      */
     AUDIOBRIDGE_ROOM_MUTED: PLUGIN_EVENT.ROOM_MUTED,
 
@@ -1632,8 +1632,8 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED
      * @type {Object}
-     * @property {number|string} room
-     * @property {string} file_id
+     * @property {number|string} room - The involved room identifier
+     * @property {string} file_id - Unique string ID of the announcement
      */
     AUDIOBRIDGE_ANNOUNCEMENT_STARTED: PLUGIN_EVENT.ANNOUNCEMENT_STARTED,
 
@@ -1642,8 +1642,8 @@ export default {
      *
      * @event module:audiobridge-plugin~AudioBridgeHandle#event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED
      * @type {Object}
-     * @property {number|string} room
-     * @property {string} file_id
+     * @property {number|string} room - The involved room identifier
+     * @property {string} file_id - Unique string ID of the announcement
      */
     AUDIOBRIDGE_ANNOUNCEMENT_STOPPED: PLUGIN_EVENT.ANNOUNCEMENT_STOPPED,
 

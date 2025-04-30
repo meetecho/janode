@@ -69,7 +69,10 @@ class EchoTestHandle extends Handle {
           /* EchoTest SlowLink event */
           if (event === 'slow_link') {
             janode_event.event = PLUGIN_EVENT.SLOWLINK;
-            janode_event.data.bitrate = message_data['current-bitrate'];
+            janode_event.data.media = message_data.media;
+            if (typeof message_data['current-bitrate'] !== 'number') {
+              janode_event.data.bitrate = message_data['current-bitrate'];
+            }
             break;
           }
           /* EchoTest Result event (ok, done ...)  */
@@ -151,7 +154,7 @@ class EchoTestHandle extends Handle {
 /**
  * @typedef {Object} ECHOTEST_EVENT_RESULT
  * @property {string} result - The result status (ok, done ...)
- * @property {RTCSessionDescription} [jsep] - The answer from Janus
+ * @property {RTCSessionDescription} [jsep] - The JSEP answer from Janus
  */
 
 /**
@@ -170,17 +173,22 @@ export default {
   Handle: EchoTestHandle,
   EVENT: {
     /**
+     * The result event emitted if the session status changes.
+     *
      * @event module:echotest-plugin~EchoTestHandle#event:ECHOTEST_RESULT
      * @type {Object}
-     * @property {string} result
-     * @property {RTCSessionDescription} [jsep]
+     * @property {string} result - The result status (ok, done ...)
+     * @property {RTCSessionDescription} [jsep] - The JSEP answer from Janus
      */
     ECHOTEST_RESULT: PLUGIN_EVENT.RESULT,
 
     /**
+     * The slowlink event emitted by the plugin.
+     *
      * @event module:echotest-plugin~EchoTestHandle#event:ECHOTEST_SLOWLINK
      * @type {Object}
-     * @property {number} bitrate
+     * @property {string} media - The media type (audio, video)
+     * @property {number} [bitrate] - Current bitrate cap
      */
     ECHOTEST_SLOWLINK: PLUGIN_EVENT.SLOWLINK,
 

@@ -46,6 +46,7 @@ const PLUGIN_EVENT = {
  * Moreover it defines some methods to support SIP operations.<br>
  *
  * @hideconstructor
+ * @extends module:handle~Handle
  */
 class SipHandle extends Handle {
   /**
@@ -73,8 +74,8 @@ class SipHandle extends Handle {
    * The custom "handleMessage" needed for handling SIP plugin messages.
    *
    * @private
-   * @param {object} janus_message
-   * @returns {object} A falsy value for unhandled events, a truthy value for handled events
+   * @param {Object} janus_message
+   * @returns {Object} A falsy value for unhandled events, a truthy value for handled events
    */
   handleMessage(janus_message) {
     const { plugindata, transaction } = janus_message;
@@ -282,7 +283,7 @@ class SipHandle extends Handle {
   /**
    * Register to the SIP plugin (sending of a SIP REGISTER is optional).
    *
-   * @param {object} params
+   * @param {Object} params
    * @param {string} [params.type] - optional SIP session type, either "guest" or "helper"
    * @param {boolean} [params.send_register] - True to send a SIP register
    * @param {boolean} [params.force_udp] - True to force UDP for the SIP messaging
@@ -296,7 +297,7 @@ class SipHandle extends Handle {
    * @param {string} [params.proxy] - The server to register at (not needed for guests)
    * @param {string} [params.outbound_proxy] - The server to register at (not needed for guests)
    * @param {number} [params.register_ttl] - The number of seconds after which the registration should expire
-   * 
+   *
    * @returns {Promise<module:sip-plugin~SIP_EVENT_REGISTERED>}
    */
   async register({ type, send_register, force_udp, force_tcp, sips, rfc2543_cancel, username, secret, ha1_secret, display_name, proxy, outbound_proxy, register_ttl }) {
@@ -337,8 +338,8 @@ class SipHandle extends Handle {
 
   /**
    * Start a SIP call.
-   * 
-   * @param {object} params
+   *
+   * @param {Object} params
    * @param {string} params.uri - The SIP URI to call
    * @param {string} [params.call_id] - The user-defined value of Call-ID SIP header used in all SIP requests throughout the call
    * @param {string} [params.authuser] - The username to use to authenticate as to call, only needed in case authentication is needed and no REGISTER was sent
@@ -380,8 +381,8 @@ class SipHandle extends Handle {
 
   /**
    * Accept an incoming SIP call.
-   * 
-   * @param {object} params
+   *
+   * @param {Object} params
    * @param {RTCSessionDescription} params.jsep - JSEP answer
    * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
    */
@@ -463,55 +464,21 @@ class SipHandle extends Handle {
  * {@link https://janus.conf.meetecho.com/docs/sip.html}
  *
  * @private
- * @typedef {object} SipData
- */
-
-/**
- * The event notifying a register is in progress
- * 
- * @typedef {object} SIP_EVENT_REGISTERING
+ * @typedef {Object} SipData
  */
 
 /**
  * The success event for a register request
- * 
- * @typedef {object} SIP_EVENT_REGISTERED
+ *
+ * @typedef {Object} SIP_EVENT_REGISTERED
  * @property {string} username - The URI that has been registered
  * @property {boolean} register_sent - True is a REGISTER has been sent
  */
 
 /**
- * Event for a SIP call in progress
- *
- * @typedef {object} SIP_EVENT_CALLING
- * @property {string} call_id
- */
-
-/**
- * Event for a SIP call ringing
- *
- * @typedef {object} SIP_EVENT_RINGING
- * @property {string} call_id
- */
-
-/**
- * Event for a SIP call proceeding
- *
- * @typedef {object} SIP_EVENT_PROCEEDING
- * @property {string} call_id
- */
-
-/**
- * Event for a SIP call hangup
- *
- * @typedef {object} SIP_EVENT_HANGUP
- * @property {string} call_id
- */
-
-/**
  * The success event for an accept request
  *
- * @typedef {object} SIP_EVENT_ACCEPTED
+ * @typedef {Object} SIP_EVENT_ACCEPTED
  * @property {string} call_id
  * @property {string} username
  * @property {RTCSessionDescription} [jsep]
@@ -520,128 +487,125 @@ class SipHandle extends Handle {
 /**
  * The success event for an hangup request
  *
- * @typedef {object} SIP_EVENT_HANGINGUP
+ * @typedef {Object} SIP_EVENT_HANGINGUP
  * @property {string} call_id
  */
 
 /**
  * The success event for a decline request
  *
- * @typedef {object} SIP_EVENT_DECLINING
+ * @typedef {Object} SIP_EVENT_DECLINING
  * @property {string} call_id
- */
-
-/**
- * Event for an incoming SIP call
- *
- * @typedef {object} SIP_EVENT_INCOMING
- * @property {string} call_id
- * @property {string} callee
- * @property {string} display_name
- * @property {string} username
- * @property {RTCSessionDescription} [jsep]
- */
-
-/**
- * Event for a SIP hangup
- *
- * @typedef {object} SIP_EVENT_HANGUP
- * @property {string} call_id
- */
-
-/**
- * Event for a missed SIP call
- *
- * @typedef {object} SIP_EVENT_MISSED
- * @property {string} call_id
- * @property {string} callee
- * @property {string} caller
- */
-
-/**
- * Event for a SIP INFO
- *
- * @typedef {object} SIP_EVENT_INFO
- * @property {string} sender
- * @property {string} [call_id]
- * @property {string} [displayname]
- * @property {string} type
- * @property {string} content
- * @property {object} [headers]
- */
-
-/**
- * Event for a RFC2833 DTMF
- *
- * @typedef {object} SIP_EVENT_DTMF
- * @property {string} sender
- * @property {string} [call_id]
- * @property {string} signal
- * @property {number} duration
  */
 
 /**
  * The exported plugin descriptor.
  *
- * @type {object}
+ * @type {Object}
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:sip-plugin~SipHandle} Handle - The custom class implementing the plugin
- * @property {object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.SIP_REGISTERING {@link module:sip-plugin~SIP_REGISTERING}
- * @property {string} EVENT.SIP_CALLING {@link module:sip-plugin~SIP_CALLING}
- * @property {string} EVENT.SIP_RINGING {@link module:sip-plugin~SIP_RINGING}
- * @property {string} EVENT.SIP_PROCEEDING {@link module:sip-plugin~SIP_PROCEEDING}
- * @property {string} EVENT.SIP_INCOMING {@link module:sip-plugin~SIP_INCOMING}
- * @property {string} EVENT.SIP_HANGUP {@link module:sip-plugin~SIP_HANGUP}
- * @property {string} EVENT.SIP_MISSED {@link module:sip-plugin~SIP_MISSED}
+ * @property {Object} EVENT - The events emitted by the plugin
+ * @property {string} EVENT.SIP_REGISTERING {@link module:sip-plugin~SipHandle#event:SIP_REGISTERING SIP_REGISTERING}
+ * @property {string} EVENT.SIP_CALLING {@link module:sip-plugin~SipHandle#event:SIP_CALLING SIP_CALLING}
+ * @property {string} EVENT.SIP_RINGING {@link module:sip-plugin~SipHandle#event:SIP_RINGING SIP_RINGING}
+ * @property {string} EVENT.SIP_PROCEEDING {@link module:sip-plugin~SipHandle#event:SIP_PROCEEDING SIP_PROCEEDING}
+ * @property {string} EVENT.SIP_INCOMING {@link module:sip-plugin~SipHandle#event:SIP_INCOMING SIP_INCOMING}
+ * @property {string} EVENT.SIP_HANGUP {@link module:sip-plugin~SipHandle#event:SIP_HANGUP SIP_HANGUP}
+ * @property {string} EVENT.SIP_MISSED {@link module:sip-plugin~SipHandle#event:SIP_MISSED SIP_MISSED}
+ * @property {string} EVENT.SIP_INFO {@link module:sip-plugin~SipHandle#event:SIP_INFO SIP_INFO}
+ * @property {string} EVENT.SIP_DTMF {@link module:sip-plugin~SipHandle#event:SIP_DTMF SIP_DTMF}
  */
 export default {
   id: PLUGIN_ID,
   Handle: SipHandle,
   EVENT: {
     /**
+     * The event notifying a register is in progress
+     *
      * @event module:sip-plugin~SipHandle#event:SIP_REGISTERING
-     * @type {module:sip-plugin~SIP_EVENT_REGISTERING}
+     * @type {Object}
      */
     SIP_REGISTERING: PLUGIN_EVENT.REGISTERING,
+
     /**
+     * Event for a SIP call in progress
+     *
      * @event module:sip-plugin~SipHandle#event:SIP_CALLING
-     * @type {module:sip-plugin~SIP_EVENT_CALLING}
+     * @type {Object}
+     * @property {string} call_id - SIP Call-ID header for related call
      */
     SIP_CALLING: PLUGIN_EVENT.CALLING,
+
     /**
+     * Event for a SIP call ringing
+     *
      * @event module:sip-plugin~SipHandle#event:SIP_RINGING
-     * @type {module:sip-plugin~SIP_EVENT_RINGING}
+     * @type {Object}
+     * @property {string} call_id - SIP Call-ID header for related call
      */
     SIP_RINGING: PLUGIN_EVENT.RINGING,
+
     /**
+     * Event for a SIP call proceeding
+     *
      * @event module:sip-plugin~SipHandle#event:SIP_PROCEEDING
-     * @type {module:sip-plugin~SIP_EVENT_PROCEEDING}
+     * @type {Object}
+     * @property {string} call_id - SIP Call-ID header for related call
      */
     SIP_PROCEEDING: PLUGIN_EVENT.PROCEEDING,
+
     /**
+     * Event for an incoming SIP call
+     *
      * @event module:sip-plugin~SipHandle#event:SIP_INCOMING
-     * @type {module:sip-plugin~SIP_EVENT_INCOMING}
+     * @type {Object}
+     * @property {string} call_id - SIP Call-ID header for related call
+     * @property {string} callee - SIP URI that was called
+     * @property {string} display_name - Display name of the caller
+     * @property {string} username - SIP URI of the caller
+     * @property {RTCSessionDescription} [jsep] - The JSEP offer
      */
     SIP_INCOMING: PLUGIN_EVENT.INCOMING,
+
     /**
+     * Event for a SIP call hangup
+     *
      * @event module:sip-plugin~SipHandle#event:SIP_HANGUP
-     * @type {module:sip-plugin~SIP_EVENT_HANGUP}
+     * @type {Object}
+     * @property {string} call_id - SIP Call-ID header for related call
      */
     SIP_HANGUP: PLUGIN_EVENT.HANGUP,
+
     /**
+     * Event for a missed SIP call
+     *
      * @event module:sip-plugin~SipHandle#event:SIP_MISSED
-     * @type {module:sip-plugin~SIP_EVENT_MISSED}
+     * @type {Object}
+     * @property {string} call_id - SIP Call-ID header for related call
+     * @property {string} callee - SIP URI that was called
+     * @property {string} caller - SIP URI of the caller
      */
     SIP_MISSED: PLUGIN_EVENT.MISSED,
+
     /**
      * @event module:sip-plugin~SipHandle#event:SIP_INFO
-     * @type {module:sip-plugin~SIP_EVENT_INFO}
+     * @type {Object}
+     * @property {string} sender - SIP URI of the message sender
+     * @property {string} [call_id] - SIP Call-ID header for related call
+     * @property {string} [displayname] - Display name of the sender
+     * @property {string} type - Content type of the message
+     * @property {string} content - Content of the message
+     * @property {Object} [headers] - Custom headers extracted from SIP event
      */
     SIP_INFO: PLUGIN_EVENT.INFO,
+
     /**
      * @event module:sip-plugin~SipHandle#event:SIP_DTMF
-     * @type {module:sip-plugin~SIP_EVENT_DTMF}
+     * @type {Object}
+     * @property {string} sender - SIP URI of the DTMF sender
+     * @property {string} [call_id] - SIP Call-ID header for related call
+     * @property {string} signal - The DTMF tone signal
+     * @property {number} duration - The DTMF tone duration
      */
     SIP_DTMF: PLUGIN_EVENT.DTMF,
   },

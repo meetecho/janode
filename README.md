@@ -6,12 +6,13 @@ Internally uses WebSockets or Unix DGRAM Sockets to connect to Janus.
 
 The library wraps the Janus core API, the Janus Admin API and some of the most popular plugins APIs.
 
-The supported Janus plugins currently are:
+The supported Janus plugins are:
 
 - EchoTest
 - AudioBridge
 - Streaming
 - VideoRoom
+- SIP
 
 The library is available on [npm](https://www.npmjs.com/package/janode) and the source code is on [github](https://github.com/meetecho/janode).
 

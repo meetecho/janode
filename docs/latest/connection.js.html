@@ -1,0 +1,517 @@
+<!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: connection.js</title><!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="";baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body data-theme="dark"><div class="sidebar-container"><div class="sidebar" id="sidebar"><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-modules"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin.html">audiobridge-plugin</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin.html">echotest-plugin</a></div><div class="sidebar-section-children"><a href="module-janode.html">janode</a></div><div class="sidebar-section-children"><a href="module-protocol.html">protocol</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin.html">streaming-plugin</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin.html">videoroom-plugin</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html">AudioBridgeHandle</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html">Connection</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html">EchoTestHandle</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html">Handle</a></div><div class="sidebar-section-children"><a href="module-logger-Logger.html">Logger</a></div><div class="sidebar-section-children"><a href="module-session-Session.html">Session</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html">StreamingHandle</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html">VideoRoomHandle</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-events"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED">event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED">event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_CONFIGURED">event:AUDIOBRIDGE_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_DESTROYED">event:AUDIOBRIDGE_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ERROR">event:AUDIOBRIDGE_ERROR</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_KICKED">event:AUDIOBRIDGE_KICKED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_CONFIGURED">event:AUDIOBRIDGE_PEER_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_JOINED">event:AUDIOBRIDGE_PEER_JOINED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_KICKED">event:AUDIOBRIDGE_PEER_KICKED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_LEAVING">event:AUDIOBRIDGE_PEER_LEAVING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_RESUMED">event:AUDIOBRIDGE_PEER_RESUMED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_SUSPENDED">event:AUDIOBRIDGE_PEER_SUSPENDED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_TALKING">event:AUDIOBRIDGE_PEER_TALKING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_RESUMED">event:AUDIOBRIDGE_RESUMED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ROOM_MUTED">event:AUDIOBRIDGE_ROOM_MUTED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_SUSPENDED">event:AUDIOBRIDGE_SUSPENDED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_TALKING">event:AUDIOBRIDGE_TALKING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html#event:event:CONNECTION_CLOSED">event:CONNECTION_CLOSED</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html#event:event:CONNECTION_ERROR">event:CONNECTION_ERROR</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_ERROR">event:ECHOTEST_ERROR</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_RESULT">event:ECHOTEST_RESULT</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_SLOWLINK">event:ECHOTEST_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-session-Session.html#event:event:SESSION_DESTROYED">event:SESSION_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:STREAMING_ERROR">event:STREAMING_ERROR</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:STREAMING_STATUS">event:STREAMING_STATUS</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_CONFIGURED">event:VIDEOROOM_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_DESTROYED">event:VIDEOROOM_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_DISPLAY">event:VIDEOROOM_DISPLAY</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_ERROR">event:VIDEOROOM_ERROR</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_KICKED">event:VIDEOROOM_KICKED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_LEAVING">event:VIDEOROOM_LEAVING</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_PUB_LIST">event:VIDEOROOM_PUB_LIST</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_PUB_PEER_JOINED">event:VIDEOROOM_PUB_PEER_JOINED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_RECORDING_ENABLED_STATE">event:VIDEOROOM_RECORDING_ENABLED_STATE</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SC_SUBSTREAM_LAYER">event:VIDEOROOM_SC_SUBSTREAM_LAYER</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SC_TEMPORAL_LAYERS">event:VIDEOROOM_SC_TEMPORAL_LAYERS</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SLOWLINK">event:VIDEOROOM_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_TALKING">event:VIDEOROOM_TALKING</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_UNPUBLISHED">event:VIDEOROOM_UNPUBLISHED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_UPDATED">event:VIDEOROOM_UPDATED</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"><div class="navbar-item"><a id="" href="index.html" target="">Home</a></div><div class="navbar-item"><a id="" href="https://github.com/meetecho/janode" target="">GitHub</a></div></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">connection.js</h1></header><article><pre class="prettyprint source lang-js"><code>'use strict';
+
+/**
+ * This module contains the Connection class definition.
+ * @module connection
+ * @private
+ */
+
+import { EventEmitter } from 'events';
+
+import Logger from './utils/logger.js';
+const LOG_NS = '[connection.js]';
+import { getNumericID, checkUrl, newIterator } from './utils/utils.js';
+import { JANODE, JANUS, isResponseData, isErrorData } from './protocol.js';
+import WsTransport from './transport-ws.js';
+import UnixTransport from './transport-unix.js';
+import JanodeSession from './session.js';
+import TransactionManager from './tmanager.js';
+
+
+/**
+ * Class representing a Janode connection.&lt;br>
+ *
+ * Specific transports are picked by checking the connection URI.&lt;br>
+ *
+ * This class implements both the Janus API and Admin API.&lt;br>
+ *
+ * Connection extends EventEmitter, so an instance can emit events and users can subscribe to them.&lt;br>
+ *
+ * Users are not expected to create Connection instances, but insted use the Janode.connect() API.&lt;br>
+ *
+ * @hideconstructor
+ */
+class Connection extends EventEmitter {
+  /**
+   * Create a Janode Connection.
+   *
+   * @param {module:configuration~Configuration} server_config - The Janode configuration as created by the Configuration constructor.
+   */
+  constructor(server_config) {
+    super();
+
+    /**
+     * The configuration in use for this connection.
+     *
+     * @private
+     * @type {module:configuration~Configuration}
+     */
+    this._config = server_config;
+
+    /**
+     * The transaction manager used by this connection.
+     *
+     * @private
+     * @type {module:tmanager~TransactionManager}
+     */
+    this._tm = new TransactionManager();
+
+    /**
+     * Keep track of the sessions.
+     *
+     * @private
+     * @type {Map}
+     */
+    this._sessions = new Map();
+
+    /**
+     * The iterator to select available Janus addresses.
+     *
+     * @private
+     * @type {module:utils~CircularIterator}
+     */
+    this._address_iterator = newIterator(this._config.getAddress());
+
+    /**
+     * A numerical identifier assigned for logging purposes.
+     *
+     * @type {number}
+     */
+    this.id = parseInt(getNumericID());
+
+    /**
+     * A more descriptive, not unique string (used for logging).
+     *
+     * @type {string}
+     */
+    this.name = `[${this.id}]`;
+
+    /**
+     * The transport used by this connection.
+     *
+     * @private
+     */
+    this._transport = {
+      open: async _ => { throw new Error('transport does not implement the "open" function'); },
+      close: async _ => { throw new Error('transport does not implement the "close" function'); },
+      send: async _ => { throw new Error('transport does not implement the "send" function'); },
+      getRemoteHostname: _ => { throw new Error('transport does not implement the "getRemoteHostname" function'); },
+    };
+
+    try {
+      let transport;
+      /* Check the protocol to define the kind of transport */
+      if (checkUrl(server_config.getAddress()[0].url, ['ws', 'wss', 'ws+unix', 'wss+unix'])) {
+        transport = new WsTransport(this);
+      }
+      if (checkUrl(server_config.getAddress()[0].url, ['file'])) {
+        transport = new UnixTransport(this);
+      }
+      if (transport) this._transport = transport;
+    } catch (error) {
+      Logger.error(`${LOG_NS} ${this.name} error while initializing transport (${error.message})`);
+    }
+
+    /* Set a dummy error listener to avoid unmanaged errors */
+    this.on('error', e => `${LOG_NS} ${this.name} catched unmanaged error ${e.message}`);
+  }
+
+  /**
+   * Cleanup the connection closing all owned transactions and emitting the destroyed event
+   * and removing all registered listeners.
+   *
+   * @private
+   * @param {boolean} graceful - True if this is an expected disconnection
+   */
+  _signalClose(graceful) {
+    /* Close all pending transactions inside this connection with an error */
+    this._tm.closeAllTransactionsWithError(null, new Error('connection closed'));
+    /* Clear tx table */
+    this._tm.clear();
+    /* Clear session table */
+    this._sessions.clear();
+
+    /* Did we really mean to close it? */
+    if (graceful) {
+      /* This is a greceful teardown */
+      /**
+       * The connection has been gracefully closed.
+       *
+       * @event module:connection~Connection#event:CONNECTION_CLOSED
+       * @type {Object}
+       * @property {number} id - The connection identifier
+       */
+      this.emit(JANODE.EVENT.CONNECTION_CLOSED, { id: this.id });
+    }
+    else {
+      /* If this event is unexpected emit an error */
+      const error = new Error('unexpected disconnection');
+      /**
+       * The connection has been unexpectedly closed.
+       *
+       * @event module:connection~Connection#event:CONNECTION_ERROR
+       * @type {Error}
+       */
+      this.emit(JANODE.EVENT.CONNECTION_ERROR, error);
+    }
+
+    /* Remove all listeners to avoid leaks */
+    this.removeAllListeners();
+  }
+
+  /**
+   * Open a connection using the transport defined open method.
+   * Users do not need to call this method, since the connection is opened by Janode.connect().
+   *
+   * @returns {Promise&lt;module:connection~Connection>} A promise resolving with the Janode connection
+   */
+  async open() {
+    await this._transport.open();
+    return this;
+  }
+
+  /**
+   * Manage a message sent to this session.  If a session is involved let it manage the message.
+   * If the message involves a owned transaction and the response is a definitive one,
+   * the transaction will be closed.
+   *
+   * @private
+   * @param {Object} janus_message
+   */
+  _handleMessage(janus_message) {
+    const { session_id, transaction, janus } = janus_message;
+
+    /* Check if a session is involved */
+    if (session_id &amp;&amp; !this._config.isAdmin()) {
+      /* Look for the session in the map */
+      const session = this._sessions.get(session_id);
+      /* If the handle is missing notifies the user */
+      if (!session) {
+        Logger.warn(`${LOG_NS} ${this.name} session ${session_id} not found for incoming message ${janus}`);
+        return;
+      }
+
+      try {
+        /* Let the session manage the message */
+        session._handleMessage(janus_message);
+      } catch (error) {
+        Logger.error(`${LOG_NS} ${this.name} error while handling message (${error.message})`);
+      }
+      return;
+    }
+
+    /* Check if a transaction is involved */
+    if (transaction) {
+      Logger.verbose(`${LOG_NS} ${this.name} received ${janus} for transaction ${transaction}`);
+
+      /* Not owned by this connection? */
+      if (this._tm.getTransactionOwner(transaction) !== this) {
+        Logger.warn(`${LOG_NS} ${this.name} transaction ${transaction} not found for incoming messsage ${janus}`);
+        return;
+      }
+
+      /*
+       * Pending connection transaction management.
+       * Close transaction in case of:
+       * 1) Definitive response
+       */
+      if (isResponseData(janus_message)) {
+        if (isErrorData(janus_message)) {
+          const error = new Error(`${janus_message.error.code} ${janus_message.error.reason}`);
+          return this._tm.closeTransactionWithError(transaction, this, error);
+        }
+
+        this._tm.closeTransactionWithSuccess(transaction, this, janus_message);
+      }
+
+      return;
+    }
+
+    /* No session, no transaction? */
+    Logger.error(`${LOG_NS} ${this.name} unexpected janus message directed to the connection ${JSON.stringify(janus_message)}`);
+  }
+
+  /**
+   * Decorate request with apisecret, token and transaction (if missing).
+   *
+   * @private
+   * @param {Object} request
+   */
+  _decorateRequest(request) {
+    request.transaction = request.transaction || getNumericID();
+    if (this._address_iterator.currElem().apisecret) {
+      if (!this._config.isAdmin())
+        request.apisecret = request.apisecret || this._address_iterator.currElem().apisecret;
+      else
+        request.admin_secret = request.admin_secret || this._address_iterator.currElem().apisecret;
+    }
+    if (this._address_iterator.currElem().token)
+      request.token = this._address_iterator.currElem().token;
+  }
+
+  /**
+   * Gracefully close the connection using the transport defined close method.
+   *
+   * @returns {Promise&lt;void>}
+   */
+  async close() {
+    await this._transport.close();
+    return;
+  }
+
+  /**
+   * Send a request from this connection using the transport defined send method.
+   *
+   * @param {Object} request - The request to be sent
+   * @returns {Promise&lt;Object>} A promise resolving with a response from Janus
+   */
+  async sendRequest(request) {
+    /* Add connection properties */
+    this._decorateRequest(request);
+
+    return new Promise((resolve, reject) => {
+      /* Create a new transaction if the transaction does not exist */
+      /* Use promise resolve and reject fn as callbacks for the transaction */
+      this._tm.createTransaction(request.transaction, this, request.janus, resolve, reject);
+
+      this._transport.send(request).catch(error => {
+        /* In case of error quickly close the transaction */
+        this._tm.closeTransactionWithError(request.transaction, this, error);
+        reject(error);
+        return;
+      });
+    });
+  }
+
+  /**
+   * Get the remote Janus hostname using the transport defined method.
+   *
+   * @returns {string} The hostname of the Janus server
+   */
+  getRemoteHostname() {
+    return this._transport.getRemoteHostname();
+  }
+
+  /**
+   * Create a new session in this connection.
+   *
+   * @param {number} [ka_interval] - The time interval (seconds) for session keep-alive requests
+   * @returns {Promise&lt;module:session~Session>} The newly created session
+   *
+   * @example
+   *
+   * const session = await connection.create();
+   * Logger.info(`***** SESSION CREATED *****`);
+   */
+  async create(ka_interval) {
+    Logger.info(`${LOG_NS} ${this.name} creating new session`);
+
+    const request = {
+      janus: JANUS.REQUEST.CREATE_SESSION,
+    };
+
+    try {
+      const { data: { id } } = await this.sendRequest(request);
+      /* Increase the maximum number of listeners for this connection */
+      /* The session will register two listeners */
+      this.setMaxListeners(this.getMaxListeners() + 2);
+
+      /* Create a new Janode Session and add it to the table */
+      const session_instance = new JanodeSession(this, id, ka_interval);
+      this._sessions.set(session_instance.id, session_instance);
+
+      /* On session destroy delete the entry from session map and decrease the number of listeners */
+      session_instance.once(JANODE.EVENT.SESSION_DESTROYED, ({ id }) => {
+        this._sessions.delete(id);
+        this.setMaxListeners(this.getMaxListeners() - 2);
+      });
+
+      Logger.info(`${LOG_NS} ${this.name} session created (id=${id})`);
+      return session_instance;
+    }
+    catch (error) {
+      Logger.error(`${LOG_NS} ${this.name} session creation error (${error.message})`);
+      throw error;
+    }
+  }
+
+  /**
+   * Janus GET INFO API.
+   *
+   * @returns {Promise&lt;Object>} The Get Info response
+   *
+   * @example
+   *
+   * const info = await connection.getInfo();
+   * Logger.info(`${info.name} ${info.version_string}`);
+   */
+  async getInfo() {
+    Logger.info(`${LOG_NS} ${this.name} requesting server info`);
+
+    const request = {
+      janus: JANUS.REQUEST.SERVER_INFO,
+    };
+
+    return this.sendRequest(request);
+  }
+
+  /*************/
+  /* ADMIN API */
+  /*************/
+
+  /* The following APIs are available only if a connection has been created with is_admin = true in the config */
+
+  /**
+   * (Admin API) List the sessions in a janus instance.
+   *
+   * @returns {Promise&lt;Object>}
+   *
+   * @example
+   *
+   * const data = await connection.listSessions();
+   * Logger.info(`${JSON.stringify(data)}`);
+   */
+  async listSessions() {
+    Logger.verbose(`${LOG_NS} ${this.name} requesting session list`);
+
+    const request = {
+      janus: JANUS.ADMIN.LIST_SESSIONS,
+    };
+
+    return this.sendRequest(request);
+  }
+
+  /**
+   * (Admin API) List the handles in a session.
+   *
+   * @param {number} session_id - The identifier of the session
+   * @returns {Promise&lt;Object>}
+   *
+   * @example
+   *
+   * const data = await connection.listSessions();
+   * Logger.info(`${JSON.stringify(data)}`);
+   */
+  async listHandles(session_id) {
+    Logger.info(`${LOG_NS} ${this.name} requesting handle list`);
+    if (!session_id) {
+      const error = new Error('session_id parameter not specified');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    const request = {
+      janus: JANUS.ADMIN.LIST_HANDLES,
+      session_id,
+    };
+
+    return this.sendRequest(request);
+  }
+
+  /**
+   * (Admin API) Get an handle info.
+   *
+   * @param {number} session_id - The session identifier
+   * @param {number} handle_id - The handle identifier
+   * @returns {Promise&lt;Object>} The Get Handle Info response
+   *
+   * @example
+   *
+   * const data = await connection.handleInfo(session.id, handle.id);
+   * Logger.info(`${JSON.stringify(data)}`);
+   */
+  async handleInfo(session_id, handle_id) {
+    Logger.info(`${LOG_NS} ${this.name} requesting handle info`);
+    if (!session_id) {
+      const error = new Error('session_id parameter not specified');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    if (!handle_id) {
+      const error = new Error('handle_id parameter not specified');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    const request = {
+      janus: JANUS.ADMIN.HANDLE_INFO,
+      session_id,
+      handle_id,
+    };
+
+    return this.sendRequest(request);
+  }
+
+  /**
+   * (Admin API) Start a packet capture on an handle.
+   *
+   * @param {number} session_id - The session identifier
+   * @param {number} handle_id - The handle identifier
+   * @param {string} folder - The folder in which save the pcap
+   * @param {string} filename - The pcap file name
+   * @param {number} [truncate] - Number of bytes to truncate the pcap to
+   * @returns {Promise&lt;Object>} The start pcap response
+   */
+  async startPcap(session_id, handle_id, folder, filename, truncate) {
+    Logger.info(`${LOG_NS} ${this.name} requesting pcap start for handle ${handle_id}`);
+    if (!session_id) {
+      const error = new Error('session_id parameter not specified');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    if (!handle_id) {
+      const error = new Error('handle_id parameter not specified');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    if (typeof folder !== 'string' || typeof filename !== 'string') {
+      const error = new Error('invalid folder or filename specified');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    const request = {
+      janus: JANUS.ADMIN.START_PCAP,
+      session_id,
+      handle_id,
+      folder,
+      filename,
+    };
+    if ((typeof truncate === 'number') &amp;&amp; truncate > 0) {
+      request.truncate = truncate;
+    }
+
+    return this.sendRequest(request);
+  }
+
+  /**
+   * Stop an ogoing packet capture.
+   *
+   * @param {number} session_id - The session identifier
+   * @param {number} handle_id - The handle identifier
+   * @returns {Promise&lt;Object>} The stop pcap response
+   */
+  async stopPcap(session_id, handle_id) {
+    Logger.info(`${LOG_NS} ${this.name} requesting pcap stop for handle ${handle_id}`);
+    if (!session_id) {
+      const error = new Error('session_id parameter not specified');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    if (!handle_id) {
+      const error = new Error('handle_id parameter not specified');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    const request = {
+      janus: JANUS.ADMIN.STOP_PCAP,
+      session_id,
+      handle_id,
+    };
+
+    return this.sendRequest(request);
+  }
+
+}
+
+export default Connection;
+</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><div class="mobile-nav-links"><div class="navbar-item"><a id="" href="index.html" target="">Home</a></div><div class="navbar-item"><a id="" href="https://github.com/meetecho/janode" target="">GitHub</a></div></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-modules"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin.html">audiobridge-plugin</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin.html">echotest-plugin</a></div><div class="sidebar-section-children"><a href="module-janode.html">janode</a></div><div class="sidebar-section-children"><a href="module-protocol.html">protocol</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin.html">streaming-plugin</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin.html">videoroom-plugin</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html">AudioBridgeHandle</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html">Connection</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html">EchoTestHandle</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html">Handle</a></div><div class="sidebar-section-children"><a href="module-logger-Logger.html">Logger</a></div><div class="sidebar-section-children"><a href="module-session-Session.html">Session</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html">StreamingHandle</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html">VideoRoomHandle</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-events"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED">event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED">event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_CONFIGURED">event:AUDIOBRIDGE_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_DESTROYED">event:AUDIOBRIDGE_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ERROR">event:AUDIOBRIDGE_ERROR</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_KICKED">event:AUDIOBRIDGE_KICKED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_CONFIGURED">event:AUDIOBRIDGE_PEER_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_JOINED">event:AUDIOBRIDGE_PEER_JOINED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_KICKED">event:AUDIOBRIDGE_PEER_KICKED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_LEAVING">event:AUDIOBRIDGE_PEER_LEAVING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_RESUMED">event:AUDIOBRIDGE_PEER_RESUMED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_SUSPENDED">event:AUDIOBRIDGE_PEER_SUSPENDED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_TALKING">event:AUDIOBRIDGE_PEER_TALKING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_RESUMED">event:AUDIOBRIDGE_RESUMED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ROOM_MUTED">event:AUDIOBRIDGE_ROOM_MUTED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_SUSPENDED">event:AUDIOBRIDGE_SUSPENDED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_TALKING">event:AUDIOBRIDGE_TALKING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html#event:event:CONNECTION_CLOSED">event:CONNECTION_CLOSED</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html#event:event:CONNECTION_ERROR">event:CONNECTION_ERROR</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_ERROR">event:ECHOTEST_ERROR</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_RESULT">event:ECHOTEST_RESULT</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_SLOWLINK">event:ECHOTEST_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-session-Session.html#event:event:SESSION_DESTROYED">event:SESSION_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:STREAMING_ERROR">event:STREAMING_ERROR</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:STREAMING_STATUS">event:STREAMING_STATUS</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_CONFIGURED">event:VIDEOROOM_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_DESTROYED">event:VIDEOROOM_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_DISPLAY">event:VIDEOROOM_DISPLAY</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_ERROR">event:VIDEOROOM_ERROR</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_KICKED">event:VIDEOROOM_KICKED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_LEAVING">event:VIDEOROOM_LEAVING</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_PUB_LIST">event:VIDEOROOM_PUB_LIST</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_PUB_PEER_JOINED">event:VIDEOROOM_PUB_PEER_JOINED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_RECORDING_ENABLED_STATE">event:VIDEOROOM_RECORDING_ENABLED_STATE</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SC_SUBSTREAM_LAYER">event:VIDEOROOM_SC_SUBSTREAM_LAYER</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SC_TEMPORAL_LAYERS">event:VIDEOROOM_SC_TEMPORAL_LAYERS</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SLOWLINK">event:VIDEOROOM_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_TALKING">event:VIDEOROOM_TALKING</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_UNPUBLISHED">event:VIDEOROOM_UNPUBLISHED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_UPDATED">event:VIDEOROOM_UPDATED</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>

@@ -1,0 +1,652 @@
+<!DOCTYPE html><html lang="en" style="font-size:16px"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Source: handle.js</title><!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]--><script src="scripts/third-party/hljs.js" defer="defer"></script><script src="scripts/third-party/hljs-line-num.js" defer="defer"></script><script src="scripts/third-party/popper.js" defer="defer"></script><script src="scripts/third-party/tippy.js" defer="defer"></script><script src="scripts/third-party/tocbot.min.js"></script><script>var baseURL="/",locationPathname="";baseURL=(locationPathname=document.location.pathname).substr(0,locationPathname.lastIndexOf("/")+1)</script><link rel="stylesheet" href="styles/clean-jsdoc-theme.min.css"><svg aria-hidden="true" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none"><defs><symbol id="copy-icon" viewbox="0 0 488.3 488.3"><g><path d="M314.25,85.4h-227c-21.3,0-38.6,17.3-38.6,38.6v325.7c0,21.3,17.3,38.6,38.6,38.6h227c21.3,0,38.6-17.3,38.6-38.6V124    C352.75,102.7,335.45,85.4,314.25,85.4z M325.75,449.6c0,6.4-5.2,11.6-11.6,11.6h-227c-6.4,0-11.6-5.2-11.6-11.6V124    c0-6.4,5.2-11.6,11.6-11.6h227c6.4,0,11.6,5.2,11.6,11.6V449.6z"/><path d="M401.05,0h-227c-21.3,0-38.6,17.3-38.6,38.6c0,7.5,6,13.5,13.5,13.5s13.5-6,13.5-13.5c0-6.4,5.2-11.6,11.6-11.6h227    c6.4,0,11.6,5.2,11.6,11.6v325.7c0,6.4-5.2,11.6-11.6,11.6c-7.5,0-13.5,6-13.5,13.5s6,13.5,13.5,13.5c21.3,0,38.6-17.3,38.6-38.6    V38.6C439.65,17.3,422.35,0,401.05,0z"/></g></symbol><symbol id="search-icon" viewBox="0 0 512 512"><g><g><path d="M225.474,0C101.151,0,0,101.151,0,225.474c0,124.33,101.151,225.474,225.474,225.474    c124.33,0,225.474-101.144,225.474-225.474C450.948,101.151,349.804,0,225.474,0z M225.474,409.323    c-101.373,0-183.848-82.475-183.848-183.848S124.101,41.626,225.474,41.626s183.848,82.475,183.848,183.848    S326.847,409.323,225.474,409.323z"/></g></g><g><g><path d="M505.902,476.472L386.574,357.144c-8.131-8.131-21.299-8.131-29.43,0c-8.131,8.124-8.131,21.306,0,29.43l119.328,119.328    c4.065,4.065,9.387,6.098,14.715,6.098c5.321,0,10.649-2.033,14.715-6.098C514.033,497.778,514.033,484.596,505.902,476.472z"/></g></g></symbol><symbol id="font-size-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11.246 15H4.754l-2 5H.6L7 4h2l6.4 16h-2.154l-2-5zm-.8-2L8 6.885 5.554 13h4.892zM21 12.535V12h2v8h-2v-.535a4 4 0 1 1 0-6.93zM19 18a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></symbol><symbol id="add-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M11 11V5h2v6h6v2h-6v6h-2v-6H5v-2z"/></symbol><symbol id="minus-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M5 11h14v2H5z"/></symbol><symbol id="dark-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M10 7a7 7 0 0 0 12 4.9v.1c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2h.1A6.979 6.979 0 0 0 10 7zm-6 5a8 8 0 0 0 15.062 3.762A9 9 0 0 1 8.238 4.938 7.999 7.999 0 0 0 4 12z"/></symbol><symbol id="light-theme-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.515 4.929l1.414-1.414L7.05 5.636 5.636 7.05 3.515 4.93zM16.95 18.364l1.414-1.414 2.121 2.121-1.414 1.414-2.121-2.121zm2.121-14.85l1.414 1.415-2.121 2.121-1.414-1.414 2.121-2.121zM5.636 16.95l1.414 1.414-2.121 2.121-1.414-1.414 2.121-2.121zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></symbol><symbol id="reset-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M18.537 19.567A9.961 9.961 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3a8 8 0 1 0-2.46 5.772l.997 1.795z"/></symbol><symbol id="down-icon" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.7803 6.21967C13.0732 6.51256 13.0732 6.98744 12.7803 7.28033L8.53033 11.5303C8.23744 11.8232 7.76256 11.8232 7.46967 11.5303L3.21967 7.28033C2.92678 6.98744 2.92678 6.51256 3.21967 6.21967C3.51256 5.92678 3.98744 5.92678 4.28033 6.21967L8 9.93934L11.7197 6.21967C12.0126 5.92678 12.4874 5.92678 12.7803 6.21967Z"></path></symbol><symbol id="codepen-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16.5 13.202L13 15.535v3.596L19.197 15 16.5 13.202zM14.697 12L12 10.202 9.303 12 12 13.798 14.697 12zM20 10.869L18.303 12 20 13.131V10.87zM19.197 9L13 4.869v3.596l3.5 2.333L19.197 9zM7.5 10.798L11 8.465V4.869L4.803 9 7.5 10.798zM4.803 15L11 19.131v-3.596l-3.5-2.333L4.803 15zM4 13.131L5.697 12 4 10.869v2.262zM2 9a1 1 0 0 1 .445-.832l9-6a1 1 0 0 1 1.11 0l9 6A1 1 0 0 1 22 9v6a1 1 0 0 1-.445.832l-9 6a1 1 0 0 1-1.11 0l-9-6A1 1 0 0 1 2 15V9z"/></symbol><symbol id="close-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 10.586l4.95-4.95 1.414 1.414-4.95 4.95 4.95 4.95-1.414 1.414-4.95-4.95-4.95 4.95-1.414-1.414 4.95-4.95-4.95-4.95L7.05 5.636z"/></symbol><symbol id="menu-icon" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M3 4h18v2H3V4zm0 7h18v2H3v-2zm0 7h18v2H3v-2z"/></symbol></defs></svg></head><body data-theme="dark"><div class="sidebar-container"><div class="sidebar" id="sidebar"><div class="sidebar-items-container"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-modules"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin.html">audiobridge-plugin</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin.html">echotest-plugin</a></div><div class="sidebar-section-children"><a href="module-janode.html">janode</a></div><div class="sidebar-section-children"><a href="module-protocol.html">protocol</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin.html">streaming-plugin</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin.html">videoroom-plugin</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html">AudioBridgeHandle</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html">Connection</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html">EchoTestHandle</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html">Handle</a></div><div class="sidebar-section-children"><a href="module-logger-Logger.html">Logger</a></div><div class="sidebar-section-children"><a href="module-session-Session.html">Session</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html">StreamingHandle</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html">VideoRoomHandle</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-events"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED">event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED">event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_CONFIGURED">event:AUDIOBRIDGE_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_DESTROYED">event:AUDIOBRIDGE_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ERROR">event:AUDIOBRIDGE_ERROR</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_KICKED">event:AUDIOBRIDGE_KICKED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_CONFIGURED">event:AUDIOBRIDGE_PEER_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_JOINED">event:AUDIOBRIDGE_PEER_JOINED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_KICKED">event:AUDIOBRIDGE_PEER_KICKED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_LEAVING">event:AUDIOBRIDGE_PEER_LEAVING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_RESUMED">event:AUDIOBRIDGE_PEER_RESUMED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_SUSPENDED">event:AUDIOBRIDGE_PEER_SUSPENDED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_TALKING">event:AUDIOBRIDGE_PEER_TALKING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_RESUMED">event:AUDIOBRIDGE_RESUMED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ROOM_MUTED">event:AUDIOBRIDGE_ROOM_MUTED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_SUSPENDED">event:AUDIOBRIDGE_SUSPENDED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_TALKING">event:AUDIOBRIDGE_TALKING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html#event:event:CONNECTION_CLOSED">event:CONNECTION_CLOSED</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html#event:event:CONNECTION_ERROR">event:CONNECTION_ERROR</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_ERROR">event:ECHOTEST_ERROR</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_RESULT">event:ECHOTEST_RESULT</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_SLOWLINK">event:ECHOTEST_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-session-Session.html#event:event:SESSION_DESTROYED">event:SESSION_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:STREAMING_ERROR">event:STREAMING_ERROR</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:STREAMING_STATUS">event:STREAMING_STATUS</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_CONFIGURED">event:VIDEOROOM_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_DESTROYED">event:VIDEOROOM_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_DISPLAY">event:VIDEOROOM_DISPLAY</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_ERROR">event:VIDEOROOM_ERROR</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_KICKED">event:VIDEOROOM_KICKED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_LEAVING">event:VIDEOROOM_LEAVING</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_PUB_LIST">event:VIDEOROOM_PUB_LIST</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_PUB_PEER_JOINED">event:VIDEOROOM_PUB_PEER_JOINED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_RECORDING_ENABLED_STATE">event:VIDEOROOM_RECORDING_ENABLED_STATE</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SC_SUBSTREAM_LAYER">event:VIDEOROOM_SC_SUBSTREAM_LAYER</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SC_TEMPORAL_LAYERS">event:VIDEOROOM_SC_TEMPORAL_LAYERS</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SLOWLINK">event:VIDEOROOM_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_TALKING">event:VIDEOROOM_TALKING</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_UNPUBLISHED">event:VIDEOROOM_UNPUBLISHED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_UPDATED">event:VIDEOROOM_UPDATED</a></div></div></div></div></div><div class="navbar-container" id="VuAckcnZhf"><nav class="navbar"><div class="navbar-left-items"><div class="navbar-item"><a id="" href="index.html" target="">Home</a></div><div class="navbar-item"><a id="" href="https://github.com/meetecho/janode" target="">GitHub</a></div></div><div class="navbar-right-items"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div><nav></nav></nav></div><div class="toc-container"><div class="toc-content"><span class="bold">On this page</span><div id="eed4d2a0bfd64539bb9df78095dec881"></div></div></div><div class="body-wrapper"><div class="main-content"><div class="main-wrapper"><section id="source-page" class="source-page"><header><h1 id="title" class="has-anchor">handle.js</h1></header><article><pre class="prettyprint source lang-js"><code>'use strict';
+
+/**
+ * This module contains the Handle class definition.
+ * @module handle
+ * @private
+ */
+
+import { EventEmitter } from 'events';
+
+import Logger from './utils/logger.js';
+const LOG_NS = '[handle.js]';
+import { getNumericID } from './utils/utils.js';
+import { JANUS, JANODE, isAckData, isResponseData, isErrorData } from './protocol.js';
+
+const PLUGIN_EVENT_SYM = Symbol('plugin_event');
+
+/**
+ * Class representing a Janode handle.&lt;br>
+ *
+ * Users implementing new plugins must extend this class and override the `handleMessage` function.&lt;br>
+ *
+ * Handle extends EventEmitter, so an instance can emit events and users can subscribe to them.&lt;br>
+ *
+ * Users are not expected to create Handle instances, but insted use the Session.attach() API.
+ *
+ * @hideconstructor
+ */
+class Handle extends EventEmitter {
+  /**
+   * Create a Janode handle.
+   *
+   * @param {module:session~Session} session - A reference to the parent session
+   * @param {number} id - The handle identifier
+   */
+  constructor(session, id) {
+    super();
+
+    /**
+     * The transaction manager used by this handle.
+     *
+     * @private
+     * @type {module:tmanager~TransactionManager}
+     */
+    this._tm = session._tm; // keep track of pending requests
+
+    /**
+     * A boolean flag indicating that the handle is being detached.
+     * Once the detach has been completed, the flag returns to false.
+     *
+     * @private
+     * @type {boolean}
+     */
+    this._detaching = false;
+
+    /**
+     * A boolean flag indicating that the handle has been detached.
+     *
+     * @private
+     * @type {boolean}
+     */
+    this._detached = false;
+
+    /**
+     * The parent Janode session.
+     *
+     * @type {Session}
+     */
+    this.session = session;
+
+    /**
+     * The handle unique id, usually taken from Janus response.
+     *
+     * @type {number}
+     */
+    this.id = id;
+
+    /**
+     * A more descriptive, not unique string (used for logging).
+     *
+     * @type {string}
+     */
+    this.name = `[${this.id}]`;
+
+    /**
+     * The callback function used for a session destroyed event.
+     *
+     * @private
+     */
+    this._sessionDestroyedListener = this._signalDetach.bind(this);
+
+    /* Set a listener to run a callback when session gets destroyed */
+    this.session.once(JANODE.EVENT.SESSION_DESTROYED, this._sessionDestroyedListener);
+    /* Set a dummy error listener to avoid to avoid unmanaged errors */
+    this.on('error', e => `${LOG_NS} ${this.name} catched unmanaged error ${e.message}`);
+  }
+
+  /**
+   * Cleanup the handle closing all owned transactions, emitting the detached event
+   * and removing all registered listeners.
+   *
+   * @private
+   */
+  _signalDetach() {
+    if (this._detached) return;
+    this._detaching = false;
+    this._detached = true;
+
+    /* Remove the listener for session destroyed event */
+    this.session.removeListener(JANODE.EVENT.SESSION_DESTROYED, this._sessionDestroyedListener);
+    /* Close all pending transactions for this handle with an error */
+    this._tm.closeAllTransactionsWithError(this, new Error('handle detached'));
+    /* Emit the detached event */
+    /**
+     * The handle has been detached.
+     *
+     * @event module:handle~Handle#event:HANDLE_DETACHED
+     * @type {Object}
+     * @property {number} id - The handle identifier
+     */
+    this.emit(JANODE.EVENT.HANDLE_DETACHED, { id: this.id });
+    /* Remove all listeners to avoid leaks */
+    this.removeAllListeners();
+  }
+
+  /**
+   * Helper to check if a pending transaction is a trickle.
+   *
+   * @private
+   * @param {string} id - The transaction identifier
+   * @returns {boolean}
+   */
+  _isTrickleTx(id) {
+    const tx = this._tm.get(id);
+    if (tx) return tx.request === JANUS.REQUEST.TRICKLE;
+    return false;
+  }
+
+  /**
+   * Helper to check if a pending transaction is a hangup.
+   *
+   * @private
+   * @param {string} id - The transaction identifier
+   * @returns {boolean}
+   */
+  _isHangupTx(id) {
+    const tx = this._tm.get(id);
+    if (tx) return tx.request === JANUS.REQUEST.HANGUP;
+    return false;
+  }
+
+  /**
+   * Helper to check if a pending transaction is a detach.
+   *
+   * @private
+   * @param {string} id - The transaction identifier
+   * @returns {boolean}
+   */
+  _isDetachTx(id) {
+    const tx = this._tm.get(id);
+    if (tx) return tx.request === JANUS.REQUEST.DETACH_PLUGIN;
+    return false;
+  }
+
+  /**
+   * Manage a message sent to this handle. If this involves a owned transaction
+   * and the response is a definitive one, the transaction will be closed.
+   * In case the instance implements a `handleMessage` method, this function will
+   * pass the message to it on order to let a plugin implements its custom logic.
+   * Generic Janus API events like `detached`, `hangup` etc. are handled here.
+   *
+   * @private
+   * @param {Object} janus_message
+   */
+  _handleMessage(janus_message) {
+    const { transaction, janus } = janus_message;
+
+    /* First check if a transaction is involved */
+    if (transaction) {
+      Logger.verbose(`${LOG_NS} ${this.name} received ${janus} for transaction ${transaction}`);
+
+      /* First check if this handle owns the transaction */
+      if (this.ownsTransaction(transaction)) {
+
+        /*
+         * Pending transaction management. Close transaction in case of:
+         * 1) Ack response to a trickle request
+         * 2) Definitive (success/error) response
+         */
+
+        /* Case #1: close tx related to trickles */
+        if (isAckData(janus_message)) {
+          if (this._isTrickleTx(transaction)) {
+            this.closeTransactionWithSuccess(transaction, janus_message);
+          }
+          return;
+        }
+
+        /* Case #2: close tx with a definitive response */
+        if (isResponseData(janus_message)) {
+          if (isErrorData(janus_message)) {
+            /* Case #2 (error): close tx with a definitive error */
+            const error = new Error(`${janus_message.error.code} ${janus_message.error.reason}`);
+            this.closeTransactionWithError(transaction, error);
+            return;
+          }
+
+          /* Case #2 (success) */
+
+          /* Close hangup Tx */
+          if (this._isHangupTx(transaction)) {
+            this.closeTransactionWithSuccess(transaction, janus_message);
+            return;
+          }
+
+          /* Close detach tx */
+          if (this._isDetachTx(transaction)) {
+            this.closeTransactionWithSuccess(transaction, janus_message);
+            return;
+          }
+
+          /*
+           * If an instance implements a handleMessage method, try to use it.
+           * The custom handler may decide to close tx with success or error.
+           * A falsy return from handleMessage is considered as a "not-handled" message.
+           */
+          if (!this.handleMessage(janus_message)) {
+            Logger.verbose(`${LOG_NS} ${this.name} received response could not be handled by the plugin`);
+          }
+
+          /*
+           * As a fallback always close with success a transaction with a definitive success response.
+           * Closing a transaction is an indempotent action.
+           */
+          this.closeTransactionWithSuccess(transaction, janus_message);
+          return;
+        }
+      }
+    }
+
+    /* Handling of a message that did not close a transaction (e.g. async events) */
+    const janode_event_data = {};
+    switch (janus) {
+
+      /* Generic Janus event */
+      case JANUS.EVENT.EVENT: {
+        /* If an instance implements a handleMessage method, use it */
+        if (!this.handleMessage(janus_message)) {
+          /* If handleMessage has a falsy return close tx with error */
+          Logger.warn(`${LOG_NS} ${this.name} received event could not be handled by the plugin`);
+          const error = new Error('unmanaged event');
+          this.closeTransactionWithError(transaction, error);
+        }
+        else {
+          /* If handleMessage has a truthy return close tx with success */
+          this.closeTransactionWithSuccess(transaction, janus_message);
+        }
+        break;
+      }
+
+      /* Detached event: the handle has been detached */
+      case JANUS.EVENT.DETACHED: {
+        this._signalDetach();
+        break;
+      }
+
+      /* ice-failed event: Janus ICE agent has detected a failure */
+      case JANUS.EVENT.ICE_FAILED: {
+        /**
+         * The handle has detected an ICE failure.
+         *
+         * @event module:handle~Handle#event:HANDLE_ICE_FAILED
+         * @type {Object}
+         */
+        this.emit(JANODE.EVENT.HANDLE_ICE_FAILED, janode_event_data);
+        break;
+      }
+
+      /* Hangup event: peer connection is down */
+      /* In this case the janus message has a reason field */
+      case JANUS.EVENT.HANGUP: {
+        if (typeof janus_message.reason !== 'undefined') janode_event_data.reason = janus_message.reason;
+        /**
+         * The handle WebRTC connection has been closed.
+         *
+         * @event module:handle~Handle#event:HANDLE_HANGUP
+         * @type {Object}
+         * @property {string} [reason] - The reason of the hangup (e.g. ICE failed)
+         */
+        this.emit(JANODE.EVENT.HANDLE_HANGUP, janode_event_data);
+        break;
+      }
+
+      /* Media event: a/v media reception from Janus */
+      /* In this case the janus message has "type" and "receiving" fields */
+      case JANUS.EVENT.MEDIA: {
+        if (typeof janus_message.type !== 'undefined') janode_event_data.type = janus_message.type;
+        if (typeof janus_message.receiving !== 'undefined') janode_event_data.receiving = janus_message.receiving;
+        if (typeof janus_message.mid !== 'undefined') janode_event_data.mid = janus_message.mid;
+        if (typeof janus_message.substream !== 'undefined') janode_event_data.substream = janus_message.substream;
+        if (typeof janus_message.seconds !== 'undefined') janode_event_data.seconds = janus_message.seconds;
+        /**
+         * The handle received a media notification.
+         *
+         * @event module:handle~Handle#event:HANDLE_MEDIA
+         * @type {Object}
+         * @property {string} type - The kind of media (audio/video)
+         * @property {boolean} receiving - True if Janus is receiving media
+         * @property {string} [mid] - The involved mid
+         * @property {number} [substream] - The involved simulcast substream
+         * @property {number} [seconds] - Time, in seconds, with no media
+         */
+        this.emit(JANODE.EVENT.HANDLE_MEDIA, janode_event_data);
+        break;
+      }
+
+      /* Webrtcup event: peer connection is up */
+      case JANUS.EVENT.WEBRTCUP: {
+        /**
+         * The handle WebRTC connection is up.
+         *
+         * @event module:handle~Handle#event:HANDLE_WEBRTCUP
+         * @type {Object}
+         */
+        this.emit(JANODE.EVENT.HANDLE_WEBRTCUP, janode_event_data);
+        break;
+      }
+
+      /* Slowlink event: NACKs number increasing */
+      /* In this case the janus message has "uplink" and "nacks" fields */
+      case JANUS.EVENT.SLOWLINK: {
+        if (typeof janus_message.uplink !== 'undefined') janode_event_data.uplink = janus_message.uplink;
+        if (typeof janus_message.mid !== 'undefined') janode_event_data.mid = janus_message.mid;
+        if (typeof janus_message.media !== 'undefined') janode_event_data.media = janus_message.media;
+        if (typeof janus_message.lost !== 'undefined') janode_event_data.lost = janus_message.lost;
+        /**
+         * The handle has received a slowlink notification.
+         *
+         * @event module:handle~Handle#event:HANDLE_SLOWLINK
+         * @type {Object}
+         * @property {boolean} uplink - The direction of the slow link
+         * @property {string} media - The media kind (audio/video)
+         * @property {string} [mid] - The involved stream mid
+         * @property {number} lost - Number of missing packets in the last time slot
+         */
+        this.emit(JANODE.EVENT.HANDLE_SLOWLINK, janode_event_data);
+        break;
+      }
+
+      /* Trickle from Janus */
+      case JANUS.EVENT.TRICKLE: {
+        const { completed, sdpMid, sdpMLineIndex, candidate } = janus_message.candidate;
+        if (!completed) {
+          janode_event_data.sdpMid = sdpMid;
+          janode_event_data.sdpMLineIndex = sdpMLineIndex;
+          janode_event_data.candidate = candidate;
+        }
+        else {
+          janode_event_data.completed = true;
+        }
+
+        /**
+         * The handle has received a trickle notification.
+         *
+         * @event module:handle~Handle#event:HANDLE_TRICKLE
+         * @type {Object}
+         * @property {boolean} [completed] - If true, this notifies the end of triclking (the other fields of the event are missing in this case)
+         * @property {string} [sdpMid] - The mid the candidate refers to
+         * @property {number} [sdpMLineIndex] - The m-line the candidate refers to
+         * @property {string} [candidate] - The candidate string
+         */
+        this.emit(JANODE.EVENT.HANDLE_TRICKLE, janode_event_data);
+        break;
+      }
+
+      default:
+        Logger.error(`${LOG_NS} ${this.name} unknown janus event directed to the handle ${JSON.stringify(janus_message)}`);
+    }
+  }
+
+  /**
+   * Decorate request with handle id and transaction (if missing).
+   *
+   * @private
+   * @param {Object} request
+   */
+  _decorateRequest(request) {
+    request.transaction = request.transaction || getNumericID();
+    request.handle_id = request.handle_id || this.id;
+  }
+
+  /**
+   * Helper method used by plugins to create a new plugin event and assign it to a janus message.
+   *
+   * @private
+   * @param {Object} janus_message
+   * @returns {Object}
+   */
+  _newPluginEvent(janus_message) {
+    /* Prepare an object for the output Janode event */
+    const janode_event = {
+      /* The name of the resolved event */
+      event: null,
+      /* The event payload */
+      data: {},
+    };
+
+    /* Add JSEP data if available */
+    if (janus_message.jsep) {
+      janode_event.data.jsep = janus_message.jsep;
+      if (typeof janus_message.jsep.e2ee === 'boolean') janode_event.data.e2ee = janus_message.jsep.e2ee;
+    }
+
+    janus_message[PLUGIN_EVENT_SYM] = janode_event;
+    return janode_event;
+  }
+
+  /**
+   * Helper method used by plugins to get an assigned plugin eventfrom a handled janus message.
+   *
+   * @private
+   * @param {Object} janus_message
+   * @returns {Object}
+   */
+  _getPluginEvent(janus_message) {
+    return janus_message[PLUGIN_EVENT_SYM] || {};
+  }
+
+  /**
+   * Stub handleMessage (it is overriden by specific plugin handlers).
+   * Implementations must return falsy values for unhandled events and truthy value
+   * for handled events.
+   *
+   * @param {Object} _janus_message
+   * @returns {Object}
+   */
+  handleMessage(_janus_message) {
+    return null;
+  }
+
+  /**
+   * Helper to check if the handle is managing a specific transaction.
+   *
+   * @property {string} id - The transaction id
+   * @returns {boolean} True if this handle is the owner
+   */
+  ownsTransaction(id) {
+    return this._tm.getTransactionOwner(id) === this;
+  }
+
+  /**
+   * Helper to close a transaction with error.
+   *
+   * @property {string} id - The transaction id
+   * @property {Error} error - The error object
+   * @returns {void}
+   */
+  closeTransactionWithError(id, error) {
+    this._tm.closeTransactionWithError(id, this, error);
+    return;
+  }
+
+  /**
+   * Helper to close a transaction with success.
+   *
+   * @property {string} id - The transaction id
+   * @property {Object} [data] - The callback success data
+   * @returns {void}
+   */
+  closeTransactionWithSuccess(id, data) {
+    this._tm.closeTransactionWithSuccess(id, this, data);
+    return;
+  }
+
+
+  /**
+   * Send a request from this handle.
+   *
+   * @param {Object} request
+   * @returns {Promise&lt;Object>} A Promise resolving with the response to the request
+   */
+  async sendRequest(request) {
+    /* Input check */
+    if (typeof request !== 'object' || !request) {
+      const error = new Error('request must be an object');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+
+    /* Check handle status */
+    if (this._detached) {
+      const error = new Error('unable to send request because handle has been detached');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+
+    /* Add handle properties */
+    this._decorateRequest(request);
+
+    return new Promise((resolve, reject) => {
+      /* Create a new transaction if the transaction does not exist */
+      /* Use promise resolve and reject fn as callbacks for the transaction */
+      this._tm.createTransaction(request.transaction, this, request.janus, resolve, reject);
+
+      /* Send this message through the parent janode session */
+      this.session.sendRequest(request).catch(error => {
+        /* In case of error quickly close the transaction */
+        this.closeTransactionWithError(request.transaction, error);
+      });
+    });
+  }
+
+  /**
+   * Gracefully detach the Handle.
+   *
+   * @returns {Promise&lt;void>}
+   */
+  async detach() {
+    if (this._detaching) {
+      const error = new Error('detaching already in progress');
+      Logger.verbose(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    if (this._detached) {
+      const error = new Error('already detached');
+      Logger.verbose(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+    Logger.info(`${LOG_NS} ${this.name} detaching handle`);
+    this._detaching = true;
+
+    const request = {
+      janus: JANUS.REQUEST.DETACH_PLUGIN,
+    };
+
+    try {
+      await this.sendRequest(request);
+      this._signalDetach();
+      return;
+    }
+    catch ({ message }) {
+      this._detaching = false;
+      Logger.error(`${LOG_NS} ${this.name} error while detaching (${message})`);
+    }
+  }
+
+  /**
+   * Close the peer connection associated to this handle.
+   *
+   * @returns {Promise&lt;Object>}
+   */
+  async hangup() {
+    const request = {
+      janus: JANUS.REQUEST.HANGUP,
+    };
+
+    try {
+      return this.sendRequest(request);
+    }
+    catch (error) {
+      Logger.error(`${LOG_NS} ${this.name} error while hanging up (${error.message})`);
+      throw error;
+    }
+  }
+
+  /**
+   * Send an ICE candidate / array of candidates.
+   *
+   * @param {RTCIceCandidate|RTCIceCandidate[]} candidate
+   * @returns {Promise&lt;void>}
+   */
+  async trickle(candidate) {
+    /* If candidate is null or undefined, send an ICE trickle complete message */
+    if (!candidate) return this.trickleComplete();
+
+    /* Input checking */
+    if (typeof candidate !== 'object') {
+      const error = new Error('invalid candidate object');
+      Logger.error(`${LOG_NS} ${this.name} ${error.message}`);
+      throw error;
+    }
+
+    const request = {
+      janus: JANUS.REQUEST.TRICKLE
+    };
+
+    /* WATCH OUT ! In case of an array, the field is name "candidates" */
+    if (Array.isArray(candidate)) {
+      request.candidates = candidate;
+    }
+    else {
+      request.candidate = candidate;
+    }
+
+    try {
+      return this.sendRequest(request);
+    } catch (error) {
+      Logger.error(`${LOG_NS} ${this.name} error on trickle (${error.message})`);
+      throw error;
+    }
+  }
+
+  /**
+   * Send ICE trickle complete message.
+   *
+   * @returns {Promise&lt;void>}
+   */
+  async trickleComplete() {
+    return this.trickle({
+      completed: true
+    });
+  }
+
+  /**
+   * Send a `message` to Janus from this handle, with given body and optional jsep.
+   *
+   * @param {Object} body - The body of the message
+   * @param {RTCSessionDescription} [jsep]
+   * @returns {Promise&lt;Object>} A promise resolving with the response to the message
+   *
+   * @example
+   * // This is a plugin that sends a message with a custom body
+   * const body = {
+   *   audio: true,
+   *   video: true,
+   *   record: false,
+   * };
+   *
+   * await handle.message(body, jsep);
+   *
+   */
+  async message(body, jsep) {
+    const request = {
+      janus: JANUS.REQUEST.MESSAGE,
+      body,
+    };
+    if (jsep) request.jsep = jsep;
+
+    try {
+      return this.sendRequest(request);
+    }
+    catch (error) {
+      Logger.error(`${LOG_NS} ${this.name} error on message (${error.message})`);
+      throw error;
+    }
+  }
+
+}
+
+export default Handle;</code></pre></article></section></div></div></div><div class="search-container" id="PkfLWpAbet" style="display:none"><div class="wrapper" id="iCxFxjkHbP"><button class="icon-button search-close-button" id="VjLlGakifb" aria-label="close search"><svg><use xlink:href="#close-icon"></use></svg></button><div class="search-box-c"><svg><use xlink:href="#search-icon"></use></svg> <input type="text" id="vpcKVYIppa" class="search-input" placeholder="Search..." autofocus></div><div class="search-result-c" id="fWwVHRuDuN"><span class="search-result-c-text">Type anything to view search result</span></div></div></div><div class="mobile-menu-icon-container"><button class="icon-button" id="mobile-menu" data-isopen="false" aria-label="menu"><svg><use xlink:href="#menu-icon"></use></svg></button></div><div id="mobile-sidebar" class="mobile-sidebar-container"><div class="mobile-sidebar-wrapper"><div class="mobile-nav-links"><div class="navbar-item"><a id="" href="index.html" target="">Home</a></div><div class="navbar-item"><a id="" href="https://github.com/meetecho/janode" target="">GitHub</a></div></div><div class="mobile-sidebar-items-c"><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-modules"><div>Modules</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin.html">audiobridge-plugin</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin.html">echotest-plugin</a></div><div class="sidebar-section-children"><a href="module-janode.html">janode</a></div><div class="sidebar-section-children"><a href="module-protocol.html">protocol</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin.html">streaming-plugin</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin.html">videoroom-plugin</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-classes"><div>Classes</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html">AudioBridgeHandle</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html">Connection</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html">EchoTestHandle</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html">Handle</a></div><div class="sidebar-section-children"><a href="module-logger-Logger.html">Logger</a></div><div class="sidebar-section-children"><a href="module-session-Session.html">Session</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html">StreamingHandle</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html">VideoRoomHandle</a></div></div><div class="sidebar-section-title with-arrow" data-isopen="false" id="sidebar-events"><div>Events</div><svg><use xlink:href="#down-icon"></use></svg></div><div class="sidebar-section-children-container"><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED">event:AUDIOBRIDGE_ANNOUNCEMENT_STARTED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED">event:AUDIOBRIDGE_ANNOUNCEMENT_STOPPED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_CONFIGURED">event:AUDIOBRIDGE_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_DESTROYED">event:AUDIOBRIDGE_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ERROR">event:AUDIOBRIDGE_ERROR</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_KICKED">event:AUDIOBRIDGE_KICKED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_CONFIGURED">event:AUDIOBRIDGE_PEER_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_JOINED">event:AUDIOBRIDGE_PEER_JOINED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_KICKED">event:AUDIOBRIDGE_PEER_KICKED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_LEAVING">event:AUDIOBRIDGE_PEER_LEAVING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_RESUMED">event:AUDIOBRIDGE_PEER_RESUMED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_SUSPENDED">event:AUDIOBRIDGE_PEER_SUSPENDED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_PEER_TALKING">event:AUDIOBRIDGE_PEER_TALKING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_RESUMED">event:AUDIOBRIDGE_RESUMED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_ROOM_MUTED">event:AUDIOBRIDGE_ROOM_MUTED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_SUSPENDED">event:AUDIOBRIDGE_SUSPENDED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:AUDIOBRIDGE_TALKING">event:AUDIOBRIDGE_TALKING</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-audiobridge-plugin-AudioBridgeHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html#event:event:CONNECTION_CLOSED">event:CONNECTION_CLOSED</a></div><div class="sidebar-section-children"><a href="module-connection-Connection.html#event:event:CONNECTION_ERROR">event:CONNECTION_ERROR</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_ERROR">event:ECHOTEST_ERROR</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_RESULT">event:ECHOTEST_RESULT</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:ECHOTEST_SLOWLINK">event:ECHOTEST_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-echotest-plugin-EchoTestHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-handle-Handle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-session-Session.html#event:event:SESSION_DESTROYED">event:SESSION_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:STREAMING_ERROR">event:STREAMING_ERROR</a></div><div class="sidebar-section-children"><a href="module-streaming-plugin-StreamingHandle.html#event:event:STREAMING_STATUS">event:STREAMING_STATUS</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_DETACHED">event:HANDLE_DETACHED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_HANGUP">event:HANDLE_HANGUP</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_ICE_FAILED">event:HANDLE_ICE_FAILED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_MEDIA">event:HANDLE_MEDIA</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_SLOWLINK">event:HANDLE_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_TRICKLE">event:HANDLE_TRICKLE</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:HANDLE_WEBRTCUP">event:HANDLE_WEBRTCUP</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_CONFIGURED">event:VIDEOROOM_CONFIGURED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_DESTROYED">event:VIDEOROOM_DESTROYED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_DISPLAY">event:VIDEOROOM_DISPLAY</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_ERROR">event:VIDEOROOM_ERROR</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_KICKED">event:VIDEOROOM_KICKED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_LEAVING">event:VIDEOROOM_LEAVING</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_PUB_LIST">event:VIDEOROOM_PUB_LIST</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_PUB_PEER_JOINED">event:VIDEOROOM_PUB_PEER_JOINED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_RECORDING_ENABLED_STATE">event:VIDEOROOM_RECORDING_ENABLED_STATE</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SC_SUBSTREAM_LAYER">event:VIDEOROOM_SC_SUBSTREAM_LAYER</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SC_TEMPORAL_LAYERS">event:VIDEOROOM_SC_TEMPORAL_LAYERS</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_SLOWLINK">event:VIDEOROOM_SLOWLINK</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_TALKING">event:VIDEOROOM_TALKING</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_UNPUBLISHED">event:VIDEOROOM_UNPUBLISHED</a></div><div class="sidebar-section-children"><a href="module-videoroom-plugin-VideoRoomHandle.html#event:event:VIDEOROOM_UPDATED">event:VIDEOROOM_UPDATED</a></div></div></div><div class="mobile-navbar-actions"><div class="navbar-right-item"><button class="icon-button search-button" aria-label="open-search"><svg><use xlink:href="#search-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button theme-toggle" aria-label="toggle-theme"><svg><use class="theme-svg-use" xlink:href="#light-theme-icon"></use></svg></button></div><div class="navbar-right-item"><button class="icon-button font-size" aria-label="change-font-size"><svg><use xlink:href="#font-size-icon"></use></svg></button></div></div></div></div><script type="text/javascript" src="scripts/core.min.js"></script><script src="scripts/search.min.js" defer="defer"></script><script src="scripts/third-party/fuse.js" defer="defer"></script><script type="text/javascript">var tocbotInstance=tocbot.init({tocSelector:"#eed4d2a0bfd64539bb9df78095dec881",contentSelector:".main-content",headingSelector:"h1, h2, h3",hasInnerContainers:!0,scrollContainer:".main-content",headingsOffset:130,onClick:bringLinkToView})</script></body></html>

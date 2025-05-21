@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+      - test-docs
+jobs:
+  build-and-deploy:
+    permissions:
+      contents: write
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+    runs-on: ubuntu-24.04
+    env:
+      REF_NAME: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/jod
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - run: npm ci
+      - run: npm run build-docs
+      - name: Add git reference to docs path
+        run: |
+          mkdir -p site/docs/$REF_NAME
+          cp -a docs/. site/docs/$REF_NAME
+      - name: Update "latest" docs for tagged versions
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cp -a docs/. site/docs/latest
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          keep_files: true

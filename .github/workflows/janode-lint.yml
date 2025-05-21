@@ -1,10 +1,10 @@
-name: janode-ci
+name: Lint Janode code
 
 on:
   push:
     branches:
       - master
-      - test-ci
+      - test-lint
   pull_request:
     branches:
       - master
@@ -17,6 +17,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: lts/jod
       - run: npm ci
       - run: npm run lint

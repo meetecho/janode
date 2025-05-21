@@ -1,7 +1,6 @@
 {
   "opts": {
     "encoding": "utf8",
-    "package": "./package.json",
     "readme": "./README.md",
     "pedantic": true,
     "recurse": true,

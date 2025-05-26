@@ -134,9 +134,10 @@ class TransactionManager {
    * @param {string} request - The janus request for the pending transaction
    * @param {function} done - The success callback
    * @param {function} error - The error callback
+   * @param {number} [timeout_ms=0] - The timeout of the transaction
    * @returns {PendingTransaction|void} The newly created transaction, or nothing if the id already exists
    */
-  createTransaction(id, owner, request, done, error) {
+  createTransaction(id, owner, request, done, error, timeout_ms = 0) {
     if (this.has(id)) return;
     const tx = {
       id,
@@ -145,6 +146,15 @@ class TransactionManager {
       done,
       error,
     };
+    if (timeout_ms > 0) {
+      const timeout = setTimeout(_ => {
+        this.delete(id);
+        error(new Error('Transaction timed out!'));
+        Logger.error(`${LOG_NS} [${owner.id}] closed with timeout transaction ${id}, request "${request}"`);
+      }, timeout_ms);
+      tx.timeout = timeout;
+    }
+
     this.set(id, tx);
     Logger.verbose(`${LOG_NS} [${tx.owner.id}] created new transaction ${id}, request "${tx.request}"`);
     return tx;
@@ -163,6 +173,7 @@ class TransactionManager {
     const tx = this.get(id);
     if (!tx) return;
     if (tx.owner !== owner) return;
+    clearTimeout(tx.timeout);
     this.delete(id);
     tx.error(error);
     Logger.verbose(`${LOG_NS} [${tx.owner.id}] closed with error transaction ${id}, request "${tx.request}"`);
@@ -197,6 +208,7 @@ class TransactionManager {
     const tx = this.get(id);
     if (!tx) return;
     if (tx.owner !== owner) return;
+    clearTimeout(tx.timeout);
     this.delete(id);
     tx.done(data);
     Logger.verbose(`${LOG_NS} [${tx.owner.id}] closed with success transaction ${id}, request "${tx.request}"`);

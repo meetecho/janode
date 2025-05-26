@@ -251,10 +251,6 @@ class Handle extends EventEmitter {
           const error = new Error('unmanaged event');
           this.closeTransactionWithError(transaction, error);
         }
-        else {
-          /* If handleMessage has a truthy return close tx with success */
-          this.closeTransactionWithSuccess(transaction, janus_message);
-        }
         break;
       }
 
@@ -389,6 +385,10 @@ class Handle extends EventEmitter {
     request.handle_id = request.handle_id || this.id;
   }
 
+  decorateRequest(request) {
+    this._decorateRequest(request);
+  }
+
   /**
    * Helper method used by plugins to create a new plugin event and assign it to a janus message.
    *
@@ -477,9 +477,10 @@ class Handle extends EventEmitter {
    * Send a request from this handle.
    *
    * @param {Object} request
-   * @returns {Promise<Object>} A Promise resolving with the response to the request
+   * @param {number} [timeout_ms=0]
+   * @returns {Promise<Object>} A promise resolving with the response to the request
    */
-  async sendRequest(request) {
+  async sendRequest(request, timeout_ms = 0) {
     /* Input check */
     if (typeof request !== 'object' || !request) {
       const error = new Error('request must be an object');
@@ -500,7 +501,7 @@ class Handle extends EventEmitter {
     return new Promise((resolve, reject) => {
       /* Create a new transaction if the transaction does not exist */
       /* Use promise resolve and reject fn as callbacks for the transaction */
-      this._tm.createTransaction(request.transaction, this, request.janus, resolve, reject);
+      this._tm.createTransaction(request.transaction, this, request.janus, resolve, reject, timeout_ms);
 
       /* Send this message through the parent janode session */
       this.session.sendRequest(request).catch(error => {

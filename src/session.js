@@ -250,7 +250,7 @@ class Session extends EventEmitter {
       const handle = this._handles.get(sender);
       /* If the handle is missing notifies the user */
       if (!handle) {
-        if (janus === JANUS.EVENT.HANDLE_DETACHED_PLUGIN) {
+        if (janus === JANUS.EVENT.DETACHED) {
           /* In case of duplicate "detached" try to not pollute the logs */
           Logger.verbose(`${LOG_NS} ${this.name} handle ${sender} not found for incoming message "${janus}"`);
           return;

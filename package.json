@@ -3,6 +3,8 @@
   "description": "Meetecho adapter for the Janus WebRTC Server",
   "version": "1.7.5",
   "type": "module",
+  "main": "src/janode.js",
+  "types": "./types/janode.d",
   "keywords": [
     "janus",
     "webrtc",
@@ -24,16 +26,48 @@
   "license": "ISC",
   "main": "./src/janode.js",
   "exports": {
-    ".": "./src/janode.js",
-    "./plugins/audiobridge": "./src/plugins/audiobridge-plugin.js",
-    "./plugins/echotest": "./src/plugins/echotest-plugin.js",
-    "./plugins/streaming": "./src/plugins/streaming-plugin.js",
-    "./plugins/videoroom": "./src/plugins/videoroom-plugin.js"
+    ".": {
+      "import": {
+        "types": "./types/janode.d.ts",
+        "default": "./src/janode.js"
+      }
+    },
+    "./plugins/echotest": {
+      "import": {
+        "types": "./types/plugins/echotest-plugin.d.ts",
+        "default": "./src/plugins/echotest-plugin.js"
+      }
+    },
+    "./plugins/streaming": {
+      "import": {
+        "types": "./types/plugins/streaming-plugin.d.ts",
+        "default": "./src/plugins/streaming-plugin.js"
+      }
+    },
+    "./plugins/videoroom": {
+      "import": {
+        "types": "./types/plugins/videoroom-plugin.d.ts",
+        "default": "./src/plugins/videoroom-plugin.js"
+      }
+    },
+    "./plugins/audiobridge": {
+      "import": {
+        "types": "./types/plugins/audiobridge-plugin.d.ts",
+        "default": "./src/plugins/audiobridge-plugin.js"
+      }
+    },
+    "./session": {
+      "import": "./types/session.d.ts"
+    },
+    "./connection": {
+      "import": "./types/connection.d.ts"
+    }
   },
   "files": [
     "src/*.js",
     "src/utils/*.js",
-    "src/plugins/*.js"
+    "src/plugins/*.js",
+    "types/**/*"
   ],
   "dependencies": {
     "isomorphic-ws": "^4.0.1",

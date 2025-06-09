@@ -212,14 +212,14 @@ class RecordPlayHandle extends Handle {
    * @param {Object} params
    * @param {number} [params.id] - The ID to assign to the recording
    * @param {string} [params.name] - The short description of the recording
-   * @param {boolean} [params.is_private=false] - Flag the recording as private
+   * @param {boolean} [params.is_private] - Flag the recording as private
    * @param {string} [params.filename] - Set the base path/filename for the recording
    * @param {string} [audiocodec] - Set the audio codec to use in the recording
    * @param {string} [videocodec] - Set the video codec to use in the recording
    * @param {string} [videoprofile] - Set the video fmtp to use in the recording
-   * @param {boolean} [params.opusred=false] - Set whether RED should be negotiated for audio
-   * @param {boolean} [params.textdata=true] - In case data channels are negotiated, set whether it should be text (default) or binary data
-   * @param {boolean} [params.update=false] - Set to true for renegotiations
+   * @param {boolean} [params.opusred] - Set whether RED should be negotiated for audio
+   * @param {boolean} [params.textdata] - In case data channels are negotiated, set whether it should be text (default) or binary data
+   * @param {boolean} [params.update] - Set to true for renegotiations
    * @param {RTCSessionDescription} params.jsep - JSEP offer to be sent to Janus
    * @returns {Promise<module:recordplay-plugin~RECORDPLAY_EVENT_RECORDING>}
    */
@@ -255,7 +255,7 @@ class RecordPlayHandle extends Handle {
    *
    * @param {Object} params
    * @param {number} params.id - The ID of the recording to replay
-   * @param {boolean} [params.update=false] - Set to true for triggering a renegotiation and an ICE restart
+   * @param {boolean} [params.update] - Set to true for triggering a renegotiation and an ICE restart
    * @returns {Promise<module:recordplay-plugin~RECORDPLAY_EVENT_STATUS>}
    */
   async play({ id, restart }) {

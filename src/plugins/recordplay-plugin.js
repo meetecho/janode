@@ -255,7 +255,7 @@ class RecordPlayHandle extends Handle {
    *
    * @param {Object} params
    * @param {number} params.id - The ID of the recording to replay
-   * @param {boolean} [params.update] - Set to true for triggering a renegotiation and an ICE restart
+   * @param {boolean} [params.restart] - Set to true for triggering a renegotiation and an ICE restart
    * @returns {Promise<module:recordplay-plugin~RECORDPLAY_EVENT_STATUS>}
    */
   async play({ id, restart }) {
@@ -338,7 +338,7 @@ class RecordPlayHandle extends Handle {
  * The response event for configure request.
  *
  * @typedef {Object} RECORDPLAY_EVENT_CONFIGURED
- * @property {object{}} settings - The current settings as returned by Janus
+ * @property {object} settings - The current settings as returned by Janus
  */
 
 /**

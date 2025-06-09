@@ -167,7 +167,7 @@ class RecordPlayHandle extends Handle {
    *
    * @param {Object} params
    * @param {string} [params.admin_key] - The optional admin key needed for invoking the API
-   * @returns {Promise<module:recordplay-plugin~RECORDPLAY_SUCCESS>}
+   * @returns {Promise<module:recordplay-plugin~RECORDPLAY_EVENT_UPDATE_RESPONSE>}
    */
   async updateRecordings({ admin_key }) {
     const body = {
@@ -189,7 +189,7 @@ class RecordPlayHandle extends Handle {
    * @param {Object} params
    * @param {number} [params.maxBitrate] - The optional bitrate to enforce via REMB
    * @param {number} [params.keyframeInterval] - The optional keyframe interval to enforce, in ms
-   * @returns {Promise<module:recordplay-plugin~RECORDPLAY_CONFIGURED>}
+   * @returns {Promise<module:recordplay-plugin~RECORDPLAY_EVENT_CONFIGURED>}
    */
   async configure({ maxBitrate, keyframeInterval }) {
     const body = {
@@ -316,7 +316,6 @@ class RecordPlayHandle extends Handle {
     throw (error);
   }
 
-
 }
 
 /**
@@ -335,10 +334,16 @@ class RecordPlayHandle extends Handle {
  */
 
 /**
+ * The response event for recordplay update request.
+ *
+ * @typedef {Object} RECORDPLAY_EVENT_UPDATE_RESPONSE
+ */
+
+/**
  * The response event for configure request.
  *
  * @typedef {Object} RECORDPLAY_EVENT_CONFIGURED
- * @property {object} settings - The current settings as returned by Janus
+ * @property {object} [settings] - The current settings as returned by Janus
  */
 
 /**
@@ -370,11 +375,7 @@ export default {
      * Update of the status for the active stream.
      *
      * @event module:recordplay-plugin~RecordPlayHandle#event:RECORDPLAY_STATUS
-     * @type {Object}
-     * @property {string} status - The current status of the stream
-     * @property {number} [id] - The involved recording identifier
-     * @property {boolean} [is_private] - True if the event mentions a private recording
-     * @property {RTCSessionDescription} [jsep] - Optional JSEP from Janus
+     * @type {module:recordplay-plugin~RECORDPLAY_EVENT_STATUS}
      */
     RECORDPLAY_STATUS: PLUGIN_EVENT.STATUS,
 

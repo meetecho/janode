@@ -146,7 +146,7 @@ class RecordPlayHandle extends Handle {
    *
    * @param {Object} params
    * @param {string} [params.admin_key] - The optional admin key needed for invoking the API
-   * @returns {Promise<module:recordplay-plugin~RECORDPLAY_EVENT_LIST>}
+   * @returns {Promise<module:recordplay-plugin~RECORDPLAY_EVENT_RECORDINGS_LIST>}
    */
   async listRecordings({ admin_key }) {
     const body = {
@@ -221,7 +221,7 @@ class RecordPlayHandle extends Handle {
    * @param {boolean} [params.textdata] - In case data channels are negotiated, set whether it should be text (default) or binary data
    * @param {boolean} [params.update] - Set to true for renegotiations
    * @param {RTCSessionDescription} params.jsep - JSEP offer to be sent to Janus
-   * @returns {Promise<module:recordplay-plugin~RECORDPLAY_EVENT_RECORDING>}
+   * @returns {Promise<module:recordplay-plugin~RECORDPLAY_EVENT_STATUS>}
    */
   async record({ id, name, is_private, filename, audiocodec, videocodec, videoprofile, opusred, textdata, update, jsep }) {
     if (!jsep || typeof jsep !== 'object' || jsep && jsep.type !== 'offer') {

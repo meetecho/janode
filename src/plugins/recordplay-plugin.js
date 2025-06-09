@@ -48,20 +48,6 @@ class RecordPlayHandle extends Handle {
    */
   constructor(session, id) {
     super(session, id);
-
-    /**
-     * The feed identifier assigned to this handle when it joined the audio bridge.
-     *
-     * @type {number|string}
-     */
-    this.feed = null;
-
-    /**
-     * The identifier of the room the recordplay handle has joined.
-     *
-     * @type {number|string}
-     */
-    this.room = null;
   }
 
   /**

@@ -17,6 +17,8 @@ const REQUEST_RECORD = 'record';
 const REQUEST_PLAY = 'play';
 const REQUEST_START = 'start';
 const REQUEST_CONFIGURE = 'configure';
+const REQUEST_PAUSE = 'pause';
+const REQUEST_RESUME = 'resume';
 const REQUEST_STOP = 'stop';
 
 /* These are the events/responses that the Janode plugin will manage */
@@ -293,6 +295,42 @@ class RecordPlayHandle extends Handle {
     const response = await this.message(body, jsep);
     const { event, data: evtdata } = this._getPluginEvent(response);;
     if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'playing')
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Pauses the current recording session.
+   *
+   * @returns {Promise<module:streaming-plugin~RECORDPLAY_EVENT_STATUS>}
+   */
+  async pause() {
+    const body = {
+      request: REQUEST_PAUSE,
+    };
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = this._getPluginEvent(response);;
+    if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'paused')
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Resumes the current recording session.
+   *
+   * @returns {Promise<module:streaming-plugin~RECORDPLAY_EVENT_STATUS>}
+   */
+  async resume() {
+    const body = {
+      request: REQUEST_RESUME,
+    };
+
+    const response = await this.message(body);
+    const { event, data: evtdata } = this._getPluginEvent(response);;
+    if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'resumed')
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);

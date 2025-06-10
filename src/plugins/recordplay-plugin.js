@@ -25,8 +25,15 @@ const REQUEST_STOP = 'stop';
 /* Some of them will be exported in the plugin descriptor */
 const PLUGIN_EVENT = {
   RECORDINGS_LIST: 'recordplay_list',
+  RECORDING: 'recordplay_recording',
   CONFIGURED: 'recordplay_configured',
-  STATUS: 'recordplay_status',
+  PAUSED: 'recordplay_paused',
+  RESUMED: 'recordplay_resumed',
+  PREPARING: 'recordplay_preparing',
+  PLAYING: 'recordplay_playing',
+  STOPPED: 'recordplay_stopped',
+  SLOW_LINK: 'recordplay_slowlink',
+  DONE: 'recordplay_done',
   SUCCESS: 'recordplay_success',
   ERROR: 'recordplay_error',
 };
@@ -112,12 +119,40 @@ class RecordPlayHandle extends Handle {
           /* Update for this handle */
           if (typeof message_data.result !== 'undefined') {
             if (typeof message_data.result.status !== 'undefined') {
-              janode_event.event = PLUGIN_EVENT.STATUS;
-              janode_event.data.status = message_data.result.status;
               if (typeof message_data.result.id !== 'undefined')
                 janode_event.data.id = message_data.result.id;
               if (typeof message_data.result.is_private !== 'undefined')
                 janode_event.data.is_private = message_data.result.is_private;
+              if (typeof message_data.result.media !== 'undefined')
+                janode_event.data.media = message_data.result.media;
+              if (typeof message_data.result.uplink !== 'undefined')
+                janode_event.data.uplink = message_data.result.uplink;
+              switch (message_data.result.status) {
+                case 'recording':
+                  janode_event.event = PLUGIN_EVENT.RECORDING;
+                  break;
+                case 'paused':
+                  janode_event.event = PLUGIN_EVENT.PAUSED;
+                  break;
+                case 'resumed':
+                  janode_event.event = PLUGIN_EVENT.RESUMED;
+                  break;
+                case 'preparing':
+                  janode_event.event = PLUGIN_EVENT.PREPARING;
+                  break;
+                case 'playing':
+                  janode_event.event = PLUGIN_EVENT.PLAYING;
+                  break;
+                case 'stopped':
+                  janode_event.event = PLUGIN_EVENT.STOPPED;
+                  break;
+                case 'slow_link':
+                  janode_event.event = PLUGIN_EVENT.SLOW_LINK;
+                  break;
+                case 'done':
+                  janode_event.event = PLUGIN_EVENT.DONE;
+                  break;
+              }
             }
             break;
           }
@@ -246,7 +281,7 @@ class RecordPlayHandle extends Handle {
 
     const response = await this.message(body, jsep);
     const { event, data: evtdata } = this._getPluginEvent(response);
-    if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'recording')
+    if (event === PLUGIN_EVENT.RECORDING)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
@@ -269,7 +304,7 @@ class RecordPlayHandle extends Handle {
 
     const response = await this.message(body);
     const { event, data: evtdata } = this._getPluginEvent(response);
-    if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'preparing')
+    if (event === PLUGIN_EVENT.PREPARING)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
@@ -294,7 +329,7 @@ class RecordPlayHandle extends Handle {
 
     const response = await this.message(body, jsep);
     const { event, data: evtdata } = this._getPluginEvent(response);;
-    if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'playing')
+    if (event === PLUGIN_EVENT.PLAYING)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
@@ -312,7 +347,7 @@ class RecordPlayHandle extends Handle {
 
     const response = await this.message(body);
     const { event, data: evtdata } = this._getPluginEvent(response);;
-    if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'paused')
+    if (event === PLUGIN_EVENT.PAUSED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
@@ -330,7 +365,7 @@ class RecordPlayHandle extends Handle {
 
     const response = await this.message(body);
     const { event, data: evtdata } = this._getPluginEvent(response);;
-    if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'resumed')
+    if (event === PLUGIN_EVENT.RESUMED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
@@ -348,7 +383,7 @@ class RecordPlayHandle extends Handle {
 
     const response = await this.message(body);
     const { event, data: evtdata } = this._getPluginEvent(response);;
-    if (event === PLUGIN_EVENT.STATUS && evtdata.status === 'stopping')
+    if (event === PLUGIN_EVENT.STOPPED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);
@@ -365,7 +400,7 @@ class RecordPlayHandle extends Handle {
  */
 
 /**
- * The response event for recordplay room recordings request.
+ * The response event for recordplay recordings request.
  *
  * @typedef {Object} RECORDPLAY_EVENT_RECORDINGS_LIST
  * @property {object[]} list - The list of the recordings as returned by Janus
@@ -378,6 +413,15 @@ class RecordPlayHandle extends Handle {
  */
 
 /**
+ * The response event for record request.
+ *
+ * @typedef {Object} RECORDPLAY_EVENT_RECORDING
+ * @property {number} [id] - The involved recording identifier
+ * @property {boolean} [is_private] - True if the event mentions a private recording
+ * @property {RTCSessionDescription} [jsep] - Optional JSEP from Janus
+ */
+
+/**
  * The response event for configure request.
  *
  * @typedef {Object} RECORDPLAY_EVENT_CONFIGURED
@@ -385,13 +429,58 @@ class RecordPlayHandle extends Handle {
  */
 
 /**
- * A recordplay status update event.
+ * The response event for pause request.
  *
- * @typedef {Object} RECORDPLAY_EVENT_STATUS
- * @property {string} status - The current status of the session
+ * @typedef {Object} RECORDPLAY_EVENT_PAUSED
+ * @property {number} [id] - The involved recording identifier
+ */
+
+/**
+ * The response event for resume request.
+ *
+ * @typedef {Object} RECORDPLAY_EVENT_RESUMED
+ * @property {number} [id] - The involved recording identifier
+ */
+
+/**
+ * The response event for play request.
+ *
+ * @typedef {Object} RECORDPLAY_EVENT_PREPARING
  * @property {number} [id] - The involved recording identifier
  * @property {boolean} [is_private] - True if the event mentions a private recording
  * @property {RTCSessionDescription} [jsep] - Optional JSEP from Janus
+ */
+
+/**
+ * The response event for start request.
+ *
+ * @typedef {Object} RECORDPLAY_EVENT_PLAYING
+ * @property {number} [id] - The involved recording identifier
+ */
+
+/**
+ * The response event for stop request.
+ *
+ * @typedef {Object} RECORDPLAY_EVENT_STOPPED
+ * @property {number} [id] - The involved recording identifier
+ * @property {boolean} [is_private] - True if the event mentions a private recording
+ */
+
+/**
+ * A recordplay slow-link event.
+ *
+ * @typedef {Object} RECORDPLAY_EVENT_SLOW_LINK
+ * @property {string} [media] - Audio or video
+ * @property {number} [current-bitrate] - The current configured max video bitrate
+ * @property {boolean} [uplink] - Whether this is an uplink or downlink event
+ */
+
+/**
+ * A recordplay done event.
+ *
+ * @typedef {Object} RECORDPLAY_EVENT_DONE
+ * @property {number} [id] - The involved recording identifier
+ * @property {boolean} [is_private] - True if the event mentions a private recording
  */
 
 /**
@@ -401,7 +490,8 @@ class RecordPlayHandle extends Handle {
  * @property {string} id - The plugin identifier used when attaching to Janus
  * @property {module:recordplay-plugin~RecordPlayHandle} Handle - The custom class implementing the plugin
  * @property {Object} EVENT - The events emitted by the plugin
- * @property {string} EVENT.RECORDPLAY_STATUS {@link module:recordplay-plugin~RecordPlayHandle#event:RECORDPLAY_STATUS RECORDPLAY_STATUS}
+ * @property {string} EVENT.RECORDPLAY_SLOW_LINK {@link module:recordplay-plugin~RecordPlayHandle#event:RECORDPLAY_STATUS RECORDPLAY_SLOW_LINK}
+ * @property {string} EVENT.RECORDPLAY_DONE {@link module:recordplay-plugin~RecordPlayHandle#event:RECORDPLAY_STATUS RECORDPLAY_DONE}
  * @property {string} EVENT.RECORDPLAY_ERROR {@link module:recordplay-plugin~RecordPlayHandle#event:RECORDPLAY_ERROR RECORDPLAY_ERROR}
  */
 export default {
@@ -410,12 +500,20 @@ export default {
 
   EVENT: {
     /**
-     * Update of the status for the active stream.
+     * Trouble on an active stream.
      *
-     * @event module:recordplay-plugin~RecordPlayHandle#event:RECORDPLAY_STATUS
-     * @type {module:recordplay-plugin~RECORDPLAY_EVENT_STATUS}
+     * @event module:recordplay-plugin~RecordPlayHandle#event:RECORDPLAY_SLOW_LINK
+     * @type {module:recordplay-plugin~RECORDPLAY_EVENT_SLOW_LINK}
      */
-    RECORDPLAY_STATUS: PLUGIN_EVENT.STATUS,
+    RECORDPLAY_SLOW_LINK: PLUGIN_EVENT.SLOW_LINK,
+
+    /**
+     * A recording/playback session is over.
+     *
+     * @event module:recordplay-plugin~RecordPlayHandle#event:RECORDPLAY_DONE
+     * @type {module:recordplay-plugin~RECORDPLAY_EVENT_DONE}
+     */
+    RECORDPLAY_DONE: PLUGIN_EVENT.DONE,
 
     /**
      * Generic recordplay error.

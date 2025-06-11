@@ -115,13 +115,13 @@ class TextRoomHandle extends Handle {
           janode_event.event = PLUGIN_EVENT.SUCCESS;
           break;
 
-        /* Audio bridge room created */
+        /* TextRoom room created */
         case 'created':
           janode_event.event = PLUGIN_EVENT.CREATED;
           janode_event.data.permanent = message_data.permanent;
           break;
 
-        /* Audio bridge room destroyed */
+        /* TextRoom room destroyed */
         case 'destroyed':
           janode_event.event = PLUGIN_EVENT.DESTROYED;
           break;

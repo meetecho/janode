@@ -95,8 +95,8 @@ class TextRoomHandle extends Handle {
             break;
           }
           /* Room list API */
-          if (typeof message_data.rooms !== 'undefined') {
-            janode_event.data.rooms = message_data.rooms;
+          if (typeof message_data.list !== 'undefined') {
+            janode_event.data.list = message_data.list;
             janode_event.event = PLUGIN_EVENT.ROOMS_LIST;
             break;
           }

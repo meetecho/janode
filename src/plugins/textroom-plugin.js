@@ -124,6 +124,7 @@ class TextRoomHandle extends Handle {
         /* TextRoom room destroyed */
         case 'destroyed':
           janode_event.event = PLUGIN_EVENT.DESTROYED;
+          janode_event.data.permanent = message_data.permanent;
           break;
 
         /* Generic event (e.g. errors) */
@@ -292,7 +293,7 @@ class TextRoomHandle extends Handle {
   }
 
   /**
-   * Create an textroom room.
+   * Create a textroom room.
    *
    * @param {Object} params
    * @param {number|string} params.room - The room identifier
@@ -329,14 +330,14 @@ class TextRoomHandle extends Handle {
   }
 
   /**
-   * Edit an textroom token list.
+   * Edit a textroom token list.
    *
    * @param {Object} params
    * @param {number|string} params.room - The involved room
    * @param {"enable"|"disable"|"add"|"remove"} params.action - The action to perform
    * @param {string[]} params.list - The list of tokens to add/remove
    * @param {string} [params.secret] - The optional secret needed to manage the room
-   * @returns {Promise<module:textroom-plugin~TEXTROOM_EVENT_ALLOWED>}
+   * @returns {Promise<module:textroom-plugin~TEXTROOM_EVENT_ALLOWED_RESPONSE>}
    */
   async allow({ room, action, list, secret }) {
     const body = {
@@ -389,11 +390,11 @@ class TextRoomHandle extends Handle {
    * @param {string} [params.secret] - The optional secret needed for managing the room
    * @returns {Promise<module:textroom-plugin~TEXTROOM_EVENT_KICK_RESPONSE>}
    */
-  async kick({ room, feed, secret }) {
+  async kick({ room, username, secret }) {
     const body = {
       request: REQUEST_KICK,
       room,
-      id: feed,
+      username: username,
     };
     if (typeof secret === 'string') body.secret = secret;
 
@@ -402,7 +403,7 @@ class TextRoomHandle extends Handle {
     if (event === PLUGIN_EVENT.SUCCESS) {
       /* Add data missing from Janus response */
       evtdata.room = body.room;
-      evtdata.feed = body.id;
+      evtdata.username = body.username;
       return evtdata;
     }
     const error = new Error(`unexpected response to ${body.request} request`);
@@ -410,7 +411,7 @@ class TextRoomHandle extends Handle {
   }
 
   /**
-   * Destroy an textroom room.
+   * Destroy a textroom room.
    *
    * @param {Object} params
    * @param {number|string} params.room - The room to destroy
@@ -442,6 +443,12 @@ class TextRoomHandle extends Handle {
  *
  * @private
  * @typedef {Object} TextRoomData
+ */
+
+/**
+ * The response event for textroom WebRTC establishment.
+ *
+ * @typedef {Object} TEXTROOM_EVENT_SUCCESS
  */
 
 /**
@@ -480,12 +487,21 @@ class TextRoomHandle extends Handle {
  *
  * @typedef {Object} TEXTROOM_EVENT_DESTROYED
  * @property {number|string} room - The destroyed room
+ * @property {boolean} permanent - True if the room removal is being persisted in the Janus config file
+ */
+
+/**
+ * The response event for textroom participant kick request.
+ *
+ * @typedef {Object} TEXTROOM_EVENT_KICK_RESPONSE
+ * @property {number|string} room - The involved room
+ * @property {string} username - The username that has been kicked out
  */
 
 /**
  * The response event for textroom ACL token edit request.
  *
- * @typedef {Object} TEXTROOM_EVENT_ALLOWED
+ * @typedef {Object} TEXTROOM_EVENT_ALLOWED_RESPONSE
  * @property {number|string} room - The involved room
  * @property {string[]} list - The updated, complete, list of allowed tokens
  */

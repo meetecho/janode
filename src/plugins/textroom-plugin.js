@@ -363,7 +363,7 @@ class TextRoomHandle extends Handle {
    * @param {number|string} params.room - The involved room
    * @param {string} params.text - The content of the announcement, as text
    * @param {string} [params.secret] - The optional secret needed to manage the room
-   * @returns {Promise<module:textroom-plugin~TEXTROOM_EVENT_ALLOWED>}
+   * @returns {Promise<module:textroom-plugin~TEXTROOM_EVENT_SUCCESS>}
    */
   async announcement({ room, text, secret }) {
     const body = {
@@ -394,7 +394,7 @@ class TextRoomHandle extends Handle {
     const body = {
       request: REQUEST_KICK,
       room,
-      username: username,
+      username,
     };
     if (typeof secret === 'string') body.secret = secret;
 

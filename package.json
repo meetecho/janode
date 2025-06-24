@@ -31,6 +31,7 @@
     "./plugins/recordplay": "./src/plugins/recordplay-plugin.js",
     "./plugins/sip": "./src/plugins/sip-plugin.js",
     "./plugins/streaming": "./src/plugins/streaming-plugin.js",
+    "./plugins/textroom": "./src/plugins/textroom-plugin.js",
     "./plugins/videoroom": "./src/plugins/videoroom-plugin.js"
   },
   "files": [

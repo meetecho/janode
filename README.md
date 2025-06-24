@@ -13,6 +13,7 @@ The supported Janus plugins are:
 - Streaming
 - VideoRoom
 - SIP
+- Record&Play
 - TextRoom (Janus API only)
 
 The library is available on [npm](https://www.npmjs.com/package/janode) and the source code is on [github](https://github.com/meetecho/janode).

@@ -6,10 +6,6 @@
  * @private
  */
 
-/* Isomorphic implementation of WebSocket */
-/* It uses ws on Node and global.WebSocket in browsers */
-import WebSocket from 'isomorphic-ws';
-
 import Logger from './utils/logger.js';
 const LOG_NS = '[transport-ws.js]';
 import { delayOp } from './utils/utils.js';
@@ -19,11 +15,6 @@ const API_WS = 'janus-protocol';
 /* Janus Admin API ws subprotocol */
 const ADMIN_WS = 'janus-admin-protocol';
 
-/* Default ws ping interval */
-const PING_TIME_SECS = 10;
-/* Default pong wait timeout */
-const PING_TIME_WAIT_SECS = 5;
-
 /**
  * Class representing a connection through WebSocket transport.<br>
  *
@@ -31,7 +22,7 @@ const PING_TIME_WAIT_SECS = 5;
  * times to attempt). At every attempt, if multiple addresses are available for Janus, the next address
  * will be tried. An error will be raised only if the maxmimum number of attempts have been reached.<br>
  *
- * Internally uses WebSockets API to establish a connection with Janus and uses ws ping/pong as keepalives.<br>
+ * Internally uses WebSockets API to establish a connection with Janus.<br>
  *
  * @private
  */
@@ -92,13 +83,6 @@ class TransportWs {
     this._closed = false; // true if websocket has been closed after being opened
 
     /**
-     * The task of the peridic ws ping.
-     *
-     * @type {Object}
-     */
-    this._ping_task = null;
-
-    /**
      * A numerical identifier assigned for logging purposes.
      *
      * @type {number}
@@ -134,8 +118,6 @@ class TransportWs {
       /* Register an "open" listener */
       ws.addEventListener('open', _ => {
         Logger.info(`${LOG_NS} ${this.name} websocket connected`);
-        /* Set the ping/pong task */
-        this._setPingTask(PING_TIME_SECS * 1000);
         /* Resolve the promise and return this connection */
         resolve(this);
       }, { once: true });
@@ -144,8 +126,6 @@ class TransportWs {
       ws.addEventListener('close', ({ code, reason, wasClean }) => {
         Logger.info(`${LOG_NS} ${this.name} websocket closed code=${code} reason=${reason} clean=${wasClean}`);
         /* Start cleanup */
-        /* Cancel the KA task */
-        this._unsetPingTask();
         const wasClosing = this._closing;
         this._closing = false;
         this._closed = true;
@@ -235,93 +215,6 @@ class TransportWs {
 
     /* Use internal helper */
     return this._attemptOpen();
-  }
-
-  /**
-   * Send a ws ping frame.
-   * This API is only available when the library is not used in a browser.
-   *
-   * @returns {Promise<void>}
-   */
-  async _ping() {
-    /* ws.ping is only supported on the node "ws" module */
-    if (typeof this._ws.ping !== 'function') {
-      Logger.warn('ws ping not supported');
-      return;
-    }
-    let timeout;
-
-    /* Set a promise that will reject in PING_TIME_WAIT_SECS seconds */
-    const timeout_ping = new Promise((_, reject) => {
-      timeout = setTimeout(_ => reject(new Error('timeout')), PING_TIME_WAIT_SECS * 1000);
-    });
-
-    /* Set a promise that will resolve once "pong" has been received */
-    const ping_op = new Promise((resolve, reject) => {
-      /* Send current timestamp in the ping */
-      const ping_data = '' + Date.now();
-
-      this._ws.ping(ping_data, error => {
-        if (error) {
-          Logger.error(`${LOG_NS} ${this.name} websocket PING send error (${error.message})`);
-          clearTimeout(timeout);
-          return reject(error);
-        }
-        Logger.verbose(`${LOG_NS} ${this.name} websocket PING sent (${ping_data})`);
-      });
-
-      /* Resolve on pong */
-      this._ws.once('pong', data => {
-        Logger.verbose(`${LOG_NS} ${this.name} websocket PONG received (${data.toString()})`);
-        clearTimeout(timeout);
-        return resolve();
-      });
-
-    });
-
-    /* Race between timeout and pong */
-    return Promise.race([ping_op, timeout_ping]);
-  }
-
-  /**
-   * Set a ws ping-pong task.
-   *
-   * @param {number} delay - The ping interval in milliseconds
-   * @returns {void}
-   */
-  _setPingTask(delay) {
-    /* ws "ping" is only supported on the node ws module */
-    if (typeof this._ws.ping !== 'function') {
-      Logger.warn('ws ping not supported');
-      return;
-    }
-    if (this._ping_task) return;
-
-    /* Set a periodic task to send a ping */
-    /* In case of error, terminate the ws */
-    this._ping_task = setInterval(async _ => {
-      try {
-        await this._ping();
-      } catch ({ message }) {
-        Logger.error(`${LOG_NS} ${this.name} websocket PING error (${message})`);
-        /* ws "terminate" is only supported on the node ws module */
-        this._ws.terminate();
-      }
-    }, delay);
-
-    Logger.info(`${LOG_NS} ${this.name} websocket ping task scheduled every ${PING_TIME_SECS} seconds`);
-  }
-
-  /**
-   * Remove the ws ping task.
-   *
-   * @returns {void}
-   */
-  _unsetPingTask() {
-    if (!this._ping_task) return;
-    clearInterval(this._ping_task);
-    this._ping_task = null;
-    Logger.info(`${LOG_NS} ${this.name} websocket ping task disabled`);
   }
 
   /**

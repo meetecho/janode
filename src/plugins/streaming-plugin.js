@@ -617,6 +617,8 @@ class StreamingHandle extends Handle {
         if (video.rtpmap) body.videortpmap = video.rtpmap;
         if (video.fmtp) body.videofmtp = video.fmtp;
         if (typeof video.buffer === 'boolean') body.videobufferkf = video.buffer;
+        if (typeof video.bufferkf_ms === 'number') body.bufferkf_ms = video.bufferkf_ms;
+        if (typeof video.bufferkf_bytes === 'number') body.bufferkf_bytes = video.bufferkf_bytes;
         if (typeof video.skew === 'boolean') body.videoskew = video.skew;
         if (typeof video.port2 === 'number' && typeof video.port3 === 'number') {
           body.videosimulcast = true;

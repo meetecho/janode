@@ -566,11 +566,13 @@ class StreamingHandle extends Handle {
    * @param {string} [params.video.rtpmap] - rtpmap that will be used
    * @param {boolean} [params.video.skew] - Set skew compensation
    * @param {string} [params.video.fmtp] - fmtp that will be used
-   * @param {boolean} [params.video.buffer] - Enable buffering of the keyframes
+   * @param {boolean} [params.video.buffer] - Enable buffering of the keyframes (deprecated, see bufferkf_ms and bufferkf_bytes)
    * @param {Object} [params.data] - The datachannel descriptor for the mp
    * @param {number} [params.data.port] - Port used for datachannels packets
    * @param {boolean} [params.data.buffer] - Enable buffering of the datachannels
    * @param {object[]} [params.media] - [multistream] The media object, each media includes type, mid, port, pt ...
+   * @param {number} [params.bufferkf_ms] - Enable buffering of the video keyframes (milliseconds)
+   * @param {number} [params.bufferkf_bytes] - Enable buffering of the video keyframes (bytes)
    * @param {number} [params.threads] - The number of helper threads used in this mp
    * @param {Object} [params.metadata] - An opaque metadata to add to the mp
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)

@@ -590,7 +590,17 @@ class StreamingHandle extends Handle {
    * @param {number} [params.threads] - The number of helper threads used in this mp
    * @param {Object} [params.metadata] - An opaque metadata to add to the mp
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)
-   * @param {Object} [params.rtsp] - The RTSP properties, if needed (url, user, pwd, quirk, failcheck, notifyChanges, ...)
+   * @param {Object} [params.rtsp] - The RTSP properties, if needed
+   * @param {string} [params.rtsp.url] - The RTSP url
+   * @param {string} [params.rtsp.user] - The RTSP username, if authentication is required
+   * @param {string} [params.rtsp.pwd] - The RTSP password, if authentication is required
+   * @param {boolean} [params.rtsp.quirk] - Enable RTSP quirk (see Janus documentation for details)
+   * @param {boolean} [params.rtsp.failcheck] - Return an error if connecting to the RTSP server fails
+   * @param {number} [params.rtsp.reconnectDelay] - How many seconds with no incoming media should trigger an RTSP reconnection
+   * @param {number} [params.rtsp.sessionTimeout] - Session timeout in seconds (see Janus documentation for details)
+   * @param {number} [params.rtsp.timeout] - Communication timeout for libcurl, in seconds
+   * @param {number} [params.rtsp.connTimeout] - Connection timeout for libcurl, in seconds
+   * @param {boolean} [params.rtsp.notifyChanges] - Whether subscribers should receive an event when connection to the RTSP server is lost/restored
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
   async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, media, threads, metadata, collision, rtsp}) {

@@ -576,7 +576,7 @@ class StreamingHandle extends Handle {
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, media, threads, metadata, collision }) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, media, bufferkf_ms, bufferkf_bytes, threads, metadata, collision }) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',
@@ -617,8 +617,6 @@ class StreamingHandle extends Handle {
         if (video.rtpmap) body.videortpmap = video.rtpmap;
         if (video.fmtp) body.videofmtp = video.fmtp;
         if (typeof video.buffer === 'boolean') body.videobufferkf = video.buffer;
-        if (typeof video.bufferkf_ms === 'number') body.bufferkf_ms = video.bufferkf_ms;
-        if (typeof video.bufferkf_bytes === 'number') body.bufferkf_bytes = video.bufferkf_bytes;
         if (typeof video.skew === 'boolean') body.videoskew = video.skew;
         if (typeof video.port2 === 'number' && typeof video.port3 === 'number') {
           body.videosimulcast = true;
@@ -632,6 +630,8 @@ class StreamingHandle extends Handle {
         if (typeof data.buffer === 'boolean') body.databuffermsg = data.buffer;
       }
     }
+    if (typeof bufferkf_ms === 'number') body.bufferkf_ms = bufferkf_ms;
+    if (typeof bufferkf_bytes === 'number') body.bufferkf_bytes = bufferkf_bytes;
     if (typeof threads === 'number' && threads > 0) body.threads = threads;
     if (metadata) body.metadata = metadata;
     if (typeof collision === 'number') body.collision = collision;

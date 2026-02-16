@@ -488,7 +488,6 @@ class SipHandle extends Handle {
   async unregister() {
     const body = {
       request: REQUEST_UNREGISTER,
-      username,
     };
 
     const request = {
@@ -861,8 +860,6 @@ class SipHandle extends Handle {
       request: REQUEST_RTP_FWD_STOP,
       stream_id: stream,
     };
-    if (typeof secret === 'string') body.secret = secret;
-    if (typeof admin_key === 'string') body.admin_key = admin_key;
 
     const response = await this.message(body);
     const { event, data: evtdata } = this._getPluginEvent(response);
@@ -975,7 +972,7 @@ export default {
      * @event module:sip-plugin~SipHandle#event:SIP_UNREGISTERING
      * @type {Object}
      */
-    SIP_REGISTERING: PLUGIN_EVENT.UNREGISTERING,
+    SIP_UNREGISTERING: PLUGIN_EVENT.UNREGISTERING,
 
     /**
      * Event for a SIP call in progress

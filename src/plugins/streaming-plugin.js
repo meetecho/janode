@@ -38,6 +38,8 @@ const PLUGIN_EVENT = {
   INFO: 'streaming_info',
   CREATED: 'streaming_created',
   DESTROYED: 'streaming_destroyed',
+  RTSP_DISCONNECTED: 'streaming_rtsp_disconnected',
+  RTSP_RECONNECTED: 'streaming_rtsp_reconnected',
   OK: 'streaming_ok',
   ERROR: 'streaming_error',
 };
@@ -78,12 +80,14 @@ class StreamingHandle extends Handle {
    */
   handleMessage(janus_message) {
     const { plugindata, transaction } = janus_message;
-    if (plugindata && plugindata.data && plugindata.data.streaming) {
+    if (plugindata && plugindata.data && (plugindata.data.streaming || plugindata.data.event)) {
       /**
        * @type {StreamingData}
        */
       const message_data = plugindata.data;
-      const { streaming, error, error_code } = message_data;
+      let { streaming, error, error_code } = message_data;
+      if(!streaming)
+        streaming = message_data.event;
 
       /* Prepare an object for the output Janode event */
       const janode_event = this._newPluginEvent(janus_message);
@@ -110,6 +114,18 @@ class StreamingHandle extends Handle {
         case 'list':
           janode_event.event = PLUGIN_EVENT.LIST;
           janode_event.data.list = message_data.list;
+          break;
+
+        /* RTSP disconnected */
+        case 'rtsp-disconnected':
+          janode_event.event = PLUGIN_EVENT.RTSP_DISCONNECTED;
+          janode_event.data.id = message_data.id;
+          break;
+
+        /* RTSP reconnected */
+        case 'rtsp-reconnected':
+          janode_event.event = PLUGIN_EVENT.RTSP_RECONNECTED;
+          janode_event.data.id = message_data.id;
           break;
 
         /* Mountpoint created */
@@ -574,9 +590,20 @@ class StreamingHandle extends Handle {
    * @param {number} [params.threads] - The number of helper threads used in this mp
    * @param {Object} [params.metadata] - An opaque metadata to add to the mp
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)
+   * @param {Object} [params.rtsp] - The RTSP properties, if needed
+   * @param {string} [params.rtsp.url] - The RTSP url
+   * @param {string} [params.rtsp.user] - The RTSP username, if authentication is required
+   * @param {string} [params.rtsp.pwd] - The RTSP password, if authentication is required
+   * @param {boolean} [params.rtsp.quirk] - Enable RTSP quirk (see Janus documentation for details)
+   * @param {boolean} [params.rtsp.failcheck] - Return an error if connecting to the RTSP server fails
+   * @param {number} [params.rtsp.reconnectDelay] - How many seconds with no incoming media should trigger an RTSP reconnection
+   * @param {number} [params.rtsp.sessionTimeout] - Session timeout in seconds (see Janus documentation for details)
+   * @param {number} [params.rtsp.timeout] - Communication timeout for libcurl, in seconds
+   * @param {number} [params.rtsp.connTimeout] - Connection timeout for libcurl, in seconds
+   * @param {boolean} [params.rtsp.notifyChanges] - Whether subscribers should receive an event when connection to the RTSP server is lost/restored
    * @returns {Promise<module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, media, threads, metadata, collision }) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, media, threads, metadata, collision, rtsp}) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',
@@ -633,6 +660,20 @@ class StreamingHandle extends Handle {
     if (typeof threads === 'number' && threads > 0) body.threads = threads;
     if (metadata) body.metadata = metadata;
     if (typeof collision === 'number') body.collision = collision;
+    /* Check if this is for an RTSP mountpoint */
+    if (typeof rtsp === 'object' && rtsp) {
+      body.type = 'rtsp';
+      if (typeof rtsp.url === 'string') body.url = rtsp.url;
+      if (typeof rtsp.user === 'string') body.rtsp_user = rtsp.user;
+      if (typeof rtsp.pwd === 'string') body.rtsp_pwd = rtsp.pwd;
+      if (typeof rtsp.quirk === 'boolean') body.rtsp_quirk = rtsp.quirk;
+      if (typeof rtsp.failcheck === 'boolean') body.rtsp_failcheck = rtsp.failcheck;
+      if (typeof rtsp.reconnectDelay === 'number') body.rtsp_reconnect_delay = rtsp.reconnectDelay;
+      if (typeof rtsp.sessionTimeout === 'number') body.rtsp_session_timeout = rtsp.sessionTimeout;
+      if (typeof rtsp.timeout === 'number') body.rtsp_timeout = rtsp.timeout;
+      if (typeof rtsp.connTimeout === 'number') body.rtsp_conn_timeout = rtsp.connTimeout;
+      if (typeof rtsp.notifyChanges === 'boolean') body.rtsp_notify_changes = rtsp.notifyChanges;
+    }
 
     const response = await this.message(body);
     const { event, data: evtdata } = this._getPluginEvent(response);
@@ -740,6 +781,20 @@ class StreamingHandle extends Handle {
  */
 
 /**
+ * An RTSP disconnection event.
+ *
+ * @typedef {Object} STREAMING_EVENT_RTSP_DISCONNECTED
+ * @property {number|string} [id] - The involved mountpoint identifier
+ */
+
+/**
+ * An RTSP reconnection event.
+ *
+ * @typedef {Object} STREAMING_EVENT_RTSP_RECONNECTED
+ * @property {number|string} [id] - The involved mountpoint identifier
+ */
+
+/**
  * Response event for mountpoint switch request.
  *
  * @typedef {Object} STREAMING_EVENT_SWITCHED
@@ -761,6 +816,8 @@ class StreamingHandle extends Handle {
  * @property {module:streaming-plugin~StreamingHandle} Handle - The custom class implementing the plugin
  * @property {Object} EVENT - The events emitted by the plugin
  * @property {string} EVENT.STREAMING_STATUS {@link module:streaming-plugin~StreamingHandle#event:STREAMING_STATUS STREAMING_STATUS}
+ * @property {string} EVENT.STREAMING_RTSP_DISCONNECTED {@link module:streaming-plugin~StreamingHandle#event:STREAMING_RTSP_DISCONNECTED STREAMING_RTSP_DISCONNECTED}
+ * @property {string} EVENT.STREAMING_RTSP_RECONNECTED {@link module:streaming-plugin~StreamingHandle#event:STREAMING_RTSP_RECONNECTED STREAMING_RTSP_RECONNECTED}
  * @property {string} EVENT.STREAMING_ERROR {@link module:streaming-plugin~StreamingHandle#event:STREAMING_ERROR STREAMING_ERROR}
  */
 export default {
@@ -779,6 +836,24 @@ export default {
      * @property {RTCSessionDescription} [jsep] - Optional JSEP from Janus
      */
     STREAMING_STATUS: PLUGIN_EVENT.STATUS,
+
+    /**
+     * An RTSP stream got disconnected.
+     *
+     * @event module:streaming-plugin~StreamingHandle#event:STREAMING_RTSP_DISCONNECTED
+     * @type {Object}
+     * @property {number|string} [id] - The involved mountpoint identifier
+     */
+    STREAMING_RTSP_DISCONNECTED: PLUGIN_EVENT.RTSP_DISCONNECTED,
+
+    /**
+     * An RTSP stream got reconnected.
+     *
+     * @event module:streaming-plugin~StreamingHandle#event:STREAMING_RTSP_RECONNECTED
+     * @type {Object}
+     * @property {number|string} [id] - The involved mountpoint identifier
+     */
+    STREAMING_RTSP_RECONNECTED: PLUGIN_EVENT.RTSP_RECONNECTED,
 
     /**
      * Generic streaming error.

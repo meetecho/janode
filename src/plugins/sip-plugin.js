@@ -17,6 +17,7 @@ const REQUEST_UNREGISTER = 'unregister';
 const REQUEST_CALL = 'call';
 const REQUEST_ACCEPT = 'accept';
 const REQUEST_PROGRESS = 'progress';
+const REQUEST_LATE_ACK = 'late_ack';
 const REQUEST_INFO = 'info';
 const REQUEST_MESSAGE = 'message';
 const REQUEST_KEYFRAME = 'keyframe';
@@ -41,8 +42,9 @@ const PLUGIN_EVENT = {
   HANGUP: 'sip_hangup',
   HANGINGUP: 'sip_hangingup',
   DECLINING: 'sip_declining',
-  PROGRESSING: 'sip_progressing',
+  PROGRESSED: 'sip_progressed',
   ACCEPTED: 'sip_accepted',
+  ACKED: 'sip_acked',
   MISSED: 'sip_missed',
   INFO: 'sip_info',
   INFO_SENT: 'sip_info_sent',
@@ -270,8 +272,8 @@ class SipHandle extends Handle {
           break;
         }
 
-        case 'progressing': {
-          janode_event.event = PLUGIN_EVENT.PROGRESSING;
+        case 'progressed': {
+          janode_event.event = PLUGIN_EVENT.PROGRESSED;
           const call = this._pendingCalls[call_id];
           if (call) {
             call.earlyMedia = true;
@@ -284,6 +286,21 @@ class SipHandle extends Handle {
         /* A call has been accepted */
         case 'accepted': {
           janode_event.event = PLUGIN_EVENT.ACCEPTED;
+          janode_event.data.username = result.username || this._pendingCalls[call_id].incoming;
+          if (result.headers) {
+            janode_event.data.headers = result.headers;
+          }
+          const call = this._pendingCalls[call_id];
+          if (call) {
+            call.accepted = true;
+          }
+          closeTx = CLOSE_TX_SUCCESS;
+          emit = false;
+          break;
+        }
+
+        case 'acked': {
+          janode_event.event = PLUGIN_EVENT.ACKED;
           janode_event.data.username = result.username || this._pendingCalls[call_id].incoming;
           if (result.headers) {
             janode_event.data.headers = result.headers;
@@ -517,11 +534,12 @@ class SipHandle extends Handle {
    * @param {string} [params.ha1_secret] - The prehashed password to use for authentication, if any
    * @param {string} [params.srtp] - Whether to mandate (sdes_mandatory) or offer (sdes_optional) SRTP support
    * @param {string} [params.srtp_profile] - SRTP profile to negotiate, in case SRTP is offered
+   * @param {string} [params.late_offer] - Whether the call should be an offer-less INVITE (late offer)
    * @param {object[]} [params.headers] - Custom headers to add to the request, if any (array of key/value mappings, header name/value)
    * @param {RTCSessionDescription} params.jsep - JSEP offer
    * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
    */
-  async call({ uri, call_id, authuser, secret, ha1_secret, srtp, srtp_profile, headers, jsep } = {}) {
+  async call({ uri, call_id, authuser, secret, ha1_secret, srtp, srtp_profile, headers, late_offer, jsep } = {}) {
     if (typeof jsep === 'object' && jsep && jsep.type !== 'offer') {
       const error = new Error('jsep must be an offer');
       return Promise.reject(error);
@@ -541,12 +559,19 @@ class SipHandle extends Handle {
     if (headers && Array.isArray(headers)) {
       body.headers = headers;
     }
+    if (typeof late_offer === 'boolean') body.late_offer = late_offer;
 
     const request = {
       janus: 'message',
       body,
-      jsep,
     };
+    if (!body.late_offer) {
+      if (!jsep || typeof jsep !== 'object') {
+        const error = new Error('jsep must be an offer');
+        return Promise.reject(error);
+      }
+      request.jsep = jsep;
+    }
     this.decorateRequest(request);
 
     const response = await this.sendRequest(request, 120000);
@@ -564,7 +589,7 @@ class SipHandle extends Handle {
    * @param {string} [params.srtp] - Whether to mandate (sdes_mandatory) or offer (sdes_optional) SRTP support
    * @param {string} [params.srtp_profile] - SRTP profile to negotiate, in case SRTP is offered
    * @param {object[]} [params.headers] - Custom headers to add to the request, if any (array of key/value mappings, header name/value)
-   * @param {RTCSessionDescription} params.jsep - JSEP answer
+   * @param {RTCSessionDescription} params.jsep - JSEP answer (or offer, when replying to offerless-INVITEs)
    * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
    */
   async accept({ srtp, srtp_profile, headers, jsep } = {}) {
@@ -621,7 +646,42 @@ class SipHandle extends Handle {
 
     const response = await this.sendRequest(request, 10000);
     const { event, data: evtdata } = this._getPluginEvent(response);
-    if (event === PLUGIN_EVENT.PROGRESSING)
+    if (event === PLUGIN_EVENT.PROGRESSED)
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
+   * Send a final ACK for an outgoing SIP call originated by an offer-less INVITE (late offer).
+   *
+   * @param {Object} params
+   * @param {string} [params.srtp] - Whether to mandate (sdes_mandatory) or offer (sdes_optional) SRTP support
+   * @param {string} [params.srtp_profile] - SRTP profile to negotiate, in case SRTP is offered
+   * @param {object[]} [params.headers] - Custom headers to add to the request, if any (array of key/value mappings, header name/value)
+   * @param {RTCSessionDescription} params.jsep - JSEP answer
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
+   */
+  async lateAck({ srtp, srtp_profile, headers, jsep } = {}) {
+    const body = {
+      request: REQUEST_LATE_ACK,
+    };
+    if (typeof srtp === 'string') body.srtp = srtp;
+    if (typeof srtp_profile === 'string') body.srtp_profile = srtp_profile;
+    if (headers && Array.isArray(headers)) {
+      body.headers = headers;
+    }
+
+    const request = {
+      janus: 'message',
+      body,
+      jsep,
+    };
+    this.decorateRequest(request);
+
+    const response = await this.sendRequest(request, 10000);
+    const { event, data: evtdata } = this._getPluginEvent(response);
+    if (event === PLUGIN_EVENT.ACKED)
       return evtdata;
     const error = new Error(`unexpected response to ${body.request} request`);
     throw (error);

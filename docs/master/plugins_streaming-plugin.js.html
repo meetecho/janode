@@ -584,11 +584,13 @@ class StreamingHandle extends Handle {
    * @param {string} [params.video.rtpmap] - rtpmap that will be used
    * @param {boolean} [params.video.skew] - Set skew compensation
    * @param {string} [params.video.fmtp] - fmtp that will be used
-   * @param {boolean} [params.video.buffer] - Enable buffering of the keyframes
+   * @param {boolean} [params.video.buffer] - Enable buffering of the keyframes (deprecated, see bufferkf_ms and bufferkf_bytes)
    * @param {Object} [params.data] - The datachannel descriptor for the mp
    * @param {number} [params.data.port] - Port used for datachannels packets
    * @param {boolean} [params.data.buffer] - Enable buffering of the datachannels
    * @param {object[]} [params.media] - [multistream] The media object, each media includes type, mid, port, pt ...
+   * @param {number} [params.bufferkf_ms] - Enable buffering of the video keyframes (milliseconds)
+   * @param {number} [params.bufferkf_bytes] - Enable buffering of the video keyframes (bytes)
    * @param {number} [params.threads] - The number of helper threads used in this mp
    * @param {Object} [params.metadata] - An opaque metadata to add to the mp
    * @param {number} [params.collision] - The stream collision discarding time in number of milliseconds (0=disabled)
@@ -605,7 +607,7 @@ class StreamingHandle extends Handle {
    * @param {boolean} [params.rtsp.notifyChanges] - Whether subscribers should receive an event when connection to the RTSP server is lost/restored
    * @returns {Promise&lt;module:streaming-plugin~STREAMING_EVENT_CREATED>}
    */
-  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, media, threads, metadata, collision, rtsp}) {
+  async createRtpMountpoint({ id = 0, name, description, secret, pin, admin_key, permanent = false, is_private = false, e2ee = false, audio, video, data, media, bufferkf_ms, bufferkf_bytes, threads, metadata, collision, rtsp}) {
     const body = {
       request: REQUEST_CREATE,
       type: 'rtp',
@@ -659,6 +661,8 @@ class StreamingHandle extends Handle {
         if (typeof data.buffer === 'boolean') body.databuffermsg = data.buffer;
       }
     }
+    if (typeof bufferkf_ms === 'number') body.bufferkf_ms = bufferkf_ms;
+    if (typeof bufferkf_bytes === 'number') body.bufferkf_bytes = bufferkf_bytes;
     if (typeof threads === 'number' &amp;&amp; threads > 0) body.threads = threads;
     if (metadata) body.metadata = metadata;
     if (typeof collision === 'number') body.collision = collision;

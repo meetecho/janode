@@ -556,7 +556,7 @@ class SipHandle extends Handle {
     if (typeof ha1_secret === 'string') body.ha1_secret = ha1_secret;
     if (typeof srtp === 'string') body.srtp = srtp;
     if (typeof srtp_profile === 'string') body.srtp_profile = srtp_profile;
-    if (headers && Array.isArray(headers)) {
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       body.headers = headers;
     }
     if (typeof late_offer === 'boolean') body.late_offer = late_offer;
@@ -598,7 +598,7 @@ class SipHandle extends Handle {
     };
     if (typeof srtp === 'string') body.srtp = srtp;
     if (typeof srtp_profile === 'string') body.srtp_profile = srtp_profile;
-    if (headers && Array.isArray(headers)) {
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       body.headers = headers;
     }
 
@@ -633,7 +633,7 @@ class SipHandle extends Handle {
     };
     if (typeof srtp === 'string') body.srtp = srtp;
     if (typeof srtp_profile === 'string') body.srtp_profile = srtp_profile;
-    if (headers && Array.isArray(headers)) {
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       body.headers = headers;
     }
 
@@ -668,7 +668,7 @@ class SipHandle extends Handle {
     };
     if (typeof srtp === 'string') body.srtp = srtp;
     if (typeof srtp_profile === 'string') body.srtp_profile = srtp_profile;
-    if (headers && Array.isArray(headers)) {
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       body.headers = headers;
     }
 
@@ -698,7 +698,7 @@ class SipHandle extends Handle {
     const body = {
       request: REQUEST_HANGUP,
     };
-    if (headers && Array.isArray(headers)) {
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       body.headers = headers;
     }
 
@@ -729,7 +729,7 @@ class SipHandle extends Handle {
       request: REQUEST_DECLINE,
       code
     };
-    if (headers && Array.isArray(headers)) {
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       body.headers = headers;
     }
 
@@ -762,7 +762,7 @@ class SipHandle extends Handle {
       type,
       content
     };
-    if (headers && Array.isArray(headers)) {
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       body.headers = headers;
     }
 
@@ -799,7 +799,7 @@ class SipHandle extends Handle {
       content_type,
       content
     };
-    if (headers && Array.isArray(headers)) {
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
       body.headers = headers;
     }
 

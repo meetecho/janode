@@ -19,6 +19,7 @@ const REQUEST_ACCEPT = 'accept';
 const REQUEST_PROGRESS = 'progress';
 const REQUEST_LATE_ACK = 'late_ack';
 const REQUEST_INFO = 'info';
+const REQUEST_DTMF = 'dtmf_info';
 const REQUEST_MESSAGE = 'message';
 const REQUEST_KEYFRAME = 'keyframe';
 const REQUEST_RECORDING = 'recording';
@@ -51,6 +52,7 @@ const PLUGIN_EVENT = {
   MESSAGE: 'sip_message',
   MESSAGE_SENT: 'sip_message_sent',
   DTMF: 'sip_dtmf',
+  DTMF_SENT: 'sip_dtmf_sent',
   KEYFRAME_SENT: 'sip_keyframe_sent',
   RECORDING_UPDATED: 'sip_recording_updated',
   RTP_FWD: 'sip_rtp_fwd',
@@ -381,6 +383,13 @@ class SipHandle extends Handle {
           break;
         }
 
+        case 'dtmfsent': {
+          janode_event.event = PLUGIN_EVENT.DTMF_SENT;
+          closeTx = CLOSE_TX_SUCCESS;
+          emit = false;
+          break;
+        }
+
         /* Keyframe request */
         case 'keyframesent': {
           janode_event.event = PLUGIN_EVENT.KEYFRAME_SENT;
@@ -625,7 +634,7 @@ class SipHandle extends Handle {
    * @param {string} [params.srtp_profile] - SRTP profile to negotiate, in case SRTP is offered
    * @param {object[]} [params.headers] - Custom headers to add to the request, if any (array of key/value mappings, header name/value)
    * @param {RTCSessionDescription} params.jsep - JSEP answer
-   * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_PROGRESSED>}
    */
   async progress({ srtp, srtp_profile, headers, jsep } = {}) {
     const body = {
@@ -660,7 +669,7 @@ class SipHandle extends Handle {
    * @param {string} [params.srtp_profile] - SRTP profile to negotiate, in case SRTP is offered
    * @param {object[]} [params.headers] - Custom headers to add to the request, if any (array of key/value mappings, header name/value)
    * @param {RTCSessionDescription} params.jsep - JSEP answer
-   * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_ACKED>}
    */
   async lateAck({ srtp, srtp_profile, headers, jsep } = {}) {
     const body = {
@@ -754,7 +763,7 @@ class SipHandle extends Handle {
    * @param {string} params.type - The content type
    * @param {string} params.content - The content as a string
    * @param {object[]} [params.headers] - Custom headers to add to the request, if any (array of key/value mappings, header name/value)
-   * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_INFO_SENT>}
    */
   async sipInfo({ type, content, headers } = {}) {
     const body = {
@@ -789,7 +798,7 @@ class SipHandle extends Handle {
    * @param {string} params.content_type - The content type
    * @param {string} params.content - The content as a string
    * @param {object[]} [params.headers] - Custom headers to add to the request, if any (array of key/value mappings, header name/value)
-   * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_MESSAGE_SENT>}
    */
   async sipMessage({ uri, call_id, content_type, content, headers } = {}) {
     const body = {
@@ -818,12 +827,45 @@ class SipHandle extends Handle {
   }
 
   /**
+   * Send a SIP DTMF as INFO within the context of a call.
+   *
+   * @param {Object} params
+   * @param {string} params.digit - The digit to send
+   * @param {string} params.duration - Duration of the digit (optional)
+   * @param {object[]} [params.headers] - Custom headers to add to the request, if any (array of key/value mappings, header name/value)
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_DTMF_SENT>}
+   */
+  async sipDtmf({ digit, duration, headers } = {}) {
+    const body = {
+      request: REQUEST_DTMF,
+      digit,
+      duration
+    };
+    if (headers && typeof headers === 'object' && !Array.isArray(headers)) {
+      body.headers = headers;
+    }
+
+    const request = {
+      janus: 'message',
+      body
+    };
+    this.decorateRequest(request);
+
+    const response = await this.sendRequest(request, 10000);
+    const { event, data: evtdata } = this._getPluginEvent(response);
+    if (event === PLUGIN_EVENT.DTMF_SENT)
+      return evtdata;
+    const error = new Error(`unexpected response to ${body.request} request`);
+    throw (error);
+  }
+
+  /**
    * Send a keyframe request within the context of a call.
    *
    * @param {Object} params
    * @param {boolean} params.user - Whether to send a keyframe request to the WebRTC user
    * @param {boolean} params.peer - Whether to send a keyframe request to the SIP peer
-   * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_KEYFRAME_SENT>}
    */
   async keyframe({ user, peer } = {}) {
     const body = {
@@ -857,7 +899,7 @@ class SipHandle extends Handle {
    * @param {boolean} params.peer_video - Whether the recording request impacts the SIP peer video
    * @param {boolean} params.send_peer_pli - Whether a keyframe request should be sent to the SIP peer
    * @param {string} params.filename - Base path/filename to use for all the recordings
-   * @returns {Promise<module:sip-plugin~SIP_EVENT_ACCEPTED>}
+   * @returns {Promise<module:sip-plugin~SIP_EVENT_RECORDING_UPDATED>}
    */
   async recording({ stop, audio, video, peer_audio, peer_video, send_peer_pli, filename } = {}) {
     const body = {

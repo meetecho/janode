@@ -240,7 +240,7 @@ class AudioBridgeHandle extends Handle {
             };
             if (typeof talking !== 'undefined') peer.talking = talking;
             if (typeof suspended !== 'undefined') peer.suspended = suspended;
-            if (typeof volume !== 'undefined') peer.volumr = volume;
+            if (typeof volume !== 'undefined') peer.volume = volume;
             return peer;
           });
           janode_event.event = PLUGIN_EVENT.PARTICIPANTS_LIST;

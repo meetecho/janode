@@ -229,7 +229,7 @@ class AudioBridgeHandle extends Handle {
 
         /* Participants list */
         case 'participants':
-          janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended }) => {
+          janode_event.data.participants = message_data.participants.map(({ id, display, muted, setup, talking, suspended, volume }) => {
             const peer = {
               feed: id,
               display,
@@ -238,6 +238,7 @@ class AudioBridgeHandle extends Handle {
             };
             if (typeof talking !== 'undefined') peer.talking = talking;
             if (typeof suspended !== 'undefined') peer.suspended = suspended;
+            if (typeof volume !== 'undefined') peer.volumr = volume;
             return peer;
           });
           janode_event.event = PLUGIN_EVENT.PARTICIPANTS_LIST;
@@ -1274,6 +1275,7 @@ class AudioBridgeHandle extends Handle {
  * @property {boolean} [participants[].setup] - True if participant PeerConnection is up
  * @property {boolean} [participants[].talking] - True if participant is talking
  * @property {boolean} [participants[].suspended]  - True if participant is suspended
+ * @property {number} [participants[].volume]  - The current configured volume for the participant, in percent (if sent by Janus)
  */
 
 /**
